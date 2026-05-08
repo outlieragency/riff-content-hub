@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>fb-content cover — trendtech-portrait</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;700;800;900&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-black: #000000;
+    --fg: #FFFFFF;
+    --hl-red: #E53935;
+    --hl-yellow: #FFD400;
+    --hl-orange: #FF6B1A;  /* Earth CI — replaces TrendTech blue */
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1080px; height: 1350px;
+    background: var(--bg-black);
+    /* Noto Sans Thai = Google's reference Thai font; best diacritic stacking
+       (ขึ้น = ข + ◌ึ + ้ — Sarabun and IBM Plex have rendering bugs at large weights) */
+    font-family: 'Noto Sans Thai', 'IBM Plex Sans Thai', 'Sarabun', -apple-system, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow: hidden;
+    color: var(--fg);
+  }
+  .canvas {
+    width: 1080px; height: 1350px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ===== Top: Photo area (890px = ~66%) ===== */
+  .top {
+    width: 1080px;
+    height: 890px;
+    position: relative;
+    overflow: hidden;
+    background: #0a0a0a;
+    flex-shrink: 0;
+  }
+  .top img.screenshot {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+  }
+  /* Subtle dark vignette to keep brand logo + headline area readable */
+  .vignette {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 50% 60%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.35) 100%),
+      linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0) 18%, rgba(0,0,0,0) 70%, rgba(0,0,0,0.6) 100%);
+    pointer-events: none;
+  }
+
+  /* Brand mark — top right */
+  .brand-mark {
+    position: absolute;
+    top: 28px; right: 32px;
+    width: 130px; height: 130px;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    filter: drop-shadow(0 6px 18px rgba(0,0,0,0.55));
+  }
+  .brand-mark svg, .brand-mark img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+    border-radius: 50%;
+  }
+
+  /* Tool icon — top left (optional) */
+  .tool-icon {
+    position: absolute;
+    top: 30px; left: 36px;
+    width: 130px; height: 130px;
+    border-radius: 28px;
+    background: #FFFFFF;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.45);
+    overflow: hidden;
+    z-index: 5;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tool-icon img { width: 78%; height: 78%; object-fit: contain; }
+
+  /* Hand-drawn arrow + caption */
+  .arrow-block {
+    position: absolute;
+    z-index: 4;
+    {% if arrow_position == 'top-left' %}
+      left: 50px; top: 60px;
+    {% elif arrow_position == 'bottom-left' %}
+      left: 60px; top: 600px;
+    {% elif arrow_position == 'left' %}
+      left: 60px; top: 380px;
+    {% else %}
+      left: 90px; top: 360px;
+    {% endif %}
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .arrow-svg {
+    width: 110px; height: 130px;
+    margin-left: 30px;
+    transform: rotate(-8deg);
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+  }
+  .arrow-caption {
+    color: #FFFFFF;
+    font-family: 'Noto Sans Thai', 'IBM Plex Sans Thai', 'Sarabun', sans-serif;
+    font-weight: 600;
+    font-size: 32px;
+    line-height: 1.25;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.85), 0 0 16px rgba(0,0,0,0.6);
+    max-width: 560px;
+  }
+  .arrow-caption .accent {
+    color: var(--hl-yellow);
+    font-weight: 800;
+    font-size: 38px;
+    display: inline-block;
+    margin-top: 4px;
+  }
+
+  /* Inset proof image — tilted screenshot */
+  .inset {
+    position: absolute;
+    z-index: 3;
+    {% if inset_image_data_uri %}
+      bottom: 30px; left: 50px;
+      width: 380px; height: auto;
+    {% endif %}
+    transform: rotate(-4deg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.7), 0 4px 14px rgba(0,0,0,0.5);
+    border: 4px solid #FFFFFF;
+    background: #FFFFFF;
+  }
+  .inset img { width: 100%; height: auto; display: block; }
+
+  /* YouTube channel badge — mid right */
+  .channel-badge {
+    position: absolute;
+    z-index: 4;
+    right: 48px;
+    bottom: 80px;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 22px 10px 10px;
+    background: rgba(255,255,255,0.97);
+    border-radius: 100px;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.45);
+  }
+  .channel-badge .avatar {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #ddd;
+    flex-shrink: 0;
+  }
+  .channel-badge .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .channel-badge .meta { display: flex; flex-direction: column; line-height: 1.1; }
+  .channel-badge .name {
+    color: #111; font-weight: 700; font-size: 20px;
+    letter-spacing: -0.2px; display: flex; align-items: center; gap: 6px;
+  }
+  .channel-badge .verified {
+    width: 16px; height: 16px; flex-shrink: 0;
+  }
+  .channel-badge .subs { color: #555; font-weight: 400; font-size: 14px; margin-top: 3px; }
+
+  /* ===== Bottom: black band with headline (460px = ~34%) ===== */
+  .bottom {
+    width: 1080px;
+    height: 460px;
+    background: var(--bg-black);
+    padding: 38px 56px 30px 56px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .headline {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .h-line {
+    color: var(--fg);
+    font-weight: 800;
+    font-size: 60px;
+    /* Noto Sans Thai needs ≥1.4 line-height for stacked tone marks
+       (e.g. ◌ึ + ้ in "ขึ้น") to render without clipping */
+    line-height: 1.35;
+    letter-spacing: -0.5px;
+    font-family: 'Noto Sans Thai', 'IBM Plex Sans Thai', 'Sarabun', sans-serif;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  /* Highlight chips — wrapping the highlighted phrase */
+  .hl-red {
+    background: var(--hl-red);
+    color: #FFFFFF;
+    padding: 2px 14px;
+    border-radius: 6px;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+  .hl-yellow {
+    color: var(--hl-yellow);
+    /* yellow is text-color treatment, no bg */
+  }
+  .hl-orange {
+    background: var(--hl-orange);
+    color: #FFFFFF;
+    padding: 2px 14px;
+    border-radius: 6px;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+
+  /* Subhead — italic-feel preview line */
+  .subhead {
+    color: rgba(255,255,255,0.78);
+    font-weight: 400;
+    font-style: italic;
+    font-size: 22px;
+    line-height: 1.35;
+    letter-spacing: 0.1px;
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+</style>
+</head>
+<body>
+  <div class="canvas">
+    <div class="top">
+      {% if screenshot_data_uri %}<img class="screenshot" src="{{ screenshot_data_uri }}" alt="">{% endif %}
+      <div class="vignette"></div>
+
+      <!-- Brand mark — top right (Earth's avatar / Outlier mark) -->
+      <div class="brand-mark">
+        {% if brand_mark_data_uri %}
+          <img src="{{ brand_mark_data_uri }}" alt="">
+        {% else %}
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="outlierGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95"/>
+                <stop offset="100%" stop-color="#B5B5B5" stop-opacity="0.9"/>
+              </linearGradient>
+            </defs>
+            <path d="M50 12 L86 82 L66 82 L50 50 L34 82 L14 82 Z"
+                  fill="url(#outlierGrad)"
+                  stroke="#FFFFFF" stroke-width="1.5" stroke-linejoin="round"/>
+            <text x="50" y="98" text-anchor="middle"
+                  font-family="IBM Plex Sans, system-ui, sans-serif"
+                  font-size="9" font-weight="700" fill="#FFFFFF"
+                  letter-spacing="1.5">OUTLIER</text>
+          </svg>
+        {% endif %}
+      </div>
+
+      {% if tool_icon_data_uri %}
+      <div class="tool-icon"><img src="{{ tool_icon_data_uri }}" alt=""></div>
+      {% endif %}
+
+      <!-- Hand-drawn arrow pointing toward person + caption -->
+      <div class="arrow-block">
+        <div class="arrow-caption">
+          {{ arrow_caption_top }}<br>
+          <span class="accent">{{ arrow_caption_bottom }}</span>
+        </div>
+        <svg class="arrow-svg" viewBox="0 0 110 130" xmlns="http://www.w3.org/2000/svg">
+          <!-- curvy hand-drawn arrow stroke -->
+          <path d="M 8 8 Q 30 22, 40 50 T 70 90 Q 78 100, 90 108"
+                fill="none"
+                stroke="#000000"
+                stroke-width="6"
+                stroke-linecap="round"
+                stroke-linejoin="round"/>
+          <!-- arrow head -->
+          <path d="M 90 108 L 78 96 M 90 108 L 95 92"
+                fill="none"
+                stroke="#000000"
+                stroke-width="6"
+                stroke-linecap="round"/>
+        </svg>
+      </div>
+
+      {% if inset_image_data_uri %}
+      <div class="inset"><img src="{{ inset_image_data_uri }}" alt=""></div>
+      {% endif %}
+
+      <!-- YouTube channel badge -->
+      <div class="channel-badge">
+        <div class="avatar">
+          {% if channel_avatar_data_uri %}<img src="{{ channel_avatar_data_uri }}" alt="">{% endif %}
+        </div>
+        <div class="meta">
+          <span class="name">
+            {{ channel_name }}
+            <svg class="verified" viewBox="0 0 24 24" fill="#1DA1F2" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="white" stroke-width="2" fill="#1DA1F2"/>
+              <path d="M9 12l2 2 4-4" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg>
+          </span>
+          {% if subscriber_text_en %}<span class="subs">{{ subscriber_text_en }} subscribers</span>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom">
+      <div class="headline">
+        <div class="h-line line1">{{ line1_html | safe }}</div>
+        <div class="h-line line2">{{ line2_html | safe }}</div>
+        <div class="h-line line3">{{ line3_html | safe }}</div>
+      </div>
+      <div class="subhead">- {{ subhead }} -</div>
+    </div>
+  </div>
+</body>
+</html>

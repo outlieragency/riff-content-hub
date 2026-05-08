@@ -1,0 +1,91 @@
+'use client'
+
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
+import { useTransition } from 'react'
+
+export type FilterValues = {
+  channel: string
+  duration: string
+  score: string
+  q: string
+}
+
+export function OutlierFilters({
+  channels,
+}: {
+  channels: { id: string; title: string }[]
+}) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const params = useSearchParams()
+  const [pending, start] = useTransition()
+
+  function setParam(key: string, value: string) {
+    const next = new URLSearchParams(params.toString())
+    if (value) {
+      next.set(key, value)
+    } else {
+      next.delete(key)
+    }
+    start(() => router.replace(`${pathname}?${next.toString()}`))
+  }
+
+  const channel = params.get('channel') ?? ''
+  const duration = params.get('duration') ?? 'long'  // long | short | all
+  const score = params.get('score') ?? '2'           // min outlier score
+  const q = params.get('q') ?? ''
+
+  return (
+    <div className="surface-1 rounded-[12px] p-3 mb-4 flex flex-wrap items-center gap-2">
+      <select
+        value={channel}
+        onChange={(e) => setParam('channel', e.target.value)}
+        disabled={pending}
+        className="h-9 px-3 rounded-[6px] border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-brand"
+      >
+        <option value="">ทุกช่อง</option>
+        {channels.map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.title}
+          </option>
+        ))}
+      </select>
+
+      <select
+        value={duration}
+        onChange={(e) => setParam('duration', e.target.value)}
+        disabled={pending}
+        className="h-9 px-3 rounded-[6px] border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-brand"
+      >
+        <option value="long">Long-form</option>
+        <option value="short">Shorts</option>
+        <option value="all">ทั้งหมด</option>
+      </select>
+
+      <select
+        value={score}
+        onChange={(e) => setParam('score', e.target.value)}
+        disabled={pending}
+        className="h-9 px-3 rounded-[6px] border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-brand"
+      >
+        <option value="0">score ทั้งหมด</option>
+        <option value="1">≥ 1x</option>
+        <option value="2">≥ 2x (outlier)</option>
+        <option value="5">≥ 5x (viral)</option>
+        <option value="10">≥ 10x (mega)</option>
+      </select>
+
+      <input
+        defaultValue={q}
+        type="text"
+        placeholder="ค้นหา title"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') setParam('q', (e.target as HTMLInputElement).value)
+        }}
+        onBlur={(e) => setParam('q', e.target.value)}
+        disabled={pending}
+        className="flex-1 min-w-[180px] h-9 px-3 rounded-[6px] border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-brand"
+      />
+    </div>
+  )
+}

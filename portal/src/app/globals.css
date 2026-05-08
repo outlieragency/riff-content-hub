@@ -1,0 +1,242 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ========================================================================
+   Riff design tokens
+   Inspired by Eden (Dan Koe): deep forest green + warm cream + serif italics
+   Riff orange เป็น brand accent (complementary to green = creator energy)
+   ======================================================================== */
+
+@theme {
+  --font-sans: var(--font-inter);
+  --font-thai: var(--font-ibm-plex-sans-thai);
+  --font-serif: var(--font-instrument-serif);
+
+  /* Brand — Riff orange */
+  --color-brand: #F97316;
+  --color-brand-hover: #EA580C;
+  --color-brand-soft: #FDF4EC;
+  --color-brand-border: #F4D8B6;
+
+  /* Forest accent — Eden DNA (used as secondary surface, dark-mode bg) */
+  --color-forest-deep: #1A2418;
+  --color-forest: #243024;
+  --color-forest-soft: #3A4A3A;
+
+  /* ---- LIGHT (default) — warm cream paper ---------------------------- */
+  --color-background: #F5F0E5;       /* cream paper */
+  --color-foreground: #1A2418;       /* forest near-black */
+  --color-card: #FBF7EC;             /* lighter warm cream surface */
+  --color-card-foreground: #1A2418;
+  --color-border: #E0D7C3;           /* sandy paper edge */
+  --color-border-soft: #ECE3CE;
+
+  --color-text-primary: #1A2418;
+  --color-text-secondary: #5A5547;
+  --color-text-muted: #8A8170;
+
+  /* Shadcn semantic */
+  --color-primary: #F97316;
+  --color-primary-foreground: #FFFFFF;
+  --color-secondary: #ECE3CE;
+  --color-secondary-foreground: #1A2418;
+  --color-muted: #ECE3CE;
+  --color-muted-foreground: #5A5547;
+  --color-accent: #FDF4EC;
+  --color-accent-foreground: #B6440D;
+  --color-destructive: #9F2A18;
+  --color-destructive-foreground: #FFFFFF;
+  --color-ring: #F97316;
+  --color-input: #E0D7C3;
+  --color-popover: #FBF7EC;
+  --color-popover-foreground: #1A2418;
+
+  /* Status pills — gentle natural hues */
+  --color-status-green-bg: #E5EDDC;
+  --color-status-green-text: #3A5530;
+  --color-status-green-border: #C4D2B0;
+  --color-status-orange-bg: #FDF1E2;
+  --color-status-orange-text: #B6440D;
+  --color-status-orange-border: #F4D8B6;
+  --color-status-amber-bg: #FAF1D9;
+  --color-status-amber-text: #93650F;
+  --color-status-red-bg: #FBEBE6;
+  --color-status-red-text: #9F2A18;
+  --color-status-red-border: #E8C8BD;
+  --color-status-blue-bg: #E5EDF4;
+  --color-status-blue-text: #1F4775;
+
+  /* Radii — softer than dashboard defaults */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius: 12px;
+
+  /* Type scale */
+  --text-2xs: 11.5px;
+  --text-xs: 13px;
+  --text-sm: 14.5px;
+  --text-base: 15.5px;
+  --text-md: 17px;
+  --text-lg: 19px;
+  --text-xl: 24px;
+  --text-2xl: 30px;
+  --text-3xl: 38px;
+}
+
+/* ---- DARK — Eden forest, deep mossy green ------------------------- */
+.dark {
+  --color-background: #1A2418;       /* deep forest, not black */
+  --color-foreground: #F1ECDF;       /* warm cream off-white */
+  --color-card: #243024;             /* slightly raised forest surface */
+  --color-card-foreground: #F1ECDF;
+  --color-border: #344038;           /* soft mossy border */
+  --color-border-soft: #2A3528;
+
+  --color-text-primary: #F1ECDF;
+  --color-text-secondary: #B0AC9C;
+  --color-text-muted: #7A8275;
+
+  --color-secondary: #2A3528;
+  --color-secondary-foreground: #F1ECDF;
+  --color-muted: #243024;
+  --color-muted-foreground: #B0AC9C;
+  --color-accent: #2C1F0E;            /* deep brown-orange tint for accents */
+  --color-accent-foreground: #FBA565;
+  --color-popover: #243024;
+  --color-popover-foreground: #F1ECDF;
+  --color-input: #2A3528;
+  --color-ring: #F97316;
+
+  --color-brand-soft: #2C1F0E;
+  --color-brand-border: #5A3618;
+
+  /* Status pills — calmer hues on forest */
+  --color-status-green-bg: #1F2D1C;
+  --color-status-green-text: #A2C193;
+  --color-status-green-border: #2F4528;
+  --color-status-orange-bg: #2C1F0E;
+  --color-status-orange-text: #FBA565;
+  --color-status-orange-border: #5A3618;
+  --color-status-amber-bg: #2A2008;
+  --color-status-amber-text: #E8C76A;
+  --color-status-red-bg: #2A1410;
+  --color-status-red-text: #E37962;
+  --color-status-red-border: #4A2419;
+  --color-status-blue-bg: #15233A;
+  --color-status-blue-text: #8FB1D9;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
+
+body {
+  font-family: var(--font-inter), var(--font-ibm-plex-sans-thai), -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+/* Serif heading utility
+   Browser renders character-by-character: ENG glyphs → Instrument Serif,
+   Thai glyphs → IBM Plex Sans Thai (because Instrument has no Thai support).
+   This way mixed Thai-English headings stay legible in both scripts. */
+.font-serif-display {
+  font-family: var(--font-serif), var(--font-thai), Georgia, serif;
+  letter-spacing: -0.015em;
+  font-weight: 400;
+}
+
+.font-serif-italic {
+  font-family: var(--font-serif), var(--font-thai), Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* Thai-only headlines — use IBM Plex Sans Thai with display weight */
+.font-display-th {
+  font-family: var(--font-thai), var(--font-sans), -apple-system, sans-serif;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* Eden-style hero scene = dark forest panel inside light page */
+.scene-forest {
+  background: var(--color-forest-deep);
+  color: #F1ECDF;
+}
+.dark .scene-forest {
+  background: #0F1810;
+}
+
+/* Soft elevation — replace hard borders on key surfaces */
+.surface-1 {
+  background: var(--color-card);
+  border: 1px solid var(--color-border-soft);
+  box-shadow: 0 1px 2px rgba(26, 36, 24, 0.04), 0 0 0 0.5px rgba(26, 36, 24, 0.03);
+}
+.dark .surface-1 {
+  border-color: var(--color-border-soft);
+  box-shadow: 0 1px 0 0 rgba(255, 252, 240, 0.03), inset 0 1px 0 0 rgba(255, 252, 240, 0.03);
+}
+
+.surface-2 {
+  background: var(--color-card);
+  box-shadow:
+    0 0 0 1px rgba(26, 36, 24, 0.04),
+    0 4px 16px -4px rgba(26, 36, 24, 0.06),
+    0 1px 2px rgba(26, 36, 24, 0.03);
+  border-radius: 16px;
+}
+.dark .surface-2 {
+  box-shadow:
+    0 0 0 1px rgba(255, 252, 240, 0.06),
+    0 8px 24px -8px rgba(0, 0, 0, 0.4);
+}
+
+/* Decorative polaroid card — Eden hero style */
+.polaroid {
+  background: #FBF7EC;
+  padding: 8px 8px 32px;
+  box-shadow:
+    0 0 0 1px rgba(26, 36, 24, 0.08),
+    0 12px 24px -8px rgba(26, 36, 24, 0.25);
+  transform-origin: center;
+}
+
+/* Indeterminate shimmer for progress bars when 0%/queued */
+@keyframes progress-shimmer-kf {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.progress-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-brand) 50%,
+    transparent 100%
+  );
+  opacity: 0.6;
+  animation: progress-shimmer-kf 1.4s linear infinite;
+}
+
+/* Scrollbar — calm */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
+
+/* Selection */
+::selection {
+  background: var(--color-brand);
+  color: white;
+}
