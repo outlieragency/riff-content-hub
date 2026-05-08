@@ -1,11 +1,10 @@
 # Railway config for Riff Worker
-# Tells Railway to build from worker/ subdirectory of this monorepo
-# https://docs.railway.com/reference/config-as-code
+# Build context = repo root, Dockerfile path = worker/Dockerfile
+# (Dockerfile uses repo-root paths like `COPY worker/app ./app`)
 
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "worker/Dockerfile"
-buildContext = "worker"
 
 [deploy]
 startCommand = "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"
