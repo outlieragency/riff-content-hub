@@ -33,7 +33,7 @@ export function FinalCTA({ count }: { count: number }) {
               display: 'inline-block',
             }}
           />
-          เปิดให้ creator ทดลองใช้ฟรีช่วง beta
+          เปิดให้ Founder ทดลองใช้ฟรีช่วง beta
         </div>
 
         <h2
@@ -47,7 +47,7 @@ export function FinalCTA({ count }: { count: number }) {
             textWrap: 'balance' as const,
           }}
         >
-          เริ่มลง content ทุกวัน
+          มี Content Team
           <br />
           <span className="rm-serif-italic">ตั้งแต่วันนี้</span>
         </h2>
@@ -60,9 +60,9 @@ export function FinalCTA({ count }: { count: number }) {
             maxWidth: 540,
           }}
         >
-          ใส่ email เข้า waitlist ก่อน
+          ใส่ email เข้า waitlist
           <br />
-          เปิดให้ใช้เป็น batch · คุณจะได้ใช้ก่อนใคร
+          ทยอยเปิดให้ใช้เป็น batch · คุณจะได้ใช้ก่อนใคร
         </p>
 
         <div
@@ -76,7 +76,7 @@ export function FinalCTA({ count }: { count: number }) {
           className="mt-4 text-[var(--rm-muted-2)]"
           style={{ fontSize: 13 }}
         >
-          {count} creator อยู่ในคิว · ไม่มี spam · ไม่ต้องใส่บัตร
+          {count} founder อยู่ในคิว · ไม่มี spam · ไม่ต้องใส่บัตร
         </p>
       </div>
     </section>

@@ -27,19 +27,19 @@ export function GuaranteeOutlier() {
               textWrap: 'balance' as const,
             }}
           >
-            ปัญหาของ Creator และ Founder
+            Founder ส่วนใหญ่
             <br />
-            ไม่ใช่ <span className="rm-serif-italic">ไม่มีไอเดีย</span>
+            ไม่ได้ <span className="rm-serif-italic">ขาดไอเดีย</span>
           </h2>
           <p
             className="mt-5 mx-auto text-[var(--rm-forest-muted)]"
             style={{ fontSize: 'clamp(15px, 1.3vw, 18px)', lineHeight: 1.7, maxWidth: 600 }}
           >
-            แต่คือไม่รู้ว่าไอเดียไหน <em>ปังจริง</em> ก่อนจะลงมือเขียน
+            แต่ไม่รู้ว่าไอเดียไหน <em>ปังจริง</em> ก่อนจะลงทุนเวลาเขียน
             <br />
             <br />
             Outlier Score คือวิธีที่ใช้ดูว่า video ไหนกำลังได้รับความนิยม
-            แล้วเอามาต่อยอดในแบบของเราเอง
+            แล้วเอามาต่อยอดในแบบของธุรกิจคุณ
           </p>
         </div>
 

@@ -40,7 +40,7 @@ export function Hero({ count }: { count: number }) {
                 display: 'inline-block',
               }}
             />
-            สำหรับ Creator และ Founder ที่ทำ content คนเดียว
+            Content OS สำหรับ Founder ในไทย
           </div>
 
           {/* Headline */}
@@ -55,11 +55,10 @@ export function Hero({ count }: { count: number }) {
               color: 'var(--rm-text)',
             }}
           >
-            ช่วยคุณมี Content ลงทุกวัน
+            Content Team พร้อมใช้
             <br />
-            ภายใน{' '}
             <span className="rm-serif-italic" style={{ color: 'var(--rm-text)' }}>
-              7 นาที
+              ใน 7 นาที.
             </span>
           </h1>
 
@@ -68,17 +67,19 @@ export function Hero({ count }: { count: number }) {
             style={{
               fontSize: 'clamp(16px, 1.4vw, 19px)',
               color: 'var(--rm-muted)',
-              maxWidth: 600,
-              lineHeight: 1.65,
+              maxWidth: 580,
+              lineHeight: 1.7,
             }}
           >
-            โดยไม่ต้องเหนื่อยกับการหาไอเดีย
+            ไม่ต้องจ้าง content writer
             <br />
-            และเขียน content จากกระดาษเปล่า
+            ไม่ต้องจ้าง designer
+            <br />
+            ไม่ต้องเสีย 30,000/เดือนกับ agency
             <br />
             <br />
-            Riff คือเครื่องมือที่ทำให้คุณลง content ต่อเนื่อง
-            โดยไม่เสียเอกลักษณ์ของตัวเองไป
+            Riff คือ Content OS ที่หา idea, เขียน, ทำปก, แล้วลงให้คุณ
+            เหมือนมีทีม content 5 คน ทำงานในธุรกิจของคุณ
           </p>
 
           {/* Format tabs */}
@@ -116,7 +117,7 @@ export function Hero({ count }: { count: number }) {
             className="mt-4 text-[var(--rm-muted-2)]"
             style={{ fontSize: 13.5 }}
           >
-            <span style={{ color: 'var(--rm-accent)' }}>●</span> {count} creator
+            <span style={{ color: 'var(--rm-accent)' }}>●</span> {count} founder
             อยู่ในคิวก่อนคุณ · ทดลองใช้ฟรีช่วง beta · ไม่ต้องใส่บัตร
           </p>
         </div>

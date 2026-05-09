@@ -141,13 +141,13 @@ export function OnboardingSurvey({ defaultEmail }: { defaultEmail: string }) {
           />
         </Field>
 
-        <Field label="ทำ content เกี่ยวกับอะไร">
+        <Field label="ทำธุรกิจอะไร / ขายอะไร">
           <input
             type="text"
             value={niche}
             onChange={(e) => setNiche(e.target.value)}
             className={INPUT_CLASS}
-            placeholder="เช่น การเงินส่วนบุคคล, AI tool, coaching, productivity"
+            placeholder="เช่น online course สอนถ่ายภาพ · agency ทำ ads · coaching ผู้บริหาร"
           />
         </Field>
 
@@ -238,14 +238,14 @@ export function OnboardingSurvey({ defaultEmail }: { defaultEmail: string }) {
           </div>
         </Field>
 
-        <Field label="ปัญหาที่เจอตอนทำ content คืออะไร">
+        <Field label="ปัญหาที่เจอเรื่อง content / marketing คืออะไร">
           <textarea
             value={pain}
             onChange={(e) => setPain(e.target.value)}
             rows={3}
             className={INPUT_CLASS}
             style={{ resize: 'vertical', minHeight: 90, padding: '12px 14px', height: 'auto' }}
-            placeholder="เช่น คิดไอเดียไม่ออก, เหนื่อยกับการเขียน, ไม่มีเวลา, ลงไม่สม่ำเสมอ..."
+            placeholder="เช่น ไม่มีเวลาทำเอง, ทีมยังเล็ก, จ้าง agency แพง, ลงไม่สม่ำเสมอ, idea ไม่ปัง..."
           />
         </Field>
 

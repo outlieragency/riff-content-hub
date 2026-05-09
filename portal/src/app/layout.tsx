@@ -22,21 +22,21 @@ const instrumentSerif = Instrument_Serif({
 })
 
 export const metadata: Metadata = {
-  title: 'Riff — ลง content ทุกวัน ในเสียงคุณ ใน 5 นาที',
+  title: 'Riff — Content OS for Founder',
   description:
-    'AI สำหรับ creator ไทย เปลี่ยน 1 YouTube video เป็น 4 โพสต์พร้อมลง (FB · IG · Reels · YT) ในเสียงคุณเอง ใน 5 นาที',
+    'Content Team พร้อมใช้ใน 7 นาที สำหรับ Founder ที่อยากมี content ลงทุกวัน โดยไม่ต้องจ้าง agency ไม่ต้องสร้างทีม',
   openGraph: {
-    title: 'Riff — ลง content ทุกวัน ในเสียงคุณ ใน 5 นาที',
+    title: 'Riff — Content OS for Founder',
     description:
-      'AI สำหรับ creator ไทย โดย Outlier Agency ทำงานน้อยลง ได้ผลมากขึ้น',
+      'Content Team พร้อมใช้ใน 7 นาที โดย Outlier Agency หา idea, เขียน, ทำปก, ลงให้ครบ 4 platform',
     type: 'website',
     locale: 'th_TH',
     siteName: 'Riff',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Riff — ลง content ทุกวัน ในเสียงคุณ ใน 5 นาที',
-    description: 'AI สำหรับ creator ไทย โดย Outlier Agency',
+    title: 'Riff — Content OS for Founder',
+    description: 'Content Team พร้อมใช้ใน 7 นาที โดย Outlier Agency',
   },
 }
 

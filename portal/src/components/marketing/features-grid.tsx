@@ -66,7 +66,7 @@ export function FeaturesGrid() {
               textWrap: 'balance' as const,
             }}
           >
-            ทุก Step ที่ Agency ทำ
+            ทุก Step ที่ Content Team ทำ
             <br />
             <span className="rm-serif-italic">รวมไว้ใน Tool เดียว</span>
           </h2>
@@ -76,7 +76,7 @@ export function FeaturesGrid() {
           >
             ตั้งแต่หา idea จนถึงโพสต์พร้อมลง
             <br />
-            ไม่ต้องสลับ tab ไม่ต้องเปิด ChatGPT แยก ไม่ต้อง copy paste
+            ไม่ต้องสร้างทีม ไม่ต้องจ้าง agency ไม่ต้องสลับ tab
           </p>
         </div>
 
