@@ -71,6 +71,10 @@ class CoverPreviewRequest(BaseModel):
     video_meta: VideoMeta = Field(default_factory=VideoMeta)
     user_id: str | None = None
     creative_style_id: str | None = None
+    # When set, /preview will look up the cover-photo.png override in Storage
+    # (matching /cover/save behavior). Without this, preview uses YT thumbnail
+    # only — which is the original "preview doesn't reflect upload" bug.
+    draft_id: str | None = None
 
 
 class CoverPreviewResponse(BaseModel):
@@ -83,14 +87,19 @@ def post_preview(
     body: CoverPreviewRequest,
     authorization: str | None = Header(default=None),
 ) -> CoverPreviewResponse:
-    """Render cover and return as base64 data URI (no Storage upload)."""
+    """Render cover and return as base64 data URI (no Storage upload).
+
+    If `draft_id` + `user_id` provided, looks up the cover-photo.png override
+    so preview reflects the user's uploaded photo (not just YT thumbnail).
+    """
     require_worker_secret(authorization)
+
+    sb = get_supabase()
 
     # Resolve theme + base_template from creative_style if supplied
     theme: dict[str, str] | None = None
     cover_template = body.cover.cover_template
     if body.creative_style_id and body.user_id:
-        sb = get_supabase()
         cs_res = (
             sb.table("creative_styles")
             .select("renderer_config")
@@ -109,13 +118,39 @@ def post_preview(
                 if isinstance(theme_raw, dict):
                     theme = {k: v for k, v in theme_raw.items() if isinstance(v, str)}
 
+    # Fetch cover-photo.png override if draft_id + user_id provided.
+    # This ensures preview shows what /save will render — same photo source.
+    cover_photo_bytes: bytes | None = None
+    if body.draft_id and body.user_id:
+        path = f"{body.user_id}/{body.draft_id}/cover-photo.png"
+        try:
+            cover_photo_bytes = sb.storage.from_("fb-covers").download(path)
+        except Exception:
+            cover_photo_bytes = None
+
+    # Auto-hydrate video_meta from DB if caller didn't fill it (matches /save).
+    # Without this, preview shows black BG when caller forgets to pass meta.
+    video_meta_dict = body.video_meta.model_dump()
+    needs_lookup = body.draft_id and body.user_id and not all(
+        [
+            video_meta_dict.get("youtube_video_id"),
+            video_meta_dict.get("thumbnail_url"),
+            video_meta_dict.get("channel_name"),
+        ]
+    )
+    if needs_lookup:
+        hydrated = _resolve_video_meta(sb, body.user_id, body.draft_id, body.video_meta)
+        for key, value in hydrated.items():
+            if value and not video_meta_dict.get(key):
+                video_meta_dict[key] = value
+
     try:
         png_bytes = render_cover_bytes(
-            video_id=body.video_meta.youtube_video_id or "",
-            thumbnail_url=body.video_meta.thumbnail_url,
-            channel_name=body.video_meta.channel_name or "",
-            channel_avatar_url=body.video_meta.channel_avatar_url,
-            subscriber_count=body.video_meta.subscriber_count,
+            video_id=video_meta_dict.get("youtube_video_id") or "",
+            thumbnail_url=video_meta_dict.get("thumbnail_url"),
+            channel_name=video_meta_dict.get("channel_name") or "",
+            channel_avatar_url=video_meta_dict.get("channel_avatar_url"),
+            subscriber_count=video_meta_dict.get("subscriber_count"),
             line1=body.cover.line1,
             line2=body.cover.line2,
             line3=body.cover.line3,
@@ -130,6 +165,7 @@ def post_preview(
             arrow_caption_bottom=body.cover.arrow_caption_bottom,
             arrow_position=body.cover.arrow_position,
             cover_template=cover_template,
+            cover_photo_bytes=cover_photo_bytes,
             theme=theme,
         )
     except CoverRenderError as exc:

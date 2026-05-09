@@ -109,6 +109,9 @@ export const worker = {
   previewCover: (params: {
     cover: CoverFieldsPayload
     video_meta?: VideoMetaPayload
+    user_id?: string
+    draft_id?: string
+    creative_style_id?: string
   }) => call<CoverPreviewResponse>('POST', '/cover/preview', params),
 
   saveCover: (params: {

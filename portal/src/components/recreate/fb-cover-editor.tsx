@@ -120,22 +120,32 @@ function LineEditor({
     onStyleChange(hasAny ? next : undefined)
   }
 
+  const hasOverride = !!(
+    style?.highlight_color ||
+    style?.highlight_style ||
+    (style?.font_size_pct && style.font_size_pct !== 100) ||
+    (style?.font_weight && style.font_weight !== 800)
+  )
+
   return (
-    <div className="mb-3">
-      <div className="flex items-center gap-2 mb-1">
+    <div className="mb-4 rounded-md border border-border-soft p-2.5 bg-background/40">
+      <div className="flex items-center gap-2 mb-1.5">
         <span className="text-xs font-medium text-foreground">{label}</span>
         <span
           className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${palette.tagBg}`}
         >
           {palette.tag}
         </span>
-        <button
-          type="button"
-          onClick={() => setAdvanced((v) => !v)}
-          className="ml-auto text-[10px] text-blue-600 hover:underline"
-        >
-          {advanced ? 'ซ่อน' : 'ปรับสี/ฟอนต์'}
-        </button>
+        {hasOverride && (
+          <button
+            type="button"
+            onClick={() => onStyleChange(undefined)}
+            className="ml-auto text-[10px] text-red-600 hover:underline"
+            title="กลับไปใช้ default ของ template"
+          >
+            Reset
+          </button>
+        )}
       </div>
       <input
         type="text"
@@ -168,101 +178,106 @@ function LineEditor({
         </div>
       </div>
 
-      {advanced && (
-        <div className="mt-2 p-2.5 rounded-md bg-secondary/40 border border-border-soft space-y-2">
-          {/* Highlight color */}
-          <div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
-              สี highlight
-            </div>
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <button
-                type="button"
-                onClick={() => updateStyle({ highlight_color: null })}
-                className={`text-[10px] px-2 py-1 rounded border ${
-                  !currentColor
-                    ? 'border-foreground bg-secondary text-foreground'
-                    : 'border-border text-muted-foreground'
-                }`}
-              >
-                Default
-              </button>
-              {PRESET_COLORS.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => updateStyle({ highlight_color: c })}
-                  className={`w-6 h-6 rounded-md border-2 ${
-                    currentColor === c
-                      ? 'border-foreground'
-                      : 'border-border-soft'
-                  }`}
-                  style={{ backgroundColor: c }}
-                  aria-label={c}
-                />
-              ))}
-              <input
-                type="color"
-                value={currentColor || '#FFFFFF'}
-                onChange={(e) => updateStyle({ highlight_color: e.target.value })}
-                className="w-6 h-6 rounded cursor-pointer p-0 border border-border-soft"
-                aria-label="custom color"
-              />
-            </div>
-          </div>
-
-          {/* Highlight style mode */}
-          <div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
-              รูปแบบ highlight
-            </div>
-            <div className="flex gap-1">
-              {[
-                { v: 'background' as const, label: 'แถบสี (pill)' },
-                { v: 'text-color' as const, label: 'สี text' },
-              ].map((opt) => (
-                <button
-                  key={opt.v}
-                  type="button"
-                  onClick={() => updateStyle({ highlight_style: opt.v })}
-                  className={`text-[10px] px-2 py-1 rounded ${
-                    currentHlStyle === opt.v
-                      ? 'bg-foreground text-background'
-                      : 'bg-background border border-border text-muted-foreground'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Font size */}
-          <div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
-              ขนาด font: {currentSizePct}%
-            </div>
-            <input
-              type="range"
-              min={70}
-              max={130}
-              step={5}
-              value={currentSizePct}
-              onChange={(e) =>
-                updateStyle({ font_size_pct: Number(e.target.value) })
-              }
-              className="w-full accent-brand"
+      {/* Inline color + style mode (always visible) */}
+      <div className="mt-2.5 pt-2.5 border-t border-border-soft space-y-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0 w-14">
+            สี
+          </span>
+          <button
+            type="button"
+            onClick={() => updateStyle({ highlight_color: null })}
+            className={`text-[10px] px-2 py-1 rounded border ${
+              !currentColor
+                ? 'border-foreground bg-secondary text-foreground font-medium'
+                : 'border-border text-muted-foreground hover:border-foreground'
+            }`}
+            title="ใช้สีของ template"
+          >
+            Auto
+          </button>
+          {PRESET_COLORS.map((c) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => updateStyle({ highlight_color: c })}
+              className={`w-6 h-6 rounded-md border-2 transition-all ${
+                currentColor === c
+                  ? 'border-foreground scale-110'
+                  : 'border-border-soft hover:border-border'
+              }`}
+              style={{ backgroundColor: c }}
+              aria-label={c}
+              title={c}
             />
-          </div>
+          ))}
+          <input
+            type="color"
+            value={currentColor || '#FFFFFF'}
+            onChange={(e) => updateStyle({ highlight_color: e.target.value })}
+            className="w-6 h-6 rounded cursor-pointer p-0 border border-border-soft"
+            aria-label="custom color"
+            title="custom hex"
+          />
+        </div>
 
-          {/* Font weight */}
-          <div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
-              น้ำหนักตัวอักษร
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0 w-14">
+            รูปแบบ
+          </span>
+          {[
+            { v: 'background' as const, label: 'แถบสี' },
+            { v: 'text-color' as const, label: 'สี text' },
+          ].map((opt) => (
+            <button
+              key={opt.v}
+              type="button"
+              onClick={() => updateStyle({ highlight_style: opt.v })}
+              className={`text-[10px] px-2 py-1 rounded ${
+                currentHlStyle === opt.v
+                  ? 'bg-foreground text-background'
+                  : 'bg-background border border-border text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => setAdvanced((v) => !v)}
+            className="ml-auto text-[10px] text-blue-600 hover:underline"
+          >
+            {advanced ? 'ซ่อน font' : 'ปรับ font'}
+          </button>
+        </div>
+
+        {advanced && (
+          <div className="space-y-2 pt-1.5 border-t border-border-soft">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0 w-14">
+                ขนาด
+              </span>
+              <input
+                type="range"
+                min={70}
+                max={130}
+                step={5}
+                value={currentSizePct}
+                onChange={(e) =>
+                  updateStyle({ font_size_pct: Number(e.target.value) })
+                }
+                className="flex-1 accent-brand"
+              />
+              <span className="text-[10px] tabular-nums text-foreground w-10 text-right">
+                {currentSizePct}%
+              </span>
             </div>
-            <div className="flex gap-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0 w-14">
+                น้ำหนัก
+              </span>
               {([
-                { v: 400 as const, label: 'Regular' },
+                { v: 400 as const, label: 'R' },
                 { v: 600 as const, label: 'Semi' },
                 { v: 700 as const, label: 'Bold' },
                 { v: 800 as const, label: 'Extra' },
@@ -283,16 +298,8 @@ function LineEditor({
               ))}
             </div>
           </div>
-
-          <button
-            type="button"
-            onClick={() => onStyleChange(undefined)}
-            className="text-[10px] text-red-600 hover:underline"
-          >
-            Reset to template default
-          </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

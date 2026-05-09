@@ -82,7 +82,12 @@ export async function POST(
   }
 
   try {
-    const result = await worker.previewCover({ cover: body.cover, video_meta: videoMeta })
+    const result = await worker.previewCover({
+      cover: body.cover,
+      video_meta: videoMeta,
+      user_id: user.id,
+      draft_id: id,
+    })
     return NextResponse.json(result)
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'preview failed'
