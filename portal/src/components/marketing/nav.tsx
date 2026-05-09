@@ -6,7 +6,6 @@ import { RiffLogo } from './logo'
 
 const NAV_LINKS: [string, string][] = [
   ['ทำงานยังไง', '#features'],
-  ['ราคา', '#pricing'],
   ['คำถามที่พบบ่อย', '#faq'],
 ]
 
@@ -60,7 +59,7 @@ export function MarketingNav() {
             href="#waitlist"
             className="rm-btn rm-btn-primary rm-btn-sm"
           >
-            ขอสิทธิ์ใช้ก่อน
+            ทดลองใช้ฟรี
           </a>
         </div>
       </div>

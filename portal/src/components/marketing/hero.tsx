@@ -40,27 +40,27 @@ export function Hero({ count }: { count: number }) {
                 display: 'inline-block',
               }}
             />
-            เครื่องมือที่ผมสร้างขึ้นใช้เอง ตอนทำ content คนเดียว
+            สำหรับ Creator และ Founder ที่ทำ content คนเดียว
           </div>
 
-          {/* Headline — Eden style: serif italic for emphasis word */}
+          {/* Headline */}
           <h1
             className="mt-6"
             style={{
-              fontSize: 'clamp(40px, 6vw, 72px)',
+              fontSize: 'clamp(36px, 5.4vw, 64px)',
               fontWeight: 600,
-              lineHeight: 1.05,
-              letterSpacing: '-0.035em',
+              lineHeight: 1.08,
+              letterSpacing: '-0.03em',
               textWrap: 'balance' as const,
               color: 'var(--rm-text)',
             }}
           >
-            ลง content ทุกวันได้ คือ
+            ช่วยคุณมี Content ลงทุกวัน
             <br />
+            ภายใน{' '}
             <span className="rm-serif-italic" style={{ color: 'var(--rm-text)' }}>
-              moat
-            </span>{' '}
-            ของ creator ยุคนี้.
+              7 นาที
+            </span>
           </h1>
 
           <p
@@ -68,17 +68,17 @@ export function Hero({ count }: { count: number }) {
             style={{
               fontSize: 'clamp(16px, 1.4vw, 19px)',
               color: 'var(--rm-muted)',
-              maxWidth: 580,
-              lineHeight: 1.6,
+              maxWidth: 600,
+              lineHeight: 1.65,
             }}
           >
-            AI ทำ feature ใหม่ใน 1 คืน
+            โดยไม่ต้องเหนื่อยกับการหาไอเดีย
             <br />
-            แต่สร้าง audience ที่เชื่อใจคุณ ไม่ได้
+            และเขียน content จากกระดาษเปล่า
             <br />
             <br />
-            Riff คือเครื่องมือที่ทำให้คุณลงต่อเนื่องไหว
-            โดยไม่เสียเสียงตัวเองไป
+            Riff คือเครื่องมือที่ทำให้คุณลง content ต่อเนื่อง
+            โดยไม่เสียเอกลักษณ์ของตัวเองไป
           </p>
 
           {/* Format tabs */}
@@ -117,7 +117,7 @@ export function Hero({ count }: { count: number }) {
             style={{ fontSize: 13.5 }}
           >
             <span style={{ color: 'var(--rm-accent)' }}>●</span> {count} creator
-            อยู่ในคิวก่อนหน้าคุณ · ราคา early lock ไว้ปีแรก · ยกเลิกเดือนไหนก็ได้
+            อยู่ในคิวก่อนคุณ · ทดลองใช้ฟรีช่วง beta · ไม่ต้องใส่บัตร
           </p>
         </div>
 

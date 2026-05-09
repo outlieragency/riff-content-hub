@@ -27,19 +27,19 @@ export function GuaranteeOutlier() {
               textWrap: 'balance' as const,
             }}
           >
-            ปัญหาของ creator คนเดียว
+            ปัญหาของ Creator และ Founder
             <br />
-            ไม่ใช่ <span className="rm-serif-italic">ไม่มีไอเดีย</span>.
+            ไม่ใช่ <span className="rm-serif-italic">ไม่มีไอเดีย</span>
           </h2>
           <p
             className="mt-5 mx-auto text-[var(--rm-forest-muted)]"
-            style={{ fontSize: 'clamp(15px, 1.3vw, 18px)', lineHeight: 1.7, maxWidth: 580 }}
+            style={{ fontSize: 'clamp(15px, 1.3vw, 18px)', lineHeight: 1.7, maxWidth: 600 }}
           >
             แต่คือไม่รู้ว่าไอเดียไหน <em>ปังจริง</em> ก่อนจะลงมือเขียน
             <br />
             <br />
-            Outlier Score คือวิธีที่ผมกรอง — บอกว่า video
-            ตัวนี้ดังเกินค่าเฉลี่ย channel กี่เท่า
+            Outlier Score คือวิธีที่ใช้ดูว่า video ไหนกำลังได้รับความนิยม
+            แล้วเอามาต่อยอดในแบบของเราเอง
           </p>
         </div>
 
@@ -57,7 +57,7 @@ export function GuaranteeOutlier() {
             <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
               <div>
                 <div style={{ fontSize: 18, fontWeight: 600 }}>
-                  5 ระดับที่ผมใช้กรอง
+                  5 ระดับของ Outlier Score
                 </div>
                 <div
                   className="text-[var(--rm-forest-muted)] mt-1"

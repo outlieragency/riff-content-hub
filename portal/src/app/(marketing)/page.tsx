@@ -7,7 +7,6 @@ import { TopCreators } from '@/components/marketing/top-creators'
 import { SpotTrend } from '@/components/marketing/spot-trend'
 import { Founder } from '@/components/marketing/founder'
 import { FasterWithAI } from '@/components/marketing/faster-with-ai'
-import { Pricing } from '@/components/marketing/pricing'
 import { FAQ } from '@/components/marketing/faq'
 import { FinalCTA } from '@/components/marketing/final-cta'
 import { MarketingFooter } from '@/components/marketing/marketing-footer'
@@ -46,7 +45,6 @@ export default async function MarketingHomePage({
       <SpotTrend />
       <Founder />
       <FasterWithAI />
-      <Pricing />
       <FAQ />
       <FinalCTA count={count} />
       <MarketingFooter />

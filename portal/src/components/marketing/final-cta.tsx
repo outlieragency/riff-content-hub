@@ -33,23 +33,23 @@ export function FinalCTA({ count }: { count: number }) {
               display: 'inline-block',
             }}
           />
-          batch ถัดไปเปิดสัปดาห์หน้า · 100 คนแรก
+          เปิดให้ creator ทดลองใช้ฟรีช่วง beta
         </div>
 
         <h2
           className="mt-6"
           style={{
-            fontSize: 'clamp(40px, 5.6vw, 72px)',
+            fontSize: 'clamp(36px, 5.4vw, 64px)',
             fontWeight: 600,
-            lineHeight: 1.05,
-            letterSpacing: '-0.035em',
+            lineHeight: 1.08,
+            letterSpacing: '-0.03em',
             color: 'var(--rm-text)',
             textWrap: 'balance' as const,
           }}
         >
-          ลงต่อเนื่อง 90 วัน
+          เริ่มลง content ทุกวัน
           <br />
-          <span className="rm-serif-italic">moat ของคุณก็เริ่ม.</span>
+          <span className="rm-serif-italic">ตั้งแต่วันนี้</span>
         </h2>
 
         <p
@@ -60,9 +60,9 @@ export function FinalCTA({ count }: { count: number }) {
             maxWidth: 540,
           }}
         >
-          เข้า waitlist ก่อน
+          ใส่ email เข้า waitlist ก่อน
           <br />
-          ราคา early lock 1 ปี ปกติเปิด public สูงกว่านี้ 50%
+          เปิดให้ใช้เป็น batch · คุณจะได้ใช้ก่อนใคร
         </p>
 
         <div
@@ -76,7 +76,7 @@ export function FinalCTA({ count }: { count: number }) {
           className="mt-4 text-[var(--rm-muted-2)]"
           style={{ fontSize: 13 }}
         >
-          {count} creator อยู่ในคิว · ไม่มี spam · ยกเลิกเดือนไหนก็ได้
+          {count} creator อยู่ในคิว · ไม่มี spam · ไม่ต้องใส่บัตร
         </p>
       </div>
     </section>

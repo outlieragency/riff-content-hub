@@ -14,43 +14,43 @@ const FEATURES: {
 }[] = [
   {
     key: 'discover',
-    title: 'ผมไม่ดู YouTube เป็นชั่วโมงอีกแล้ว',
-    body: 'Riff scan ทุก channel ที่ผม track แล้วเอาเฉพาะตัวที่ดังเกินค่าเฉลี่ย channel มาให้ดู ที่เหลือไม่ต้องเสียเวลา',
+    title: 'คุณไม่ต้องดู YouTube เป็นชั่วโมงอีกแล้ว',
+    body: 'Riff scan ทุก channel ที่คุณ track แล้วเอาเฉพาะตัวที่ดังเกินค่าเฉลี่ยมาให้ดู ที่เหลือไม่ต้องเสียเวลา',
     rotation: -2,
     mockup: <DiscoverMock />,
   },
   {
     key: 'creator-look',
-    title: 'ดูที่ outlier — ไม่ใช่ที่ followers',
-    body: 'channel 10K subs ที่มี video 1M views คือสิ่งน่าเรียน ไม่ใช่ channel 1M subs ที่ video ละ 50K Outlier Score แยกให้ในแก้บเดียว',
+    title: 'ดูที่ outlier ไม่ใช่ที่ followers',
+    body: 'channel 10K subs ที่มี video 1M views คือสิ่งน่าเรียนรู้ ไม่ใช่ channel 1M subs ที่ video ละ 50K Outlier Score แยกให้คุณเห็นในแก้บเดียว',
     rotation: 2,
     mockup: <CreatorLookMock />,
   },
   {
     key: 'save',
-    title: 'เห็นปุ๊บ save ปุ๊บ',
-    body: 'idea ดี ๆ ผ่านมาทุกวัน ถ้าไม่เก็บก็ลืม กด save ครั้งเดียวเข้า Idea Library จัดเป็น board ตามชุด content ที่จะปล่อย',
+    title: 'เห็นปุ๊บ save ปั๊บ',
+    body: 'idea ดี ๆ ผ่านมาทุกวัน ถ้าไม่เก็บก็ลืม กด save ครั้งเดียวเข้า Idea Library ของคุณ จัดเป็น board ตามชุด content ที่จะปล่อย',
     rotation: -2,
     mockup: <SaveMock />,
   },
   {
     key: 'chat',
-    title: 'อ่าน transcript ก่อนเริ่มเขียน',
-    body: 'ก่อนจะ recreate ผมต้องเข้าใจก่อนว่า video นั้นใช้ hook แบบไหน structure อะไร Riff ถอดเสียง แปลไทย สรุปประเด็นไว้พร้อม ไม่ต้องเปิด ChatGPT แยก',
+    title: 'แกะ transcript ก่อนเริ่มเขียน',
+    body: 'Riff ถอดเสียง แปลไทย สรุปประเด็น พร้อมแยกให้ว่าใช้ hook อะไร structure ไหน คุณเข้าใจ video นั้นเต็ม ๆ ก่อนจะเริ่ม recreate ในแบบของคุณเอง',
     rotation: 2,
     mockup: <ChatMock />,
   },
   {
     key: 'voice',
     title: 'AI ที่ไม่ทำให้คุณกลายเป็น AI',
-    body: 'Riff อ่าน post เก่าของคุณ จับจังหวะประโยค คำที่ใช้ซ้ำ วิธี tail off ประโยค แล้วเขียนใหม่ในแบบเดียวกัน ไม่ใช่ ChatGPT generic ที่ทุกคนพูดเหมือนกัน',
+    body: 'Riff อ่าน post เก่าของคุณ จับจังหวะประโยค คำที่ใช้ซ้ำ วิธีปิดประโยค แล้วเขียนใหม่ในแบบเดียวกัน ไม่ใช่ ChatGPT generic ที่ทุกคนพูดเหมือนกัน',
     rotation: -2,
     mockup: <VoiceMock />,
   },
   {
     key: 'stack',
-    title: '1 video → 4 platform ในนั่งเดียว',
-    body: 'แทนที่จะเปิด tab 6 อันมาเขียนทีละ post, Riff generate FB · IG carousel · Reels · YT script ครบทั้ง 4 จาก video เดียว เวลาที่เหลือเอาไปทำของ',
+    title: '1 video ลงได้ 4 platform ในนั่งเดียว',
+    body: 'แทนที่จะเปิด tab 6 อันมาเขียนทีละ post Riff generate FB · IG carousel · Reels · YT script ให้ครบทั้ง 4 จาก video เดียว เวลาที่เหลือคุณเอาไปทำของ',
     rotation: 2,
     mockup: <StackMock />,
   },
@@ -75,9 +75,9 @@ export function FeaturesGrid() {
               textWrap: 'balance' as const,
             }}
           >
-            ทุก step ที่ผมเคยทำเอง.
+            ทุก Step ที่ Agency ทำ
             <br />
-            <span className="rm-serif-italic">รวมในเครื่องเดียว.</span>
+            <span className="rm-serif-italic">รวมไว้ใน Tool เดียว</span>
           </h2>
           <p
             className="mt-5 mx-auto text-[var(--rm-muted)]"
