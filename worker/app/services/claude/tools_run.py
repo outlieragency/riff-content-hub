@@ -11,17 +11,25 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
+from typing import Any
+
 from ...settings import get_settings
-from .caching import cached_text_block, load_prompt
+from .caching import cached_text_block, load_prompt, render_voice_profile
 from .client import CallMeta, call_messages, extract_text
 
 
-ToolKind = Literal["hook_doctor", "grade_draft", "niche_playbook"]
+ToolKind = Literal[
+    "hook_doctor",
+    "grade_draft",
+    "niche_playbook",
+    "voice_rewrite",
+]
 
 PROMPT_FILES: dict[str, str] = {
     "hook_doctor": "tools/hook-doctor.md",
     "grade_draft": "tools/grade-draft.md",
     "niche_playbook": "tools/niche-playbook.md",
+    "voice_rewrite": "tools/voice-rewrite.md",
 }
 
 MAX_INPUT_CHARS = 8000  # ~2000 tokens — plenty for any single post / draft
@@ -37,8 +45,16 @@ class ToolResult:
     meta: CallMeta
 
 
-def run_tool(tool: ToolKind, user_input: str) -> ToolResult:
-    """Run a preset tool with user input. Returns Markdown string."""
+def run_tool(
+    tool: ToolKind,
+    user_input: str,
+    voice_profile: dict[str, Any] | None = None,
+) -> ToolResult:
+    """Run a preset tool with user input. Returns Markdown string.
+
+    voice_profile is required for `voice_rewrite` (else raises). Other tools
+    ignore it.
+    """
     if tool not in PROMPT_FILES:
         raise ToolError(f"unknown tool: {tool}")
 
@@ -53,6 +69,13 @@ def run_tool(tool: ToolKind, user_input: str) -> ToolResult:
     settings = get_settings()
     template = load_prompt(PROMPT_FILES[tool])
     rendered = template.replace("{{ user_input }}", cleaned)
+    if tool == "voice_rewrite":
+        if not voice_profile:
+            raise ToolError("voice_rewrite ต้องการ voice_profile")
+        rendered = rendered.replace(
+            "{{ voice_profile_rendered }}",
+            render_voice_profile(voice_profile),
+        )
 
     # System block = instructions (cached if same tool called again)
     system_blocks = [cached_text_block(rendered)]

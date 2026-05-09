@@ -1,29 +1,48 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useRef, useState, useTransition } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { Loader2, Save, Star, Trash2 } from 'lucide-react'
 import {
+  Loader2,
+  Save,
+  Sparkles,
+  Star,
+  Trash2,
+  Upload,
+  X,
+} from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import {
+  addReferenceImagesToStyle,
   deleteCreativeStyle,
+  reExtractStyleFromCurrentRefs,
+  removeReferenceFromStyle,
   setDefaultCreativeStyle,
   updateCreativeStyle,
 } from '@/lib/actions/creative-styles'
-import type {
-  CreativeStyleRow,
-  RendererConfig,
+import {
+  extractedToRendererConfig,
+  type CreativeStyleRow,
+  type ReferenceImage,
+  type RendererConfig,
 } from '@/lib/types/creative-style'
 
 export function TemplateEditor({ initial }: { initial: CreativeStyleRow }) {
   const router = useRouter()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [name, setName] = useState(initial.name)
   const [styleGuide, setStyleGuide] = useState(initial.style_guide_md)
   const [config, setConfig] = useState<RendererConfig>(initial.renderer_config)
+  const [refs, setRefs] = useState<ReferenceImage[]>(initial.reference_images)
   const [error, setError] = useState<string | null>(null)
   const [info, setInfo] = useState<string | null>(null)
   const [saving, startSave] = useTransition()
   const [deleting, startDelete] = useTransition()
   const [makingDefault, startDefault] = useTransition()
+  const [uploadingRefs, setUploadingRefs] = useState(false)
+  const [removingRefUrl, setRemovingRefUrl] = useState<string | null>(null)
+  const [reExtracting, startReExtract] = useTransition()
 
   const dirty =
     name !== initial.name ||
@@ -72,6 +91,107 @@ export function TemplateEditor({ initial }: { initial: CreativeStyleRow }) {
         return
       }
       router.push('/templates')
+    })
+  }
+
+  async function handleUploadRefs(files: FileList | null) {
+    if (!files || files.length === 0) return
+    setError(null)
+    setInfo(null)
+    setUploadingRefs(true)
+    try {
+      const sb = createClient()
+      const {
+        data: { user },
+      } = await sb.auth.getUser()
+      if (!user) {
+        setError('unauthorized')
+        return
+      }
+
+      const newUrls: string[] = []
+      for (const file of Array.from(files)) {
+        if (file.size > 10 * 1024 * 1024) {
+          setError(`${file.name} ใหญ่เกิน 10MB`)
+          continue
+        }
+        if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+          setError(`${file.name} ต้องเป็น PNG / JPEG / WEBP`)
+          continue
+        }
+        const ext = file.name.split('.').pop()?.toLowerCase() ?? 'png'
+        const path = `${user.id}/${initial.id}/${Date.now()}-${crypto.randomUUID()}.${ext}`
+        const { error: upErr } = await sb.storage
+          .from('creative-styles')
+          .upload(path, file, { contentType: file.type, cacheControl: '3600' })
+        if (upErr) {
+          setError(`upload ${file.name} fail: ${upErr.message}`)
+          continue
+        }
+        const { data: pub } = sb.storage
+          .from('creative-styles')
+          .getPublicUrl(path)
+        newUrls.push(pub.publicUrl)
+      }
+
+      if (newUrls.length === 0) return
+
+      const res = await addReferenceImagesToStyle(initial.id, newUrls)
+      if (!res.ok) {
+        setError(res.error)
+        return
+      }
+      setRefs((cur) => [
+        ...cur,
+        ...newUrls.map((url) => ({
+          url,
+          uploaded_at: new Date().toISOString(),
+        })),
+      ])
+      setInfo(`เพิ่ม ${newUrls.length} ภาพ — รวม ${res.total} refs`)
+      router.refresh()
+    } finally {
+      setUploadingRefs(false)
+    }
+  }
+
+  async function handleRemoveRef(url: string) {
+    if (!confirm('ลบภาพนี้ออกจาก template ?')) return
+    setRemovingRefUrl(url)
+    setError(null)
+    setInfo(null)
+    try {
+      const res = await removeReferenceFromStyle(initial.id, url)
+      if (!res.ok) {
+        setError(res.error)
+        return
+      }
+      setRefs((cur) => cur.filter((r) => r.url !== url))
+      setInfo(`ลบแล้ว — เหลือ ${res.remaining} refs`)
+      router.refresh()
+    } finally {
+      setRemovingRefUrl(null)
+    }
+  }
+
+  function handleReExtract() {
+    if (refs.length === 0) {
+      setError('ต้องมี reference อย่างน้อย 1 ภาพก่อน re-extract')
+      return
+    }
+    if (!confirm('Re-extract style จาก refs ที่มีอยู่ ? Style guide + theme จะถูกเขียนทับ')) return
+    setError(null)
+    setInfo(null)
+    startReExtract(async () => {
+      const res = await reExtractStyleFromCurrentRefs(initial.id, initial.format_type)
+      if (!res.ok) {
+        setError(res.error)
+        return
+      }
+      // Apply extracted result to local state
+      setStyleGuide(res.extracted.style_guide_md)
+      setConfig(extractedToRendererConfig(res.extracted))
+      setInfo(`Re-extract เสร็จ ใน ${(res.meta.latency_ms / 1000).toFixed(1)}s — กด Save เพื่อบันทึก`)
     })
   }
 
@@ -125,30 +245,95 @@ export function TemplateEditor({ initial }: { initial: CreativeStyleRow }) {
         {/* Right: refs gallery + actions */}
         <div className="space-y-4">
           <div>
-            <h3 className="text-sm font-medium text-foreground mb-2">
-              Reference images
-            </h3>
-            {initial.reference_images.length === 0 ? (
-              <p className="text-xs text-muted-foreground">
-                ไม่มี reference
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-medium text-foreground">
+                Reference images
+              </h3>
+              <span className="text-[10px] text-muted-foreground tabular-nums">
+                {refs.length} / 12
+              </span>
+            </div>
+
+            {refs.length === 0 ? (
+              <p className="text-xs text-muted-foreground mb-2">
+                ยังไม่มี reference — upload เพื่อให้ AI วิเคราะห์ style
               </p>
             ) : (
-              <div className="grid grid-cols-2 gap-2">
-                {initial.reference_images.map((r, i) => (
-                  <div
-                    key={i}
-                    className="relative aspect-[4/5] rounded-[8px] overflow-hidden bg-secondary border border-border-soft"
-                  >
-                    <Image
-                      src={r.url}
-                      alt={`ref ${i + 1}`}
-                      fill
-                      sizes="160px"
-                      className="object-cover"
-                    />
-                  </div>
-                ))}
+              <div className="grid grid-cols-2 gap-2 mb-2">
+                {refs.map((r, i) => {
+                  const isRemoving = removingRefUrl === r.url
+                  return (
+                    <div
+                      key={`${r.url}-${i}`}
+                      className="relative aspect-[4/5] rounded-[8px] overflow-hidden bg-secondary border border-border-soft group"
+                    >
+                      <Image
+                        src={r.url}
+                        alt={`ref ${i + 1}`}
+                        fill
+                        sizes="160px"
+                        className="object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveRef(r.url)}
+                        disabled={isRemoving || uploadingRefs}
+                        className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/70 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-100"
+                        aria-label="ลบ"
+                      >
+                        {isRemoving ? (
+                          <Loader2 className="animate-spin" size={11} />
+                        ) : (
+                          <X size={11} />
+                        )}
+                      </button>
+                    </div>
+                  )
+                })}
               </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingRefs || refs.length >= 12}
+              className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-[8px] border border-dashed border-border hover:border-brand text-xs font-medium text-muted-foreground hover:text-foreground disabled:opacity-50"
+            >
+              {uploadingRefs ? (
+                <>
+                  <Loader2 className="animate-spin" size={11} />
+                  กำลัง upload...
+                </>
+              ) : (
+                <>
+                  <Upload size={11} />
+                  + Add reference
+                </>
+              )}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              multiple
+              className="hidden"
+              onChange={(e) => handleUploadRefs(e.target.files)}
+            />
+
+            {refs.length > 0 && (
+              <button
+                type="button"
+                onClick={handleReExtract}
+                disabled={reExtracting || uploadingRefs}
+                className="w-full mt-1.5 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-[6px] text-[11px] text-blue-600 hover:bg-blue-50 disabled:opacity-50"
+              >
+                {reExtracting ? (
+                  <Loader2 className="animate-spin" size={10} />
+                ) : (
+                  <Sparkles size={10} />
+                )}
+                Re-extract style จาก refs ปัจจุบัน
+              </button>
             )}
           </div>
 

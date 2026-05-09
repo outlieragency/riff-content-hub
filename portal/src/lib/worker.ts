@@ -129,8 +129,13 @@ export const worker = {
 
   runTool: (params: {
     user_id: string
-    tool: 'hook_doctor' | 'grade_draft' | 'niche_playbook'
+    tool:
+      | 'hook_doctor'
+      | 'grade_draft'
+      | 'niche_playbook'
+      | 'voice_rewrite'
     input: string
+    voice_profile?: Record<string, unknown>
   }) => call<ToolRunResponse>('POST', '/tools/run', params),
 }
 
@@ -195,6 +200,13 @@ export type NotionPushResponse = {
   notion_output_url: string
 }
 
+export type LineStylePayload = {
+  highlight_color?: string | null
+  highlight_style?: 'background' | 'text-color' | null
+  font_size_pct?: number | null
+  font_weight?: number | null
+}
+
 export type CoverFieldsPayload = {
   line1: string
   line2: string
@@ -202,6 +214,9 @@ export type CoverFieldsPayload = {
   line1_highlight?: string | null
   line2_highlight?: string | null
   line3_highlight?: string | null
+  line1_style?: LineStylePayload | null
+  line2_style?: LineStylePayload | null
+  line3_style?: LineStylePayload | null
   subhead?: string | null
   arrow_caption_top?: string | null
   arrow_caption_bottom?: string | null

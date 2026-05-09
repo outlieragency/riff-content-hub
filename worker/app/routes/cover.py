@@ -34,6 +34,13 @@ from ..services.cover_render import CoverRenderError, render_cover_bytes
 router = APIRouter(prefix="/cover", tags=["cover"])
 
 
+class LineStyleIn(BaseModel):
+    highlight_color: str | None = None  # hex
+    highlight_style: str | None = None  # 'background' | 'text-color'
+    font_size_pct: int | None = None
+    font_weight: int | None = None
+
+
 class CoverFields(BaseModel):
     line1: str
     line2: str
@@ -41,6 +48,9 @@ class CoverFields(BaseModel):
     line1_highlight: str | None = None
     line2_highlight: str | None = None
     line3_highlight: str | None = None
+    line1_style: LineStyleIn | None = None
+    line2_style: LineStyleIn | None = None
+    line3_style: LineStyleIn | None = None
     subhead: str | None = None
     arrow_caption_top: str | None = None
     arrow_caption_bottom: str | None = None
@@ -112,6 +122,9 @@ def post_preview(
             line1_highlight=body.cover.line1_highlight,
             line2_highlight=body.cover.line2_highlight,
             line3_highlight=body.cover.line3_highlight,
+            line1_style=body.cover.line1_style.model_dump() if body.cover.line1_style else None,
+            line2_style=body.cover.line2_style.model_dump() if body.cover.line2_style else None,
+            line3_style=body.cover.line3_style.model_dump() if body.cover.line3_style else None,
             subhead=body.cover.subhead,
             arrow_caption_top=body.cover.arrow_caption_top,
             arrow_caption_bottom=body.cover.arrow_caption_bottom,

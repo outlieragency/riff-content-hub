@@ -9,6 +9,16 @@ export type RecreateFormat = 'fb_article' | 'yt_script' | 'reels' | 'carousel'
 /** FB long-form post (Earth Rati style — May 2026 onward).
  * Replaces previous {title, body_markdown, hashtags} shape.
  */
+export type HighlightStyle = 'background' | 'text-color'
+
+/** Per-line typography override. All fields optional → fallback to template. */
+export type LineStyle = {
+  highlight_color?: string // hex, e.g. '#E53935'
+  highlight_style?: HighlightStyle // background pill OR colored text
+  font_size_pct?: number // 60-130, default 100 = template default size
+  font_weight?: 400 | 500 | 600 | 700 | 800 | 900
+}
+
 export type FbArticleCover = {
   hook_framework: string
   headline_pattern: string  // "TT" default
@@ -16,10 +26,13 @@ export type FbArticleCover = {
   color_theme: string       // "trendtech" default
   line1: string
   line1_highlight?: string
+  line1_style?: LineStyle
   line2: string
   line2_highlight?: string
+  line2_style?: LineStyle
   line3: string
   line3_highlight?: string
+  line3_style?: LineStyle
   subhead?: string
   arrow_caption_top?: string
   arrow_caption_bottom?: string

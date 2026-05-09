@@ -336,6 +336,152 @@ export async function deleteStyleReferenceObjects(
   return { ok: true }
 }
 
+/**
+ * Append reference images to an existing creative_style.
+ * URLs come from already-uploaded files (Storage public URLs).
+ */
+export async function addReferenceImagesToStyle(
+  styleId: string,
+  imageUrls: string[],
+): Promise<{ ok: true; total: number } | { ok: false; error: string }> {
+  if (imageUrls.length === 0) return { ok: true, total: 0 }
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: row, error: readErr } = await supabase
+    .from('creative_styles')
+    .select('reference_images')
+    .eq('id', styleId)
+    .eq('user_id', user.id)
+    .maybeSingle()
+  if (readErr || !row) return { ok: false, error: 'style not found' }
+
+  const current = Array.isArray(row.reference_images)
+    ? (row.reference_images as ReferenceImage[])
+    : []
+  const additions: ReferenceImage[] = imageUrls.map((url) => ({
+    url,
+    uploaded_at: new Date().toISOString(),
+  }))
+  const next = [...current, ...additions]
+
+  const { error } = await supabase
+    .from('creative_styles')
+    .update({ reference_images: next })
+    .eq('id', styleId)
+    .eq('user_id', user.id)
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath('/templates')
+  revalidatePath(`/templates/${styleId}`)
+  return { ok: true, total: next.length }
+}
+
+/**
+ * Remove a single reference image from a style + delete from Storage.
+ */
+export async function removeReferenceFromStyle(
+  styleId: string,
+  imageUrl: string,
+): Promise<{ ok: true; remaining: number } | { ok: false; error: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: row } = await supabase
+    .from('creative_styles')
+    .select('reference_images')
+    .eq('id', styleId)
+    .eq('user_id', user.id)
+    .maybeSingle()
+  if (!row) return { ok: false, error: 'style not found' }
+
+  const current = Array.isArray(row.reference_images)
+    ? (row.reference_images as ReferenceImage[])
+    : []
+  const next = current.filter((r) => r.url !== imageUrl)
+
+  if (next.length === current.length) {
+    return { ok: false, error: 'reference not found in this style' }
+  }
+
+  // Best-effort: remove from Storage if URL is from creative-styles bucket
+  // URL pattern: https://*.supabase.co/storage/v1/object/public/creative-styles/<path>
+  try {
+    const m = imageUrl.match(
+      /\/storage\/v1\/object\/public\/creative-styles\/(.+?)(?:\?|$)/,
+    )
+    if (m && m[1]) {
+      const path = decodeURIComponent(m[1])
+      // Only delete if user owns the path (folder is their user_id)
+      if (path.startsWith(`${user.id}/`)) {
+        await supabase.storage.from('creative-styles').remove([path])
+      }
+    }
+  } catch {
+    // Storage delete is best-effort — DB is source of truth
+  }
+
+  const { error } = await supabase
+    .from('creative_styles')
+    .update({ reference_images: next })
+    .eq('id', styleId)
+    .eq('user_id', user.id)
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath('/templates')
+  revalidatePath(`/templates/${styleId}`)
+  return { ok: true, remaining: next.length }
+}
+
+/**
+ * Re-extract style from current references — called after user adds/removes
+ * refs and wants to refresh style_guide_md to reflect new references.
+ *
+ * Returns the new extracted style data (caller can choose to apply or skip).
+ */
+export async function reExtractStyleFromCurrentRefs(
+  styleId: string,
+  formatType: FormatType = 'cover',
+): Promise<
+  | {
+      ok: true
+      extracted: ExtractedCreativeStyle
+      meta: { latency_ms: number; cache_hit_ratio: number }
+    }
+  | { ok: false; error: string }
+> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: row } = await supabase
+    .from('creative_styles')
+    .select('reference_images')
+    .eq('id', styleId)
+    .eq('user_id', user.id)
+    .maybeSingle()
+  if (!row) return { ok: false, error: 'style not found' }
+
+  const refs = Array.isArray(row.reference_images)
+    ? (row.reference_images as ReferenceImage[])
+    : []
+  if (refs.length === 0) {
+    return { ok: false, error: 'ไม่มี reference image — upload ก่อน' }
+  }
+  return extractStyleFromReferences(
+    refs.map((r) => r.url),
+    formatType,
+  )
+}
+
 const HEADLINER_STYLE_GUIDE = `# Headliner — Visual Style Guide
 
 ## Tone

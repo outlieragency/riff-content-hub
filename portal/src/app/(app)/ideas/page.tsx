@@ -4,6 +4,11 @@ import { createClient } from '@/lib/supabase/server'
 import { EmptyState } from '@/components/ui/empty-state'
 import { IdeaCardItem, type IdeaCard } from '@/components/ideas/idea-card'
 import { IdeaStatusFilter } from '@/components/ideas/status-filter'
+import { IdeasKanbanView } from '@/components/ideas/kanban-view'
+import {
+  ViewModeToggle,
+  type IdeasViewMode,
+} from '@/components/ideas/view-mode-toggle'
 import { BoardSidebar } from '@/components/boards/board-sidebar'
 import { listBoards } from '@/lib/actions/boards'
 import { getBoard } from '@/lib/actions/boards'
@@ -12,7 +17,11 @@ import { isBoardColor } from '@/lib/types/board'
 
 export const dynamic = 'force-dynamic'
 
-type SearchParams = Promise<{ status?: string; board?: string }>
+type SearchParams = Promise<{
+  status?: string
+  board?: string
+  view?: string
+}>
 
 export default async function IdeasPage({
   searchParams,
@@ -20,7 +29,12 @@ export default async function IdeasPage({
   searchParams: SearchParams
 }) {
   const sp = await searchParams
-  const filter = (sp.status as IdeaStatus | 'all' | undefined) ?? 'idea'
+  const view: IdeasViewMode = sp.view === 'kanban' ? 'kanban' : 'list'
+  // Kanban shows ALL statuses across columns; status filter only applies to list view
+  const filter =
+    view === 'kanban'
+      ? 'all'
+      : (sp.status as IdeaStatus | 'all' | undefined) ?? 'idea'
   const boardFilter = sp.board ?? null
 
   const supabase = await createClient()
@@ -97,7 +111,7 @@ export default async function IdeasPage({
     )
     .eq('user_id', user.id)
     .order('saved_at', { ascending: false })
-    .limit(60)
+    .limit(view === 'kanban' ? 200 : 60)
   if (filter !== 'all') ideaQ = ideaQ.eq('status', filter)
   if (ideaIds !== null) {
     if (ideaIds.length === 0) {
@@ -201,7 +215,16 @@ export default async function IdeasPage({
         <BoardSidebar boards={boards} totalCount={totalCount} />
 
         <div className="flex-1 min-w-0">
-          <IdeaStatusFilter counts={counts} />
+          <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+            {view === 'list' ? (
+              <IdeaStatusFilter counts={counts} />
+            ) : (
+              <div className="text-xs text-muted-foreground">
+                Kanban — ลาก card เปลี่ยน status ได้
+              </div>
+            )}
+            <ViewModeToggle current={view} />
+          </div>
 
           {cards.length === 0 ? (
             <EmptyState
@@ -230,6 +253,8 @@ export default async function IdeasPage({
                 ) : undefined
               }
             />
+          ) : view === 'kanban' ? (
+            <IdeasKanbanView cards={cards} />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {cards.map((c) => (

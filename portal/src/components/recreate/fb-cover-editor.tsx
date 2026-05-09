@@ -12,7 +12,10 @@ import {
   Trash2,
   X,
 } from 'lucide-react'
-import type { FbArticleCover } from '@/lib/types/recreate-formats'
+import type {
+  FbArticleCover,
+  LineStyle,
+} from '@/lib/types/recreate-formats'
 import { CoverPhotoCropper } from './cover-photo-cropper'
 import { getDraftSourcePhotoUrl } from '@/lib/actions/recreate'
 
@@ -46,22 +49,76 @@ function CharCounter({
   )
 }
 
+const PRESET_COLORS = [
+  '#E53935', // red
+  '#FF6B1A', // orange
+  '#FFD400', // yellow
+  '#43A047', // emerald
+  '#1E88E5', // blue
+  '#8E24AA', // purple
+  '#FFFFFF', // white
+  '#000000', // black
+]
+
 function LineEditor({
   label,
   palette,
   value,
   highlight,
+  style,
+  defaultHighlightStyle,
   onValueChange,
   onHighlightChange,
+  onStyleChange,
 }: {
   label: string
   palette: { tag: string; tagBg: string; hint: string }
   value: string
   highlight: string
+  style: LineStyle | null | undefined
+  defaultHighlightStyle: 'background' | 'text-color'
   onValueChange: (v: string) => void
   onHighlightChange: (v: string) => void
+  onStyleChange: (next: LineStyle | undefined) => void
 }) {
   const highlightInBody = highlight && value.includes(highlight)
+  const [advanced, setAdvanced] = useState(false)
+
+  const currentColor = style?.highlight_color ?? ''
+  const currentHlStyle = style?.highlight_style ?? defaultHighlightStyle
+  const currentSizePct = style?.font_size_pct ?? 100
+  const currentWeight = style?.font_weight ?? 800
+
+  function updateStyle(patch: {
+    highlight_color?: string | null
+    highlight_style?: 'background' | 'text-color' | null
+    font_size_pct?: number | null
+    font_weight?: 400 | 500 | 600 | 700 | 800 | 900 | null
+  }) {
+    const next: LineStyle = { ...(style ?? {}) }
+    if ('highlight_color' in patch) {
+      if (patch.highlight_color) next.highlight_color = patch.highlight_color
+      else delete next.highlight_color
+    }
+    if ('highlight_style' in patch) {
+      if (patch.highlight_style) next.highlight_style = patch.highlight_style
+      else delete next.highlight_style
+    }
+    if ('font_size_pct' in patch) {
+      if (patch.font_size_pct != null) next.font_size_pct = patch.font_size_pct
+      else delete next.font_size_pct
+    }
+    if ('font_weight' in patch) {
+      if (patch.font_weight != null) next.font_weight = patch.font_weight
+      else delete next.font_weight
+    }
+    const hasAny =
+      next.highlight_color ||
+      next.highlight_style ||
+      (next.font_size_pct && next.font_size_pct !== 100) ||
+      (next.font_weight && next.font_weight !== 800)
+    onStyleChange(hasAny ? next : undefined)
+  }
 
   return (
     <div className="mb-3">
@@ -72,6 +129,13 @@ function LineEditor({
         >
           {palette.tag}
         </span>
+        <button
+          type="button"
+          onClick={() => setAdvanced((v) => !v)}
+          className="ml-auto text-[10px] text-blue-600 hover:underline"
+        >
+          {advanced ? 'ซ่อน' : 'ปรับสี/ฟอนต์'}
+        </button>
       </div>
       <input
         type="text"
@@ -103,6 +167,132 @@ function LineEditor({
             : 'ปล่อยว่างได้ ถ้าไม่ต้องการเน้นคำในบรรทัดนี้'}
         </div>
       </div>
+
+      {advanced && (
+        <div className="mt-2 p-2.5 rounded-md bg-secondary/40 border border-border-soft space-y-2">
+          {/* Highlight color */}
+          <div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+              สี highlight
+            </div>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <button
+                type="button"
+                onClick={() => updateStyle({ highlight_color: null })}
+                className={`text-[10px] px-2 py-1 rounded border ${
+                  !currentColor
+                    ? 'border-foreground bg-secondary text-foreground'
+                    : 'border-border text-muted-foreground'
+                }`}
+              >
+                Default
+              </button>
+              {PRESET_COLORS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => updateStyle({ highlight_color: c })}
+                  className={`w-6 h-6 rounded-md border-2 ${
+                    currentColor === c
+                      ? 'border-foreground'
+                      : 'border-border-soft'
+                  }`}
+                  style={{ backgroundColor: c }}
+                  aria-label={c}
+                />
+              ))}
+              <input
+                type="color"
+                value={currentColor || '#FFFFFF'}
+                onChange={(e) => updateStyle({ highlight_color: e.target.value })}
+                className="w-6 h-6 rounded cursor-pointer p-0 border border-border-soft"
+                aria-label="custom color"
+              />
+            </div>
+          </div>
+
+          {/* Highlight style mode */}
+          <div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+              รูปแบบ highlight
+            </div>
+            <div className="flex gap-1">
+              {[
+                { v: 'background' as const, label: 'แถบสี (pill)' },
+                { v: 'text-color' as const, label: 'สี text' },
+              ].map((opt) => (
+                <button
+                  key={opt.v}
+                  type="button"
+                  onClick={() => updateStyle({ highlight_style: opt.v })}
+                  className={`text-[10px] px-2 py-1 rounded ${
+                    currentHlStyle === opt.v
+                      ? 'bg-foreground text-background'
+                      : 'bg-background border border-border text-muted-foreground'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Font size */}
+          <div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+              ขนาด font: {currentSizePct}%
+            </div>
+            <input
+              type="range"
+              min={70}
+              max={130}
+              step={5}
+              value={currentSizePct}
+              onChange={(e) =>
+                updateStyle({ font_size_pct: Number(e.target.value) })
+              }
+              className="w-full accent-brand"
+            />
+          </div>
+
+          {/* Font weight */}
+          <div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+              น้ำหนักตัวอักษร
+            </div>
+            <div className="flex gap-1">
+              {([
+                { v: 400 as const, label: 'Regular' },
+                { v: 600 as const, label: 'Semi' },
+                { v: 700 as const, label: 'Bold' },
+                { v: 800 as const, label: 'Extra' },
+                { v: 900 as const, label: 'Black' },
+              ]).map((opt) => (
+                <button
+                  key={opt.v}
+                  type="button"
+                  onClick={() => updateStyle({ font_weight: opt.v })}
+                  className={`text-[10px] px-2 py-1 rounded ${
+                    currentWeight === opt.v
+                      ? 'bg-foreground text-background'
+                      : 'bg-background border border-border text-muted-foreground'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => onStyleChange(undefined)}
+            className="text-[10px] text-red-600 hover:underline"
+          >
+            Reset to template default
+          </button>
+        </div>
+      )}
     </div>
   )
 }
@@ -133,6 +323,23 @@ export function FbCoverEditor({
   const [resolvingSrc, setResolvingSrc] = useState(false)
   const previewReqRef = useRef(0)
 
+  // P0-1 fix: sync state with props when parent refreshes after server actions.
+  // Without this, after upload-cover-photo router.refresh() updates page output,
+  // but editor keeps stale local state from initial mount.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCoverPhotoUrl(initialCoverPhotoUrl ?? null)
+  }, [initialCoverPhotoUrl])
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCoverUrl(initialCoverUrl ?? null)
+    // New coverUrl from parent → invalidate cached previewUri to force fresh display
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPreviewUri(null)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCoverCacheBuster(String(Date.now()))
+  }, [initialCoverUrl])
+
   const openCropper = async () => {
     setError(null)
     setResolvingSrc(true)
@@ -152,10 +359,12 @@ export function FbCoverEditor({
   const handleCropperSaved = (next: { coverPhotoUrl: string; coverUrl: string | null }) => {
     setCoverPhotoUrl(next.coverPhotoUrl)
     if (next.coverUrl) setCoverUrl(next.coverUrl)
+    // eslint-disable-next-line react-hooks/purity
     setCoverCacheBuster(String(Date.now()))
     setPreviewUri(null)
     setCropperOpen(false)
     router.refresh()
+    setTimeout(() => renderPreview(true), 50)
   }
 
   const update = <K extends keyof FbArticleCover>(k: K, v: FbArticleCover[K]) =>
@@ -203,6 +412,9 @@ export function FbCoverEditor({
     cover.line1_highlight,
     cover.line2_highlight,
     cover.line3_highlight,
+    JSON.stringify(cover.line1_style),
+    JSON.stringify(cover.line2_style),
+    JSON.stringify(cover.line3_style),
     cover.subhead,
     cover.arrow_caption_top,
     cover.arrow_caption_bottom,
@@ -230,6 +442,9 @@ export function FbCoverEditor({
       setCoverCacheBuster(String(Date.now()))
       setPreviewUri(null) // force re-fetch from new URL
       router.refresh()
+      // Trigger fresh preview using current cover fields immediately
+      // (don't wait for auto-preview debounce)
+      setTimeout(() => renderPreview(true), 50)
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'upload error')
     } finally {
@@ -452,8 +667,11 @@ export function FbCoverEditor({
               }}
               value={cover.line1}
               highlight={cover.line1_highlight ?? ''}
+              style={cover.line1_style}
+              defaultHighlightStyle="background"
               onValueChange={(v) => update('line1', v)}
               onHighlightChange={(v) => update('line1_highlight', v || undefined)}
+              onStyleChange={(s) => update('line1_style', s)}
             />
             <LineEditor
               label="บรรทัดที่ 2"
@@ -464,8 +682,11 @@ export function FbCoverEditor({
               }}
               value={cover.line2}
               highlight={cover.line2_highlight ?? ''}
+              style={cover.line2_style}
+              defaultHighlightStyle="text-color"
               onValueChange={(v) => update('line2', v)}
               onHighlightChange={(v) => update('line2_highlight', v || undefined)}
+              onStyleChange={(s) => update('line2_style', s)}
             />
             <LineEditor
               label="บรรทัดที่ 3"
@@ -476,8 +697,11 @@ export function FbCoverEditor({
               }}
               value={cover.line3}
               highlight={cover.line3_highlight ?? ''}
+              style={cover.line3_style}
+              defaultHighlightStyle="background"
               onValueChange={(v) => update('line3', v)}
               onHighlightChange={(v) => update('line3_highlight', v || undefined)}
+              onStyleChange={(s) => update('line3_style', s)}
             />
           </section>
 

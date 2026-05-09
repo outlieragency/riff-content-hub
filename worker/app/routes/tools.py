@@ -20,13 +20,22 @@ router = APIRouter(prefix="/tools", tags=["tools"])
 
 class ToolRunRequest(BaseModel):
     user_id: str = Field(..., description="auth.users.id")
-    tool: str = Field(..., description="hook_doctor | grade_draft | niche_playbook")
+    tool: str = Field(
+        ..., description="hook_doctor | grade_draft | niche_playbook | voice_rewrite"
+    )
     input: str = Field(..., min_length=1, max_length=8000)
+    voice_profile: dict | None = Field(
+        default=None,
+        description="Required for voice_rewrite — VoiceProfile JSON shape",
+    )
 
 
 class ToolRunResponse(BaseModel):
     output_markdown: str
     meta: dict
+
+
+SUPPORTED_TOOLS = {"hook_doctor", "grade_draft", "niche_playbook", "voice_rewrite"}
 
 
 @router.post("/run", response_model=ToolRunResponse)
@@ -36,13 +45,17 @@ def post_tool_run(
 ) -> ToolRunResponse:
     require_worker_secret(authorization)
 
-    if body.tool not in {"hook_doctor", "grade_draft", "niche_playbook"}:
+    if body.tool not in SUPPORTED_TOOLS:
         raise HTTPException(
             status_code=400, detail=f"unknown tool: {body.tool}"
         )
 
     try:
-        result = run_tool(body.tool, body.input)  # type: ignore[arg-type]
+        result = run_tool(
+            body.tool,  # type: ignore[arg-type]
+            body.input,
+            voice_profile=body.voice_profile,
+        )
     except ToolError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except Exception as exc:  # noqa: BLE001

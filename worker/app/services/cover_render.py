@@ -101,16 +101,43 @@ def _fetch_thumbnail_with_fallback(video_id: str, primary_url: str | None) -> Op
     return None
 
 
-def _wrap_highlight(text: str, highlight: str | None, css_class: str) -> str:
-    """Wrap the `highlight` substring within `text` in `<span class="...">`."""
+def _wrap_highlight(
+    text: str,
+    highlight: str | None,
+    css_class: str,
+    style_override: dict | None = None,
+) -> str:
+    """Wrap the `highlight` substring within `text` in <span>.
+
+    style_override (per-line):
+      - highlight_color: hex → override default class color
+      - highlight_style: 'background' (pill) | 'text-color' (color text)
+      - font_size_pct, font_weight: applied to the span's container (caller must use)
+    """
     if not text:
         return ""
     if not highlight or highlight not in text:
         return html_lib.escape(text)
     before, _, after = text.partition(highlight)
+
+    style_attr = ""
+    cls = css_class
+    if style_override:
+        color = style_override.get("highlight_color")
+        hl_style = style_override.get("highlight_style") or "background"
+        if color and isinstance(color, str):
+            if hl_style == "text-color":
+                style_attr = f'background:transparent;color:{color};padding:0;'
+                cls = ""  # bypass class background
+            else:  # background
+                # white foreground when bg is dark, dark foreground when bg is light
+                style_attr = f'background:{color};color:#fff;'
+                cls = "hl-custom"
+    cls_attr = f' class="{cls}"' if cls else ""
+    style_html = f' style="{style_attr}"' if style_attr else ""
     return (
         html_lib.escape(before)
-        + f'<span class="{css_class}">{html_lib.escape(highlight)}</span>'
+        + f"<span{cls_attr}{style_html}>{html_lib.escape(highlight)}</span>"
         + html_lib.escape(after)
     )
 
@@ -145,6 +172,9 @@ def render_cover_bytes(
     line1_highlight: str | None = None,
     line2_highlight: str | None = None,
     line3_highlight: str | None = None,
+    line1_style: dict | None = None,
+    line2_style: dict | None = None,
+    line3_style: dict | None = None,
     subhead: str | None = None,
     arrow_caption_top: str | None = None,
     arrow_caption_bottom: str | None = None,
@@ -195,9 +225,22 @@ def render_cover_bytes(
     )
     template = env.get_template(template_file)
 
-    line1_html = _wrap_highlight(line1, line1_highlight, "hl-red")
-    line2_html = _wrap_highlight(line2, line2_highlight, "hl-yellow")
-    line3_html = _wrap_highlight(line3, line3_highlight, "hl-orange")
+    line1_html = _wrap_highlight(line1, line1_highlight, "hl-red", line1_style)
+    line2_html = _wrap_highlight(line2, line2_highlight, "hl-yellow", line2_style)
+    line3_html = _wrap_highlight(line3, line3_highlight, "hl-orange", line3_style)
+
+    def line_style_attr(style: dict | None) -> str:
+        if not style:
+            return ""
+        bits: list[str] = []
+        size_pct = style.get("font_size_pct")
+        if isinstance(size_pct, (int, float)) and 50 <= size_pct <= 150:
+            # base 60px → scale
+            bits.append(f"font-size:{60 * (size_pct / 100):.1f}px")
+        weight = style.get("font_weight")
+        if isinstance(weight, int) and 100 <= weight <= 900:
+            bits.append(f"font-weight:{weight}")
+        return ";".join(bits)
 
     html = template.render(
         screenshot_data_uri=screenshot_uri,
@@ -211,6 +254,9 @@ def render_cover_bytes(
         line1_html=line1_html,
         line2_html=line2_html,
         line3_html=line3_html,
+        line1_style_attr=line_style_attr(line1_style),
+        line2_style_attr=line_style_attr(line2_style),
+        line3_style_attr=line_style_attr(line3_style),
         subhead=subhead or "",
         arrow_caption_top=arrow_caption_top or "",
         arrow_caption_bottom=arrow_caption_bottom or "",

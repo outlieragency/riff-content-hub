@@ -229,6 +229,13 @@
     box-decoration-break: clone;
     -webkit-box-decoration-break: clone;
   }
+  /* Custom highlight — color set inline by render */
+  .hl-custom {
+    padding: 2px 14px;
+    border-radius: 6px;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
 
   /* Subhead — italic-feel preview line */
   .subhead {
@@ -325,9 +332,9 @@
 
     <div class="bottom">
       <div class="headline">
-        <div class="h-line line1">{{ line1_html | safe }}</div>
-        <div class="h-line line2">{{ line2_html | safe }}</div>
-        <div class="h-line line3">{{ line3_html | safe }}</div>
+        <div class="h-line line1"{% if line1_style_attr %} style="{{ line1_style_attr }}"{% endif %}>{{ line1_html | safe }}</div>
+        <div class="h-line line2"{% if line2_style_attr %} style="{{ line2_style_attr }}"{% endif %}>{{ line2_html | safe }}</div>
+        <div class="h-line line3"{% if line3_style_attr %} style="{{ line3_style_attr }}"{% endif %}>{{ line3_html | safe }}</div>
       </div>
       <div class="subhead">- {{ subhead }} -</div>
     </div>
