@@ -16,6 +16,7 @@ export type OutlierVideo = {
   is_short: boolean
   published_at: string | null
   outlier_score: number | null
+  channel_id: string
   channel_title: string
   channel_handle: string | null
   channel_subscriber_count: number | null

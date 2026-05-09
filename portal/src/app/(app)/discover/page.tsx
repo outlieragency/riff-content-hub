@@ -2,7 +2,8 @@ import Link from 'next/link'
 import { Flame, Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { EmptyState } from '@/components/ui/empty-state'
-import { OutlierRow, type OutlierVideo } from '@/components/outliers/outlier-row'
+import { type OutlierVideo } from '@/components/outliers/outlier-row'
+import { OutlierCard } from '@/components/outliers/outlier-card'
 import { DiscoverModeTabs, type DiscoverMode } from '@/components/discover/mode-tabs'
 import { DiscoverFilters } from '@/components/discover/filters'
 
@@ -131,6 +132,7 @@ export default async function DiscoverPage({
       is_short: v.is_short,
       published_at: v.published_at,
       outlier_score: v.outlier_score,
+      channel_id: v.channel_id,
       channel_title: ch?.title ?? '',
       channel_handle: ch?.handle ?? null,
       channel_subscriber_count: ch?.subscriber_count ?? null,
@@ -166,9 +168,13 @@ export default async function DiscoverPage({
           description={emptyDescription(mode)}
         />
       ) : (
-        <div className="surface-2 divide-y divide-border-soft overflow-hidden">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {rows.map((v) => (
-            <OutlierRow key={v.id} video={v} />
+            <OutlierCard
+              key={v.id}
+              video={v}
+              channelHref={`/channels/${v.channel_id}`}
+            />
           ))}
         </div>
       )}
