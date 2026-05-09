@@ -426,12 +426,13 @@ function RendererConfigEditor({
             }
             className="w-full h-9 px-2 rounded-[6px] border border-border bg-background text-sm"
           >
-            <option value="headliner">Headliner</option>
-            <option value="minimal-card">Minimal Card</option>
-            <option value="bold-quote">Bold Quote</option>
-            <option value="full-text">Full Text</option>
-            <option value="photo-frame">Photo Frame</option>
+            <option value="headliner">Headliner — แบบดั้งเดิม (highlight chips + arrow)</option>
+            <option value="minimal">Minimal — รูปเต็มจอ + ข้อความล่าง</option>
+            <option value="split">Split — ครึ่งบนรูป / ครึ่งล่างพื้นสี</option>
           </select>
+          <p className="text-2xs text-muted-foreground mt-2 leading-snug">
+            เปลี่ยน layout ของ cover ได้ เลือกแล้วกด save แล้ว preview จะ render ใหม่ทันที
+          </p>
         </div>
         <div className="grid grid-cols-3 gap-3">
           <ColorField label="bg" value={config.theme.bg} onChange={(v) => setTheme('bg', v)} />

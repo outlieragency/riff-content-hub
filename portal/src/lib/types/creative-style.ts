@@ -53,6 +53,8 @@ export type StyleVisualTone = {
 
 export type BaseTemplate =
   | 'headliner'
+  | 'minimal'
+  | 'split'
   | 'minimal-card'
   | 'bold-quote'
   | 'full-text'

@@ -35,9 +35,16 @@ DEVICE_SCALE = 2
 TEMPLATE_FILE_ALIASES: dict[str, str] = {
     "headliner": "trendtech-portrait",
     "trendtech-portrait": "trendtech-portrait",
+    "minimal": "minimal-portrait",
+    "split": "split-portrait",
 }
 KNOWN_TEMPLATES = set(TEMPLATE_FILE_ALIASES.keys())
-PORTRAIT_TEMPLATES = {"headliner", "trendtech-portrait"}
+PORTRAIT_TEMPLATES = {
+    "headliner",
+    "trendtech-portrait",
+    "minimal",
+    "split",
+}
 DEFAULT_TEMPLATE = "headliner"
 
 DEFAULT_THEME: dict[str, str] = {
@@ -218,7 +225,9 @@ def render_cover_bytes(
     `fonts` overrides heading/body font family (Google Fonts loaded by template).
     """
     if cover_template not in KNOWN_TEMPLATES:
-        raise CoverRenderError(f"unknown cover_template: {cover_template}")
+        # Forgiving fallback: legacy or removed template names default to
+        # the standard headliner template so user-saved configs don't break.
+        cover_template = DEFAULT_TEMPLATE
 
     template_basename = TEMPLATE_FILE_ALIASES[cover_template]
     template_file = f"{template_basename}.html.j2"
