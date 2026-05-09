@@ -11,6 +11,8 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { FORMAT_META, type RecreateFormat } from '@/lib/types/recreate-formats'
+import { getTutorialVideo } from '@/lib/actions/app-settings'
+import { TutorialCard } from '@/components/dashboard/tutorial-card'
 import { timeAgo } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
@@ -59,7 +61,7 @@ export default async function DashboardPage() {
   const weekStart = startOfWeekIso()
   const todayStart = startOfTodayIso()
 
-  // 6 queries fire in parallel — was sequential, ~6x slower
+  // 7 queries fire in parallel — was sequential, ~7x slower
   const [
     { data: pendingRaw },
     { count: postedWeek },
@@ -67,6 +69,7 @@ export default async function DashboardPage() {
     { data: ideasRaw },
     { count: channelCount },
     { count: totalDrafts },
+    tutorial,
   ] = await Promise.all([
     supabase
       .from('recreated_drafts')
@@ -102,6 +105,7 @@ export default async function DashboardPage() {
       .from('recreated_drafts')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', user.id),
+    getTutorialVideo(),
   ])
   const pending = (pendingRaw ?? []) as DraftRow[]
   const ideas = (ideasRaw ?? []) as IdeaRow[]
@@ -123,6 +127,9 @@ export default async function DashboardPage() {
               }`}
         </p>
       </div>
+
+      <TutorialCard url={tutorial.url} title={tutorial.title} />
+
 
       {/* Stats strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">

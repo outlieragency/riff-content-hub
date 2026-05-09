@@ -5,13 +5,35 @@ import { createClient } from '@/lib/supabase/server'
 const WORKER_URL = process.env.WORKER_URL!
 const WORKER_SECRET = process.env.WORKER_SECRET!
 
+export type QuickRecreateFormat =
+  | 'fb_article'
+  | 'ig_carousel'
+  | 'reels_script'
+  | 'yt_script'
+
+export type QuickInitMode = 'save' | 'recreate'
+
 export type QuickInitResult =
-  | { ok: true; ideaId: string; transcriptJobId: string; deduplicated: boolean }
+  | {
+      ok: true
+      ideaId: string
+      transcriptJobId: string
+      deduplicated: boolean
+      mode: QuickInitMode
+      format: QuickRecreateFormat | null
+    }
   | { ok: false; error: string }
 
-export async function quickInitFromUrl(url: string): Promise<QuickInitResult> {
+export async function quickInitFromUrl(
+  url: string,
+  options?: { mode?: QuickInitMode; format?: QuickRecreateFormat },
+): Promise<QuickInitResult> {
   const trimmed = url.trim()
   if (!trimmed) return { ok: false, error: 'ใส่ URL หรือ video ID ก่อน' }
+
+  const mode: QuickInitMode = options?.mode ?? 'recreate'
+  const format: QuickRecreateFormat | null =
+    mode === 'save' ? null : options?.format ?? 'fb_article'
 
   const supabase = await createClient()
   const {
@@ -30,18 +52,27 @@ export async function quickInitFromUrl(url: string): Promise<QuickInitResult> {
         Authorization: `Bearer ${WORKER_SECRET}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ user_id: user.id, url: trimmed }),
+      body: JSON.stringify({
+        user_id: user.id,
+        url: trimmed,
+        auto_recreate_format: format,
+      }),
       cache: 'no-store',
     })
     const data = await res.json()
     if (!res.ok) {
-      return { ok: false, error: data.detail || data.error || `worker ${res.status}` }
+      return {
+        ok: false,
+        error: data.detail || data.error || `worker ${res.status}`,
+      }
     }
     return {
       ok: true,
       ideaId: data.idea_id,
       transcriptJobId: data.transcript_job_id,
       deduplicated: !!data.deduplicated,
+      mode,
+      format,
     }
   } catch (e: unknown) {
     return { ok: false, error: e instanceof Error ? e.message : 'request failed' }

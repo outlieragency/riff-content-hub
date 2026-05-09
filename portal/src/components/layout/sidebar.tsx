@@ -10,6 +10,7 @@ import {
   Mic,
   Pencil,
   Settings as SettingsIcon,
+  Sliders,
   Sparkles,
   Tv,
   UserPlus,
@@ -25,7 +26,7 @@ type NavItem = {
 }
 
 const WORKFLOW: NavItem[] = [
-  { href: '/today', label: 'Today', icon: Home },
+  { href: '/today', label: 'Dashboard', icon: Home },
   { href: '/discover', label: 'Discover', icon: Compass },
   { href: '/ideas', label: 'Ideas', icon: Lightbulb },
   { href: '/recreated', label: 'Recreated', icon: Pencil },
@@ -123,6 +124,15 @@ export function Sidebar({ isFounder = false }: { isFounder?: boolean }) {
             >
               <Mail size={15} strokeWidth={1.6} />
               <span className="flex-1">Waitlist</span>
+            </NavLink>
+            <NavLink
+              href="/admin/settings"
+              className={NAV_BASE}
+              activeClassName={NAV_ACTIVE}
+              inactiveClassName={NAV_INACTIVE}
+            >
+              <Sliders size={15} strokeWidth={1.6} />
+              <span className="flex-1">App Settings</span>
             </NavLink>
           </>
         )}

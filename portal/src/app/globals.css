@@ -21,10 +21,12 @@
   --color-brand-soft: #FDF4EC;
   --color-brand-border: #F4D8B6;
 
-  /* Forest accent — Eden DNA (used as secondary surface, dark-mode bg) */
-  --color-forest-deep: #1A2418;
-  --color-forest: #243024;
-  --color-forest-soft: #3A4A3A;
+  /* Forest accent — Eden palette (deep blue-green) */
+  --color-forest-deep: #09321F;
+  --color-forest: #224735;
+  --color-forest-soft: #39624D;
+  --color-forest-mint: #3DDC8A;
+  --color-forest-sage: #C8E0BF;
 
   /* ---- LIGHT (default) — warm cream paper ---------------------------- */
   --color-background: #F5F0E5;       /* cream paper */
@@ -256,11 +258,13 @@ body {
   --rm-text: #1A2418;
   --rm-muted: #5A5547;
   --rm-muted-2: #8A8170;
-  /* Forest tokens (used inside .rm-forest panels) */
-  --rm-forest-bg: #1A2418;
-  --rm-forest-surface: #243024;
+  /* Forest tokens (used inside .rm-forest panels) — Eden palette */
+  --rm-forest-bg: #09321F;
+  --rm-forest-surface: #224735;
+  --rm-forest-deep: #06190F;
   --rm-forest-text: #F1ECDF;
-  --rm-forest-muted: #9C9385;
+  --rm-forest-muted: #C8E0BF;
+  --rm-forest-mint: #3DDC8A;
   --rm-forest-border: rgba(241, 236, 223, 0.12);
   /* Accent — Riff orange retained for CTA + small dots */
   --rm-accent: #FF6B35;
