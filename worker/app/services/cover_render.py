@@ -48,6 +48,31 @@ DEFAULT_THEME: dict[str, str] = {
     "hl_orange": "#FF6B1A",
 }
 
+# Default fonts. Thai-capable fallback always present so headlines never
+# render as boxes. User-chosen heading is prepended to the stack.
+DEFAULT_FONTS: dict[str, str] = {
+    "heading": "Noto Sans Thai",
+    "body": "Noto Sans Thai",
+}
+
+# Fonts the template loads from Google Fonts. Pass any value here through
+# `renderer_config.fonts.heading` to actually render. Other values fall back
+# silently to the next item in the CSS stack (still Thai-capable).
+SUPPORTED_FONTS: set[str] = {
+    "Noto Sans Thai",
+    "IBM Plex Sans Thai",
+    "Sarabun",
+    "Inter",
+    "Inter Tight",
+    "Anuphan",
+    "Bai Jamjuree",
+    "Krub",
+    "Mitr",
+    "Prompt",
+    "Sriracha",
+    "Pridi",
+}
+
 
 class CoverRenderError(RuntimeError):
     pass
@@ -184,11 +209,13 @@ def render_cover_bytes(
     inset_image_bytes: bytes | None = None,
     brand_mark_bytes: bytes | None = None,
     theme: dict[str, str] | None = None,
+    fonts: dict[str, str] | None = None,
 ) -> bytes:
     """Render cover and return PNG bytes.
 
     `theme` overrides the template's default CSS variables (bg, fg, accent,
     hl_red, hl_yellow, hl_orange). Missing keys fall back to DEFAULT_THEME.
+    `fonts` overrides heading/body font family (Google Fonts loaded by template).
     """
     if cover_template not in KNOWN_TEMPLATES:
         raise CoverRenderError(f"unknown cover_template: {cover_template}")
@@ -200,6 +227,7 @@ def render_cover_bytes(
         raise CoverRenderError(f"template missing: {template_path}")
 
     merged_theme = {**DEFAULT_THEME, **(theme or {})}
+    merged_fonts = {**DEFAULT_FONTS, **(fonts or {})}
 
     # ----- Image sources -----
     if cover_photo_bytes:
@@ -262,6 +290,7 @@ def render_cover_bytes(
         arrow_caption_bottom=arrow_caption_bottom or "",
         arrow_position=arrow_position,
         theme=merged_theme,
+        fonts=merged_fonts,
     )
 
     viewport = PORTRAIT_VIEWPORT if cover_template in PORTRAIT_TEMPLATES else SQUARE_VIEWPORT

@@ -186,6 +186,7 @@ def render_and_upload_cover_for_draft(
     `creative_style` (optional) supplies renderer_config:
       - renderer_config.base_template overrides cover_template
       - renderer_config.theme overrides CSS variables
+      - renderer_config.fonts overrides heading + body font family
     """
     warnings: list[str] = []
     cover_data = output.get("cover") or {}
@@ -195,9 +196,10 @@ def render_and_upload_cover_for_draft(
     # Check for user-uploaded cover-photo override (P0-2)
     cover_photo_bytes = _try_fetch_cover_photo_override(sb, user_id, draft_id)
 
-    # Resolve template + theme from creative_style.renderer_config if present
+    # Resolve template + theme + fonts from creative_style.renderer_config
     cover_template = cover_data.get("cover_template", "headliner")
     theme: dict[str, str] | None = None
+    fonts: dict[str, str] | None = None
     if creative_style:
         cfg = creative_style.get("renderer_config") or {}
         if isinstance(cfg, dict):
@@ -207,6 +209,9 @@ def render_and_upload_cover_for_draft(
             theme_raw = cfg.get("theme")
             if isinstance(theme_raw, dict):
                 theme = {k: v for k, v in theme_raw.items() if isinstance(v, str)}
+            fonts_raw = cfg.get("fonts")
+            if isinstance(fonts_raw, dict):
+                fonts = {k: v for k, v in fonts_raw.items() if isinstance(v, str)}
 
     try:
         png_bytes = render_cover_bytes(
@@ -231,6 +236,7 @@ def render_and_upload_cover_for_draft(
             cover_template=cover_template,
             cover_photo_bytes=cover_photo_bytes,
             theme=theme,
+            fonts=fonts,
         )
     except CoverRenderError as e:
         warnings.append(f"cover render failed: {e}")

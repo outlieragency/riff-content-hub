@@ -446,27 +446,56 @@ function RendererConfigEditor({
             <span className="block text-xs text-muted-foreground mb-1">
               heading font
             </span>
-            <input
+            <select
               value={config.fonts.heading}
               onChange={(e) => setFont('heading', e.target.value)}
               className="w-full h-9 px-2 rounded-[6px] border border-border bg-background text-sm"
-            />
+            >
+              {SUPPORTED_FONTS.map((f) => (
+                <option key={f} value={f}>
+                  {f}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <span className="block text-xs text-muted-foreground mb-1">
               body font
             </span>
-            <input
+            <select
               value={config.fonts.body}
               onChange={(e) => setFont('body', e.target.value)}
               className="w-full h-9 px-2 rounded-[6px] border border-border bg-background text-sm"
-            />
+            >
+              {SUPPORTED_FONTS.map((f) => (
+                <option key={f} value={f}>
+                  {f}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
+        <p className="text-2xs text-muted-foreground mt-2 leading-snug">
+          ทุก font รองรับไทย load จาก Google Fonts ใน template
+        </p>
       </div>
     </details>
   )
 }
+
+const SUPPORTED_FONTS = [
+  'Noto Sans Thai',
+  'IBM Plex Sans Thai',
+  'Sarabun',
+  'Anuphan',
+  'Bai Jamjuree',
+  'Krub',
+  'Mitr',
+  'Prompt',
+  'Pridi',
+  'Inter',
+  'Inter Tight',
+] as const
 
 function ColorField({
   label,

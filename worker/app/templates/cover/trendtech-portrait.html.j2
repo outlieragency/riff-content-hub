@@ -5,7 +5,7 @@
 <title>fb-content cover — trendtech-portrait</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;700;800;900&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;700;800;900&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@500;700;800&family=Anuphan:wght@400;500;700&family=Bai+Jamjuree:wght@400;500;700&family=Krub:wght@400;500;700&family=Mitr:wght@400;500;700&family=Prompt:wght@400;500;700;800&family=Pridi:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg-black: {{ theme.bg if theme and theme.bg else "#000000" }};
@@ -13,14 +13,16 @@
     --hl-red: {{ theme.hl_red if theme and theme.hl_red else "#E53935" }};
     --hl-yellow: {{ theme.hl_yellow if theme and theme.hl_yellow else "#FFD400" }};
     --hl-orange: {{ theme.hl_orange if theme and theme.hl_orange else "#FF6B1A" }};
+    --font-heading: '{{ fonts.heading if fonts and fonts.heading else "Noto Sans Thai" }}';
+    --font-body: '{{ fonts.body if fonts and fonts.body else "Noto Sans Thai" }}';
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
     width: 1080px; height: 1350px;
     background: var(--bg-black);
-    /* Noto Sans Thai = Google's reference Thai font; best diacritic stacking
-       (ขึ้น = ข + ◌ึ + ้ — Sarabun and IBM Plex have rendering bugs at large weights) */
-    font-family: 'Noto Sans Thai', 'IBM Plex Sans Thai', 'Sarabun', -apple-system, system-ui, sans-serif;
+    /* Heading font from renderer_config; Noto Sans Thai is the always-present
+       Thai-capable fallback (ขึ้น = ข + ◌ึ + ้ stacking varies across fonts) */
+    font-family: var(--font-body), 'Noto Sans Thai', 'IBM Plex Sans Thai', 'Sarabun', -apple-system, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     overflow: hidden;
@@ -116,7 +118,7 @@
   }
   .arrow-caption {
     color: #FFFFFF;
-    font-family: 'Noto Sans Thai', 'IBM Plex Sans Thai', 'Sarabun', sans-serif;
+    font-family: var(--font-body), 'Noto Sans Thai', 'IBM Plex Sans Thai', 'Sarabun', sans-serif;
     font-weight: 600;
     font-size: 32px;
     line-height: 1.25;
@@ -200,11 +202,11 @@
     color: var(--fg);
     font-weight: 800;
     font-size: 60px;
-    /* Noto Sans Thai needs ≥1.4 line-height for stacked tone marks
-       (e.g. ◌ึ + ้ in "ขึ้น") to render without clipping */
+    /* Heading font from renderer_config (Thai fallback always present)
+       ≥1.35 line-height for stacked tone marks (◌ึ + ้ in "ขึ้น") */
     line-height: 1.35;
     letter-spacing: -0.5px;
-    font-family: 'Noto Sans Thai', 'IBM Plex Sans Thai', 'Sarabun', sans-serif;
+    font-family: var(--font-heading), 'Noto Sans Thai', 'IBM Plex Sans Thai', 'Sarabun', sans-serif;
     white-space: nowrap;
     overflow: hidden;
   }

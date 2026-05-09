@@ -96,8 +96,9 @@ def post_preview(
 
     sb = get_supabase()
 
-    # Resolve theme + base_template from creative_style if supplied
+    # Resolve theme + fonts + base_template from creative_style if supplied
     theme: dict[str, str] | None = None
+    fonts: dict[str, str] | None = None
     cover_template = body.cover.cover_template
     if body.creative_style_id and body.user_id:
         cs_res = (
@@ -117,6 +118,9 @@ def post_preview(
                 theme_raw = cfg.get("theme")
                 if isinstance(theme_raw, dict):
                     theme = {k: v for k, v in theme_raw.items() if isinstance(v, str)}
+                fonts_raw = cfg.get("fonts")
+                if isinstance(fonts_raw, dict):
+                    fonts = {k: v for k, v in fonts_raw.items() if isinstance(v, str)}
 
     # Fetch cover-photo.png override if draft_id + user_id provided.
     # This ensures preview shows what /save will render — same photo source.
@@ -167,6 +171,7 @@ def post_preview(
             cover_template=cover_template,
             cover_photo_bytes=cover_photo_bytes,
             theme=theme,
+            fonts=fonts,
         )
     except CoverRenderError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
