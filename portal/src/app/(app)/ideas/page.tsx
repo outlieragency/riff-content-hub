@@ -4,11 +4,15 @@ import { createClient } from '@/lib/supabase/server'
 import { EmptyState } from '@/components/ui/empty-state'
 import { IdeaCardItem, type IdeaCard } from '@/components/ideas/idea-card'
 import { IdeaStatusFilter } from '@/components/ideas/status-filter'
+import { BoardSidebar } from '@/components/boards/board-sidebar'
+import { listBoards } from '@/lib/actions/boards'
+import { getBoard } from '@/lib/actions/boards'
 import type { IdeaStatus } from '@/lib/actions/ideas'
+import { isBoardColor } from '@/lib/types/board'
 
 export const dynamic = 'force-dynamic'
 
-type SearchParams = Promise<{ status?: string }>
+type SearchParams = Promise<{ status?: string; board?: string }>
 
 export default async function IdeasPage({
   searchParams,
@@ -17,6 +21,7 @@ export default async function IdeasPage({
 }) {
   const sp = await searchParams
   const filter = (sp.status as IdeaStatus | 'all' | undefined) ?? 'idea'
+  const boardFilter = sp.board ?? null
 
   const supabase = await createClient()
   const {
@@ -24,20 +29,65 @@ export default async function IdeasPage({
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: allIdeas } = await supabase
-    .from('ideas')
-    .select('status')
-    .eq('user_id', user.id)
+  // Load boards (for sidebar)
+  const boards = await listBoards()
+  const totalCount = (
+    await supabase
+      .from('ideas')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+  ).count ?? 0
+
+  // Selected board (if any)
+  const selectedBoard = boardFilter ? await getBoard(boardFilter) : null
+
+  // Status counts (scoped to selected board if any)
+  let scopedStatusRows: { status: string }[] | null = null
+  if (boardFilter) {
+    const { data: links } = await supabase
+      .from('board_ideas')
+      .select('idea_id')
+      .eq('user_id', user.id)
+      .eq('board_id', boardFilter)
+    const ids = (links ?? []).map((l) => l.idea_id)
+    if (ids.length === 0) {
+      scopedStatusRows = []
+    } else {
+      const { data } = await supabase
+        .from('ideas')
+        .select('status')
+        .eq('user_id', user.id)
+        .in('id', ids)
+      scopedStatusRows = (data ?? []) as { status: string }[]
+    }
+  } else {
+    const { data } = await supabase
+      .from('ideas')
+      .select('status')
+      .eq('user_id', user.id)
+    scopedStatusRows = (data ?? []) as { status: string }[]
+  }
 
   const counts: Record<IdeaStatus | 'all', number> = {
     idea: 0,
     in_progress: 0,
     recreated: 0,
     archived: 0,
-    all: allIdeas?.length ?? 0,
+    all: scopedStatusRows.length,
   }
-  for (const i of allIdeas ?? []) {
+  for (const i of scopedStatusRows) {
     counts[i.status as IdeaStatus] = (counts[i.status as IdeaStatus] ?? 0) + 1
+  }
+
+  // Build ideas query (scoped to board if selected)
+  let ideaIds: string[] | null = null
+  if (boardFilter) {
+    const { data: links } = await supabase
+      .from('board_ideas')
+      .select('idea_id')
+      .eq('user_id', user.id)
+      .eq('board_id', boardFilter)
+    ideaIds = (links ?? []).map((l) => l.idea_id)
   }
 
   let ideaQ = supabase
@@ -48,15 +98,20 @@ export default async function IdeasPage({
     .eq('user_id', user.id)
     .order('saved_at', { ascending: false })
     .limit(60)
-
-  if (filter !== 'all') {
-    ideaQ = ideaQ.eq('status', filter)
+  if (filter !== 'all') ideaQ = ideaQ.eq('status', filter)
+  if (ideaIds !== null) {
+    if (ideaIds.length === 0) {
+      // Empty board → no results
+      ideaQ = ideaQ.eq('id', '00000000-0000-0000-0000-000000000000')
+    } else {
+      ideaQ = ideaQ.in('id', ideaIds)
+    }
   }
-
   const { data: ideas } = await ideaQ
 
+  // Hydrate video + channel info
   const videoIds = (ideas ?? []).map((i) => i.video_id).filter(Boolean) as string[]
-  let videoMap = new Map<string, IdeaCard['video']>()
+  const videoMap = new Map<string, IdeaCard['video']>()
   if (videoIds.length > 0) {
     const { data: videos } = await supabase
       .from('videos')
@@ -70,21 +125,40 @@ export default async function IdeasPage({
       .in('id', channelIds)
 
     const channelMap = new Map((channels ?? []).map((c) => [c.id, c]))
-    videoMap = new Map(
-      (videos ?? []).map((v) => {
-        const ch = channelMap.get(v.channel_id)
-        return [
-          v.id,
-          {
-            id: v.id,
-            outlier_score: v.outlier_score,
-            view_count: v.view_count,
-            channel_handle: ch?.handle ?? null,
-            channel_title: ch?.title ?? '',
-          },
-        ]
-      }),
-    )
+    for (const v of videos ?? []) {
+      const ch = channelMap.get(v.channel_id)
+      videoMap.set(v.id, {
+        id: v.id,
+        outlier_score: v.outlier_score,
+        view_count: v.view_count,
+        channel_handle: ch?.handle ?? null,
+        channel_title: ch?.title ?? '',
+      })
+    }
+  }
+
+  // Hydrate board memberships for visible ideas
+  const visibleIdeaIds = (ideas ?? []).map((i) => i.id)
+  const boardMembershipMap: Record<string, { id: string; name: string; color: string; icon: string | null }[]> = {}
+  if (visibleIdeaIds.length > 0 && boards.length > 0) {
+    const { data: links } = await supabase
+      .from('board_ideas')
+      .select('idea_id, board_id')
+      .eq('user_id', user.id)
+      .in('idea_id', visibleIdeaIds)
+    const boardLookup = new Map(boards.map((b) => [b.id, b]))
+    for (const l of links ?? []) {
+      const b = boardLookup.get(l.board_id)
+      if (!b) continue
+      const arr = boardMembershipMap[l.idea_id] ?? []
+      arr.push({
+        id: b.id,
+        name: b.name,
+        color: isBoardColor(b.color) ? b.color : 'slate',
+        icon: b.icon,
+      })
+      boardMembershipMap[l.idea_id] = arr
+    }
   }
 
   const cards: IdeaCard[] = (ideas ?? []).map((i) => ({
@@ -96,45 +170,75 @@ export default async function IdeasPage({
     status: i.status,
     saved_at: i.saved_at,
     video: i.video_id ? videoMap.get(i.video_id) ?? null : null,
+    boards: boardMembershipMap[i.id] ?? [],
   }))
 
   return (
     <div className="max-w-[1400px] mx-auto px-6 py-8">
       <div className="mb-8">
         <h1 className="font-serif-display text-3xl text-foreground leading-tight">
-          Your <span className="font-serif-italic">garden</span> of ideas
+          {selectedBoard ? (
+            <>
+              {selectedBoard.icon && (
+                <span className="mr-2">{selectedBoard.icon}</span>
+              )}
+              {selectedBoard.name}
+            </>
+          ) : (
+            <>
+              Your <span className="font-serif-italic">garden</span> of ideas
+            </>
+          )}
         </h1>
         <p className="text-sm text-muted-foreground mt-2">
-          Outlier ที่เลือกไว้รอ recreate ในเสียงคุณ
+          {selectedBoard
+            ? `Board · ${cards.length} ideas`
+            : 'Saved videos รอ recreate ในเสียงคุณ'}
         </p>
       </div>
 
-      <IdeaStatusFilter counts={counts} />
+      <div className="flex gap-6">
+        <BoardSidebar boards={boards} totalCount={totalCount} />
 
-      {cards.length === 0 ? (
-        <EmptyState
-          icon={Lightbulb}
-          title={filter === 'idea' ? 'ยังไม่ได้บันทึก idea' : 'ไม่มี idea ในสถานะนี้'}
-          description="ไป Discover แล้วกด Save ที่ video ที่อยากเก็บไว้"
-          action={
-            filter === 'idea' ? (
-              <Link
-                href="/discover"
-                className="inline-flex items-center gap-1.5 h-9 px-4 rounded-[8px] bg-brand hover:bg-brand-hover text-white text-sm font-medium transition-colors"
-              >
-                <Plus size={14} />
-                ไป Discover
-              </Link>
-            ) : undefined
-          }
-        />
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {cards.map((c) => (
-            <IdeaCardItem key={c.id} idea={c} />
-          ))}
+        <div className="flex-1 min-w-0">
+          <IdeaStatusFilter counts={counts} />
+
+          {cards.length === 0 ? (
+            <EmptyState
+              icon={Lightbulb}
+              title={
+                boardFilter
+                  ? 'Board นี้ยังไม่มี idea'
+                  : filter === 'idea'
+                    ? 'ยังไม่ได้บันทึก idea'
+                    : 'ไม่มี idea ในสถานะนี้'
+              }
+              description={
+                boardFilter
+                  ? 'ไป Discover แล้ว save idea, แล้ว Add to board'
+                  : 'ไป Discover แล้วกด Save ที่ video ที่อยากเก็บไว้'
+              }
+              action={
+                filter === 'idea' && !boardFilter ? (
+                  <Link
+                    href="/discover"
+                    className="inline-flex items-center gap-1.5 h-9 px-4 rounded-[8px] bg-brand hover:bg-brand-hover text-white text-sm font-medium transition-colors"
+                  >
+                    <Plus size={14} />
+                    ไป Discover
+                  </Link>
+                ) : undefined
+              }
+            />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {cards.map((c) => (
+                <IdeaCardItem key={c.id} idea={c} />
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   )
 }

@@ -7,7 +7,16 @@ import { Trash2, ArchiveRestore, Loader2 } from 'lucide-react'
 import { changeIdeaStatus, deleteIdea, type IdeaStatus } from '@/lib/actions/ideas'
 import { ScorePill } from '@/components/outliers/score-pill'
 import { IdeaStatusBadge } from './status-badge'
+import { BoardChip } from '@/components/boards/board-chip'
+import { AddToBoardMenu } from '@/components/boards/add-to-board-menu'
 import { formatCount, timeAgo } from '@/lib/utils'
+
+type CardBoardRef = {
+  id: string
+  name: string
+  color: string
+  icon: string | null
+}
 
 export type IdeaCard = {
   id: string
@@ -24,6 +33,7 @@ export type IdeaCard = {
     channel_handle: string | null
     channel_title: string
   } | null
+  boards?: CardBoardRef[]
 }
 
 export function IdeaCardItem({ idea }: { idea: IdeaCard }) {
@@ -74,6 +84,20 @@ export function IdeaCardItem({ idea }: { idea: IdeaCard }) {
           {idea.title}
         </Link>
 
+        {idea.boards && idea.boards.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {idea.boards.map((b) => (
+              <BoardChip
+                key={b.id}
+                id={b.id}
+                name={b.name}
+                color={b.color}
+                icon={b.icon}
+              />
+            ))}
+          </div>
+        )}
+
         <div className="text-xs text-muted-foreground mt-auto">
           {idea.video?.channel_handle
             ? `@${idea.video.channel_handle.replace(/^@/, '')}`
@@ -87,6 +111,10 @@ export function IdeaCardItem({ idea }: { idea: IdeaCard }) {
         </div>
 
         <div className="flex gap-1.5 pt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <AddToBoardMenu
+            ideaId={idea.id}
+            initialBoardIds={(idea.boards ?? []).map((b) => b.id)}
+          />
           <button
             type="button"
             onClick={onArchiveToggle}
