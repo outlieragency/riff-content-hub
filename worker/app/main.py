@@ -46,11 +46,32 @@ async def lifespan(app: FastAPI):
     # Lazy import to avoid loading handlers at import time
     from .workers.jobs_runner import main_loop
 
-    # Configure logging once
-    logging.basicConfig(
-        level=get_settings().log_level.upper(),
-        format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
-    )
+    # Configure logging — split INFO/DEBUG → stdout, WARNING+ → stderr.
+    # Default Python logging sends EVERYTHING to stderr, which makes Railway
+    # tag every line (including INFO) as "error" in its UI.
+    import sys
+
+    log_level = get_settings().log_level.upper()
+    fmt = "%(asctime)s %(levelname)s [%(name)s] %(message)s"
+    formatter = logging.Formatter(fmt)
+
+    root = logging.getLogger()
+    # Remove existing default handlers
+    for h in list(root.handlers):
+        root.removeHandler(h)
+
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setLevel(log_level)
+    stdout_handler.addFilter(lambda r: r.levelno < logging.WARNING)
+    stdout_handler.setFormatter(formatter)
+
+    stderr_handler = logging.StreamHandler(sys.stderr)
+    stderr_handler.setLevel(logging.WARNING)
+    stderr_handler.setFormatter(formatter)
+
+    root.setLevel(log_level)
+    root.addHandler(stdout_handler)
+    root.addHandler(stderr_handler)
 
     log.info("starting jobs runner")
     _jobs_task = asyncio.create_task(main_loop(), name="jobs_runner")
