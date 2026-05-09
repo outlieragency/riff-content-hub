@@ -242,7 +242,7 @@ def call_recreate(
 
     # Route through user's per-task model preference (Settings → AI Providers).
     # Falls back to env Anthropic if user not configured.
-    from ..llm import call_via_router
+    from ...llm import call_via_router
 
     try:
         msg, meta = call_via_router(
