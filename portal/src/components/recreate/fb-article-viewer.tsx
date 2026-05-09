@@ -182,12 +182,14 @@ export function FbArticleViewer({
     showToast('Copy post body แล้ว')
   }
 
-  const handleDownloadCover = () => {
+  const handleDownloadCover = async () => {
     if (!output.cover_url) return
-    const a = document.createElement('a')
-    a.href = output.cover_url
-    a.download = `riff-cover-${draftId}.png`
-    a.click()
+    try {
+      const { downloadUrlAs } = await import('@/lib/utils/download')
+      await downloadUrlAs(output.cover_url, `riff-cover-${draftId}.png`)
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : 'download error')
+    }
   }
 
   const handlePushToNotion = () => {

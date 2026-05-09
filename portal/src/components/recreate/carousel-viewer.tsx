@@ -12,6 +12,7 @@ import {
   LayoutGrid,
 } from 'lucide-react'
 import type { CarouselOutput } from '@/lib/types/recreate-formats'
+import { downloadUrlAs } from '@/lib/utils/download'
 
 const SLIDE_KIND_LABEL: Record<string, string> = {
   tweet: 'Tweet',
@@ -44,24 +45,23 @@ export function CarouselViewer({
   }
 
   async function downloadOne(url: string, index: number) {
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${output.slug}-${String(index + 1).padStart(2, '0')}.png`
-    a.click()
+    await downloadUrlAs(
+      url,
+      `${output.slug}-${String(index + 1).padStart(2, '0')}.png`,
+    )
   }
 
   async function downloadAll() {
     if (urls.length === 0) return
     setDownloadingAll(true)
     try {
-      // Sequential clicks (browser handles each as separate download)
       for (let i = 0; i < urls.length; i++) {
-        const a = document.createElement('a')
-        a.href = urls[i]
-        a.download = `${output.slug}-${String(i + 1).padStart(2, '0')}.png`
-        a.click()
+        await downloadUrlAs(
+          urls[i],
+          `${output.slug}-${String(i + 1).padStart(2, '0')}.png`,
+        )
         // Small delay between downloads — some browsers throttle simultaneous
-        await new Promise((r) => setTimeout(r, 200))
+        await new Promise((r) => setTimeout(r, 250))
       }
     } finally {
       setDownloadingAll(false)
