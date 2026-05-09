@@ -23,23 +23,26 @@ export function Founder() {
                 textWrap: 'balance' as const,
               }}
             >
-              ผมขาย Notion template ได้
+              จาก Solopreneur หลักล้าน
               <br />
-              <span className="rm-serif-italic">หลักล้าน.</span>
+              สู่{' '}
+              <span className="rm-serif-italic">Outlier Agency</span>
             </h2>
             <p
               className="mt-5 text-[var(--rm-forest-muted)]"
               style={{ fontSize: 'clamp(15px, 1.3vw, 18px)', lineHeight: 1.7, maxWidth: 500 }}
             >
-              ตอนผมยังไม่มี personal brand จริงจัง
+              ผมเป็น Solopreneur สร้าง Digital Product ขายเองมาตลอด 3 ปี
+              ทั้ง template, course, coaching ทำยอดหลักล้าน/เดือนได้
+              ทั้งที่ไม่มีทีม
               <br />
               <br />
-              สิ่งเดียวที่ผมทำต่อเนื่อง คือลง content วันละชิ้น 90 วัน
-              เพราะรู้ว่าถ้าหยุดเมื่อไหร่ คนก็ลืมเมื่อนั้น
+              วันนี้ผมเปิด Outlier Agency พา Expert + Creator คนอื่น
+              วางระบบ funnel + content ให้โต 7 หลัก/เดือน ในแบบเดียวกัน
               <br />
               <br />
-              Riff คือเครื่องมือที่ผมสร้างให้ตัวเองตอนนั้น
-              ตอนที่อยากลงทุกวันแต่ไม่อยากเสียเวลา 4 ชม./โพสต์
+              Riff คือเครื่องมือที่ผมใช้ทำ content ของตัวเอง
+              และของลูกค้า agency ทุกราย
             </p>
 
             <div

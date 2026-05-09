@@ -5,25 +5,28 @@
  */
 const VOICES = [
   {
-    name: 'Earth Rati',
-    handle: '@earthrati',
-    niche: 'Solopreneur · Marketing',
-    style: 'ตรงไปตรงมา · ประโยคสั้น · ขึ้นต้นด้วยคำตอบ',
+    name: 'Dan Koe',
+    handle: '@thedankoe',
+    niche: 'Solopreneur · Modern philosophy',
+    style: 'Calm · long-form · ใช้ปรัชญาเชื่อม practical',
     rotation: -3,
+    portrait: 'linear-gradient(135deg, #2D4030 0%, #5A6B4D 100%)',
   },
   {
-    name: 'Mook',
-    handle: '@missmook',
-    niche: 'Coaching · Mindset',
-    style: 'อบอุ่น · เล่าเรื่อง · ใช้ metaphor เห็นภาพ',
+    name: 'Ali Abdaal',
+    handle: '@aliabdaal',
+    niche: 'Productivity · Creator economy',
+    style: 'Friendly · framework-driven · ตัวเลขเยอะ',
     rotation: 2,
+    portrait: 'linear-gradient(135deg, #C99A6E 0%, #8B6B47 100%)',
   },
   {
-    name: 'Sistangkwa',
-    handle: '@sistangkwa',
-    niche: 'Branding · Creator economy',
-    style: 'sharp · มีอารมณ์ขัน · ตัดประโยคให้คม',
+    name: 'Alex Hormozi',
+    handle: '@alexhormozi',
+    niche: 'Business · Offer engineering',
+    style: 'Direct · contrarian · numbers-first',
     rotation: -2,
+    portrait: 'linear-gradient(135deg, #4A2A1C 0%, #1A0A04 70%)',
   },
 ]
 
@@ -44,19 +47,19 @@ export function TopCreators() {
               textWrap: 'balance' as const,
             }}
           >
-            creator ที่อยู่นาน
+            หยิบ idea จาก top creator
             <br />
-            <span className="rm-serif-italic">เขียนคนละแบบ</span>
+            <span className="rm-serif-italic">มา riff ในเสียงคุณ</span>
           </h2>
           <p
             className="mt-5 mx-auto text-[var(--rm-forest-muted)]"
             style={{ fontSize: 'clamp(15px, 1.3vw, 18px)', lineHeight: 1.7, maxWidth: 580 }}
           >
-            AI generic ทำให้ทุกคนเขียนเหมือนกัน คนอ่านแยกออกใน 2 บรรทัด
+            Riff scan content ที่กำลัง viral จาก creator ระดับโลก
+            แล้ว recreate ในเสียงและภาษาของคุณเอง
             <br />
             <br />
-            Riff ทำตรงข้าม เรียนเสียงคุณจาก post เก่า
-            แล้วเขียนใหม่ในแบบเดียวกัน
+            ไม่ใช่ copy ไม่ใช่ AI generic เป็นของคุณตั้งแต่ประโยคแรก
           </p>
         </div>
 
@@ -75,8 +78,7 @@ export function TopCreators() {
                 style={{
                   aspectRatio: '4 / 5',
                   borderRadius: 2,
-                  background:
-                    'linear-gradient(135deg, #C99A6E 0%, #8B6B47 50%, #4A3D2A 100%)',
+                  background: v.portrait,
                   position: 'relative',
                   overflow: 'hidden',
                 }}

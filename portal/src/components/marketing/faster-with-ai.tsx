@@ -5,19 +5,19 @@
 const FEATURES_LEFT = [
   {
     title: 'Channel Watchlist',
-    body: 'ใส่ YouTube channel ที่อยาก track ระบบ sync ทุก 24 ชม. ไม่ต้องเปิดดูเอง',
+    body: 'ใส่ YouTube channel ที่คุณอยาก track ระบบ sync ทุก 24 ชม. ไม่ต้องเปิดดูเอง',
   },
   {
     title: 'Outlier auto-detect',
-    body: 'video ไหน score ขึ้นถึง 2.0 ระบบจะ flag ขึ้นมาเอง ไม่ต้องไล่ดูทีละ channel',
+    body: 'video ไหน score ขึ้นถึง 2.0 ระบบจะ flag ขึ้นมาให้คุณเอง ไม่ต้องไล่ดูทีละ channel',
   },
   {
     title: 'Voice ของคุณเอง',
-    body: 'อ่าน post เก่าของคุณ จับจังหวะประโยค คำที่ใช้ซ้ำ วิธีปิดประโยค แล้วเขียนตามนั้น',
+    body: 'Riff อ่าน post เก่าของคุณ จับจังหวะประโยค คำที่ใช้ซ้ำ วิธีปิดประโยค แล้วเขียนตามนั้น',
   },
   {
     title: 'Cover ปกแบบ scroll-stopping',
-    body: 'template Headliner ที่ผมใช้ทำเองทุก post ดำ-ขาว-แดง-เหลือง-ส้ม สูตรเดียวจบ',
+    body: 'template ปกที่ทำเสร็จให้พร้อม ดำ-ขาว-แดง-เหลือง-ส้ม สูตรเดียวจบ ไม่ต้องเปิด Canva เลย',
   },
 ]
 
@@ -28,15 +28,15 @@ const FEATURES_RIGHT = [
   },
   {
     title: 'Transcript ไทย-อังกฤษ',
-    body: 'video EN ถอดเสียง แปลไทย สรุปประเด็น พร้อมใช้ ไม่ต้อง copy ไป ChatGPT เอง',
+    body: 'video EN ถอดเสียง แปลไทย สรุปประเด็นให้คุณ พร้อมใช้ ไม่ต้อง copy ไป ChatGPT เอง',
   },
   {
     title: 'Idea Library + boards',
-    body: 'idea ที่ save ไว้ จัดเป็น board ตาม series ตาม theme ตามรอบปล่อย ไม่ต้องใช้ Notion แยก',
+    body: 'idea ที่คุณ save ไว้ จัดเป็น board ตาม series ตาม theme ตามรอบปล่อย ไม่ต้องใช้ Notion แยก',
   },
   {
     title: 'Push to Notion ตรง',
-    body: 'export ตรงเข้า Notion DB ที่มีอยู่แล้ว พร้อม cover · tags · status ไม่ต้อง copy ทีละ field',
+    body: 'export ตรงเข้า Notion DB ของคุณ พร้อม cover · tags · status ไม่ต้อง copy ทีละ field',
   },
 ]
 
@@ -58,17 +58,17 @@ export function FasterWithAI() {
               textWrap: 'balance' as const,
             }}
           >
-            ทุก tab ที่ผมเคยเปิดทำเอง
+            ทุก Tab ที่คุณต้องเปิดทำเอง
             <br />
-            <span className="rm-serif-italic">ไม่ต้องเปิดอีกแล้ว.</span>
+            <span className="rm-serif-italic">ตอนนี้ไม่จำเป็นแล้ว</span>
           </h2>
           <p
             className="mt-5 mx-auto text-[var(--rm-muted)]"
             style={{ fontSize: 'clamp(15px, 1.3vw, 18px)', lineHeight: 1.7, maxWidth: 540 }}
           >
-            YouTube · Notion · ChatGPT · DeepL · Canva · Buffer
+            YouTube · Notion · ChatGPT · Canva
             <br />
-            รวมในเครื่องเดียวที่ทำงานต่อกันเอง
+            รวมไว้ใน Riff จบในที่เดียว
           </p>
         </div>
 

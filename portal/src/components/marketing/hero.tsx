@@ -183,12 +183,12 @@ export function Hero({ count }: { count: number }) {
 }
 
 function DashboardPreview() {
-  // Stylized in-app preview — outlier list with thumbnails
+  // Stylized in-app preview — outlier list with thumbnails (foreign creator content)
   const ROWS = [
-    { title: 'ทำไมคนรวยไม่บอกความจริงเรื่องการเงิน', score: 11.7, views: '2.1M', tone: '#fca5a5' },
-    { title: 'I quit my $400K job in 3 minutes', score: 9.2, views: '1.8M', tone: '#fdba74' },
-    { title: 'เลิก scroll TikTok ใน 30 วัน', score: 5.1, views: '612K', tone: '#fdba74' },
-    { title: 'Why nobody talks about this gap…', score: 3.7, views: '420K', tone: '#86efac' },
+    { title: 'The 5-step framework I used to scale to $100M', score: 11.7, views: '2.1M', tone: '#fca5a5', creator: 'Alex Hormozi' },
+    { title: 'Why most creators stay broke', score: 9.2, views: '1.8M', tone: '#fdba74', creator: 'Dan Koe' },
+    { title: 'How I spent my first $100k as a YouTuber', score: 5.1, views: '612K', tone: '#fdba74', creator: 'Ali Abdaal' },
+    { title: 'The art of self-discipline', score: 3.7, views: '420K', tone: '#86efac', creator: 'Hamza Ahmed' },
   ]
   return (
     <div className="h-full flex" style={{ color: '#F1ECDF' }}>
@@ -289,11 +289,11 @@ function DashboardPreview() {
                 <div
                   style={{
                     fontSize: 10.5,
-                    color: 'rgba(241,236,223,0.45)',
+                    color: 'rgba(241,236,223,0.55)',
                     marginTop: 2,
                   }}
                 >
-                  {r.views} views
+                  {r.creator} · {r.views} views
                 </div>
               </div>
               <span

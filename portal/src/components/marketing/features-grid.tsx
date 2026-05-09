@@ -1,11 +1,12 @@
 /**
- * Cream section — "Never write from a blank page again"
- * 6 feature blocks with polaroid screenshot mockups, alternating left/right.
- * Eden style: each block is a heading + body + tilted polaroid.
+ * Cream section — 4 numbered steps with polaroid mockups (alternating L/R).
+ * Mockups use foreign creators (Dan Koe, Ali Abdaal, Hormozi, etc.) since
+ * Riff is positioned for Thai creators recreating from foreign content.
  */
 import type { ReactNode } from 'react'
 
 const FEATURES: {
+  step: string
   key: string
   title: string
   body: string
@@ -13,46 +14,36 @@ const FEATURES: {
   mockup: ReactNode
 }[] = [
   {
-    key: 'discover',
-    title: 'คุณไม่ต้องดู YouTube เป็นชั่วโมงอีกแล้ว',
-    body: 'Riff scan ทุก channel ที่คุณ track แล้วเอาเฉพาะตัวที่ดังเกินค่าเฉลี่ยมาให้ดู ที่เหลือไม่ต้องเสียเวลา',
+    step: '01',
+    key: 'research',
+    title: 'Research หาไอเดีย Content',
+    body: 'คุณไม่ต้องเสียเวลานั่งดู YouTube เป็นชั่วโมง Riff เข้าไป scan content ใน niche ของคุณ และดึงขึ้นมาโชว์ให้ดูทุกวัน ทุกอัน proof แล้วว่า viral จริง ๆ',
     rotation: -2,
-    mockup: <DiscoverMock />,
+    mockup: <ResearchMock />,
   },
   {
-    key: 'creator-look',
-    title: 'ดูที่ outlier ไม่ใช่ที่ followers',
-    body: 'channel 10K subs ที่มี video 1M views คือสิ่งน่าเรียนรู้ ไม่ใช่ channel 1M subs ที่ video ละ 50K Outlier Score แยกให้คุณเห็นในแก้บเดียว',
+    step: '02',
+    key: 'organize',
+    title: 'Organize บันทึกทุกไอเดียที่น่าสนใจไว้ในที่เดียว',
+    body: 'เห็นปุ๊บ save ปั๊บ คุณบันทึกไอเดียที่สนใจไว้ใน Riff ได้ทันที ไม่ต้องเปลี่ยน app ไปมาให้ยุ่งยาก',
     rotation: 2,
-    mockup: <CreatorLookMock />,
+    mockup: <OrganizeMock />,
   },
   {
-    key: 'save',
-    title: 'เห็นปุ๊บ save ปั๊บ',
-    body: 'idea ดี ๆ ผ่านมาทุกวัน ถ้าไม่เก็บก็ลืม กด save ครั้งเดียวเข้า Idea Library ของคุณ จัดเป็น board ตามชุด content ที่จะปล่อย',
+    step: '03',
+    key: 'decode',
+    title: 'แกะโครงสร้างของคลิปที่ Viral',
+    body: 'Riff ทำการอ่าน transcript ของ video แล้วสรุปเป็นภาษาไทยให้เข้าใจง่าย ๆ พร้อมกับวิเคราะห์โครงสร้างว่าทำไมคลิปนี้ถึง viral',
     rotation: -2,
-    mockup: <SaveMock />,
+    mockup: <DecodeMock />,
   },
   {
-    key: 'chat',
-    title: 'แกะ transcript ก่อนเริ่มเขียน',
-    body: 'Riff ถอดเสียง แปลไทย สรุปประเด็น พร้อมแยกให้ว่าใช้ hook อะไร structure ไหน คุณเข้าใจ video นั้นเต็ม ๆ ก่อนจะเริ่ม recreate ในแบบของคุณเอง',
+    step: '04',
+    key: 'recreate',
+    title: 'Recreate สร้าง Content ในสไตล์คุณจาก Video ที่ Viral',
+    body: 'ทำการสร้างเนื้อหาใหม่ โดยใช้ brand voice ของคุณ ทั้งบทความ Facebook · IG Carousel · IG Reels หรือ YouTube Script ครบจบในที่เดียว',
     rotation: 2,
-    mockup: <ChatMock />,
-  },
-  {
-    key: 'voice',
-    title: 'AI ที่ไม่ทำให้คุณกลายเป็น AI',
-    body: 'Riff อ่าน post เก่าของคุณ จับจังหวะประโยค คำที่ใช้ซ้ำ วิธีปิดประโยค แล้วเขียนใหม่ในแบบเดียวกัน ไม่ใช่ ChatGPT generic ที่ทุกคนพูดเหมือนกัน',
-    rotation: -2,
-    mockup: <VoiceMock />,
-  },
-  {
-    key: 'stack',
-    title: '1 video ลงได้ 4 platform ในนั่งเดียว',
-    body: 'แทนที่จะเปิด tab 6 อันมาเขียนทีละ post Riff generate FB · IG carousel · Reels · YT script ให้ครบทั้ง 4 จาก video เดียว เวลาที่เหลือคุณเอาไปทำของ',
-    rotation: 2,
-    mockup: <StackMock />,
+    mockup: <RecreateMock />,
   },
 ]
 
@@ -85,7 +76,7 @@ export function FeaturesGrid() {
           >
             ตั้งแต่หา idea จนถึงโพสต์พร้อมลง
             <br />
-            ไม่ต้องสลับ tab ไม่ต้องเปิด ChatGPT แยก ไม่ต้อง copy-paste
+            ไม่ต้องสลับ tab ไม่ต้องเปิด ChatGPT แยก ไม่ต้อง copy paste
           </p>
         </div>
 
@@ -93,6 +84,7 @@ export function FeaturesGrid() {
           {FEATURES.map((f, i) => (
             <FeatureRow
               key={f.key}
+              step={f.step}
               flip={i % 2 === 1}
               title={f.title}
               body={f.body}
@@ -107,12 +99,14 @@ export function FeaturesGrid() {
 }
 
 function FeatureRow({
+  step,
   flip,
   title,
   body,
   rotation,
   mockup,
 }: {
+  step: string
   flip: boolean
   title: string
   body: string
@@ -122,6 +116,18 @@ function FeatureRow({
   return (
     <div className="grid gap-10 items-center feat-row" style={{ gridTemplateColumns: '1fr 1fr' }}>
       <div style={{ order: flip ? 2 : 1 }}>
+        <div
+          className="rm-serif-italic"
+          style={{
+            fontSize: 'clamp(48px, 5vw, 72px)',
+            color: 'var(--rm-accent)',
+            lineHeight: 1,
+            letterSpacing: '-0.04em',
+            marginBottom: 12,
+          }}
+        >
+          {step}
+        </div>
         <h3
           style={{
             fontSize: 'clamp(24px, 2.6vw, 34px)',
@@ -158,17 +164,17 @@ function FeatureRow({
   )
 }
 
-/* ===== mockup components ===== */
+/* ===== mockup components — foreign creator content ===== */
 
-function MockShell({ children, dark = true }: { children: ReactNode; dark?: boolean }) {
+function MockShell({ children }: { children: ReactNode }) {
   return (
     <div
       style={{
-        background: dark ? '#1A2418' : '#FBF7EC',
-        color: dark ? '#F1ECDF' : '#1A2418',
+        background: '#1A2418',
+        color: '#F1ECDF',
         borderRadius: 4,
         padding: 16,
-        minHeight: 240,
+        minHeight: 260,
         fontSize: 12.5,
         lineHeight: 1.5,
       }}
@@ -178,21 +184,53 @@ function MockShell({ children, dark = true }: { children: ReactNode; dark?: bool
   )
 }
 
-function DiscoverMock() {
+function MockHeader({ children }: { children: ReactNode }) {
+  return (
+    <div
+      className="uppercase mb-3"
+      style={{
+        fontSize: 11,
+        color: 'rgba(241,236,223,0.5)',
+        letterSpacing: '0.1em',
+        fontWeight: 600,
+      }}
+    >
+      {children}
+    </div>
+  )
+}
+
+function ResearchMock() {
+  const items = [
+    {
+      handle: 'Alex Hormozi',
+      t: 'The 5-step framework I used to scale to $100M',
+      s: 11.7,
+      c: '#fca5a5',
+    },
+    {
+      handle: 'Dan Koe',
+      t: 'Why most creators stay broke (and the 3 levels above)',
+      s: 9.2,
+      c: '#fdba74',
+    },
+    {
+      handle: 'Ali Abdaal',
+      t: "How I spent my first $100k as a YouTuber",
+      s: 5.1,
+      c: '#fdba74',
+    },
+    {
+      handle: 'Hamza Ahmed',
+      t: 'The art of self-discipline for solopreneurs',
+      s: 3.7,
+      c: '#86efac',
+    },
+  ]
   return (
     <MockShell>
-      <div
-        style={{ fontSize: 11, color: 'rgba(241,236,223,0.5)', letterSpacing: '0.1em', fontWeight: 600 }}
-        className="uppercase mb-3"
-      >
-        Discover · Outliers
-      </div>
-      {[
-        { t: 'ทำไมคนรวยไม่บอกความจริงเรื่องการเงิน', s: 11.7, c: '#fca5a5' },
-        { t: 'I quit my $400K job in 3 minutes', s: 9.2, c: '#fdba74' },
-        { t: 'เลิก scroll TikTok 30 วัน', s: 5.1, c: '#fdba74' },
-        { t: 'The money trap nobody talks about', s: 3.7, c: '#86efac' },
-      ].map((r, i) => (
+      <MockHeader>Discover · Outliers</MockHeader>
+      {items.map((r, i) => (
         <div
           key={i}
           className="flex items-center gap-2.5 py-2"
@@ -207,9 +245,19 @@ function DiscoverMock() {
               flexShrink: 0,
             }}
           />
-          <span className="flex-1 truncate" style={{ fontSize: 12, fontWeight: 500 }}>
-            {r.t}
-          </span>
+          <div className="flex-1 min-w-0">
+            <div
+              className="truncate"
+              style={{ fontSize: 12, fontWeight: 500 }}
+            >
+              {r.t}
+            </div>
+            <div
+              style={{ fontSize: 10.5, color: 'rgba(241,236,223,0.5)', marginTop: 1 }}
+            >
+              {r.handle}
+            </div>
+          </div>
           <span
             style={{
               fontSize: 11,
@@ -228,75 +276,18 @@ function DiscoverMock() {
   )
 }
 
-function CreatorLookMock() {
+function OrganizeMock() {
+  const items = [
+    { t: 'How I scaled to $100M (Hormozi)', tag: 'Money' },
+    { t: '$100k YouTube spending (Ali Abdaal)', tag: 'Career' },
+    { t: 'The 3 levels of creators (Dan Koe)', tag: 'Mindset' },
+    { t: 'Self-discipline for solopreneurs', tag: 'Habit' },
+    { t: 'Why your offer is broken', tag: 'Money' },
+  ]
   return (
     <MockShell>
-      <div
-        className="uppercase mb-3"
-        style={{ fontSize: 11, color: 'rgba(241,236,223,0.5)', letterSpacing: '0.1em', fontWeight: 600 }}
-      >
-        Channels · ติดตาม
-      </div>
-      {[
-        { n: '@earthrati', sub: '180K subs', score: 11.7 },
-        { n: '@arnunbenz', sub: '420K subs', score: 5.1 },
-        { n: '@iamnattha', sub: '2.1M subs', score: 3.7 },
-      ].map((c, i) => (
-        <div
-          key={i}
-          className="flex items-center justify-between py-2.5"
-          style={{ borderTop: i ? '1px solid rgba(241,236,223,0.06)' : 'none' }}
-        >
-          <div className="flex items-center gap-2.5">
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #FF6B35, #C99A6E)',
-                flexShrink: 0,
-              }}
-            />
-            <div>
-              <div style={{ fontSize: 12.5, fontWeight: 600 }}>{c.n}</div>
-              <div style={{ fontSize: 10.5, color: 'rgba(241,236,223,0.5)' }}>
-                {c.sub}
-              </div>
-            </div>
-          </div>
-          <span
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              padding: '3px 8px',
-              borderRadius: 4,
-              background: 'rgba(252,165,165,0.15)',
-              color: '#fca5a5',
-            }}
-          >
-            {c.score}×
-          </span>
-        </div>
-      ))}
-    </MockShell>
-  )
-}
-
-function SaveMock() {
-  return (
-    <MockShell>
-      <div
-        className="uppercase mb-3"
-        style={{ fontSize: 11, color: 'rgba(241,236,223,0.5)', letterSpacing: '0.1em', fontWeight: 600 }}
-      >
-        Idea Library · 23
-      </div>
-      {[
-        { t: 'ทำไมคนรวยไม่บอกความจริง', tag: 'Money' },
-        { t: 'I quit my $400K job', tag: 'Career' },
-        { t: 'เลิก scroll 30 วัน', tag: 'Habit' },
-        { t: 'The 1 thing rich families teach', tag: 'Money' },
-      ].map((it, i) => (
+      <MockHeader>Idea Library · 24</MockHeader>
+      {items.map((it, i) => (
         <div
           key={i}
           className="flex justify-between items-center py-2"
@@ -321,32 +312,31 @@ function SaveMock() {
   )
 }
 
-function ChatMock() {
+function DecodeMock() {
   return (
     <MockShell>
-      <div
-        className="uppercase mb-3"
-        style={{ fontSize: 11, color: 'rgba(241,236,223,0.5)', letterSpacing: '0.1em', fontWeight: 600 }}
-      >
-        Transcript · summary
-      </div>
-      <div style={{ fontSize: 12, lineHeight: 1.6 }}>
+      <MockHeader>Transcript · summary</MockHeader>
+      <div style={{ fontSize: 12.5, lineHeight: 1.6 }}>
         <p style={{ marginBottom: 10 }}>
-          <strong>Hook (0:00–0:08):</strong>{' '}
-          &ldquo;ถ้าคุณยังคิดว่า viral = ดวง คุณกำลังพลาดสิ่งสำคัญ&rdquo;
+          <strong>Hook (0:00 - 0:08):</strong>{' '}
+          &ldquo;Most creators stay broke because they think like employees,
+          not owners&rdquo;
         </p>
-        <p style={{ color: 'rgba(241,236,223,0.6)', marginBottom: 10 }}>
-          Body: เล่าตัวอย่าง 3 video ที่ดังด้วย structure เดียวกัน
+        <p style={{ color: 'rgba(241,236,223,0.65)', marginBottom: 10 }}>
+          <strong style={{ color: 'rgba(241,236,223,0.85)' }}>Body:</strong>{' '}
+          แบ่ง creator เป็น 3 ระดับ: employee mindset, freelancer, owner
+          แต่ละระดับเปลี่ยน leverage ที่ใช้คนละแบบ
         </p>
-        <p style={{ color: 'rgba(241,236,223,0.6)' }}>
-          CTA: subscribe + ดูตัวเต็มในคำอธิบายใต้คลิป
+        <p style={{ color: 'rgba(241,236,223,0.65)' }}>
+          <strong style={{ color: 'rgba(241,236,223,0.85)' }}>CTA:</strong>{' '}
+          subscribe + ดู free mini-course ที่ description
         </p>
       </div>
       <div
         className="mt-3.5 pt-3 flex gap-2 flex-wrap"
         style={{ borderTop: '1px dashed rgba(241,236,223,0.10)' }}
       >
-        {['hook', 'structure', 'TH ↔ EN'].map((t) => (
+        {['hook', '3-level structure', 'TH summary'].map((t) => (
           <span
             key={t}
             style={{
@@ -364,74 +354,32 @@ function ChatMock() {
   )
 }
 
-function VoiceMock() {
+function RecreateMock() {
+  const formats = [
+    { l: 'YT script', s: 'outline + 5 titles', c: '#fca5a5' },
+    { l: 'FB post', s: '800-1,500 คำ', c: '#93C5FD' },
+    { l: 'Reels', s: 'hook · body · CTA', c: '#fdba74' },
+    { l: 'IG carousel', s: '4-10 slides', c: '#C9A6FF' },
+  ]
   return (
     <MockShell>
+      <MockHeader>4 formats · ในนั่งเดียว</MockHeader>
       <div
-        className="uppercase mb-3"
-        style={{ fontSize: 11, color: 'rgba(241,236,223,0.5)', letterSpacing: '0.1em', fontWeight: 600 }}
+        style={{
+          fontSize: 11.5,
+          color: 'rgba(241,236,223,0.7)',
+          marginBottom: 12,
+          padding: '8px 10px',
+          borderRadius: 4,
+          background: 'rgba(255,107,53,0.10)',
+          border: '1px solid rgba(255,107,53,0.20)',
+        }}
       >
-        Voice profile · @earthrati
-      </div>
-      {[
-        ['โทน', 'ตรงไปตรงมา ไม่อ้อม'],
-        ['ประโยค', 'สั้น เฉลี่ย 7 คำ'],
-        ['คำถี่', 'outlier · signal · craft'],
-        ['เลี่ยง', 'corporate · ขายของเกิน'],
-      ].map(([k, v], i) => (
-        <div
-          key={i}
-          className="grid gap-3 py-2"
-          style={{
-            gridTemplateColumns: '90px 1fr',
-            borderTop: i ? '1px dashed rgba(241,236,223,0.10)' : 'none',
-          }}
-        >
-          <div style={{ fontSize: 11.5, color: 'rgba(241,236,223,0.55)' }}>{k}</div>
-          <div style={{ fontSize: 12.5, fontWeight: 500 }}>{v}</div>
-        </div>
-      ))}
-      <div
-        className="mt-3 flex gap-2 flex-wrap"
-        style={{ paddingTop: 10, borderTop: '1px solid rgba(241,236,223,0.06)' }}
-      >
-        {['โทน 94%', 'จังหวะ 91%', 'คำศัพท์ 88%'].map((t) => (
-          <span
-            key={t}
-            style={{
-              fontSize: 10.5,
-              padding: '2px 8px',
-              borderRadius: 999,
-              background: 'rgba(134,239,172,0.10)',
-              color: '#86efac',
-              border: '1px solid rgba(134,239,172,0.25)',
-              fontWeight: 600,
-            }}
-          >
-            {t}
-          </span>
-        ))}
-      </div>
-    </MockShell>
-  )
-}
-
-function StackMock() {
-  return (
-    <MockShell>
-      <div
-        className="uppercase mb-3"
-        style={{ fontSize: 11, color: 'rgba(241,236,223,0.5)', letterSpacing: '0.1em', fontWeight: 600 }}
-      >
-        4 formats · ครั้งเดียว
+        source: <span style={{ color: '#FFB088', fontWeight: 600 }}>Dan Koe</span>{' '}
+        · The 3 levels of creators
       </div>
       <div className="grid grid-cols-2 gap-2">
-        {[
-          { l: 'YT script', s: 'outline + 5 titles', c: '#fca5a5' },
-          { l: 'FB post', s: '800–1,500 คำ', c: '#93C5FD' },
-          { l: 'Reels', s: 'hook · body · CTA', c: '#fdba74' },
-          { l: 'IG carousel', s: '4–10 slides', c: '#C9A6FF' },
-        ].map((b) => (
+        {formats.map((b) => (
           <div
             key={b.l}
             style={{
@@ -454,7 +402,7 @@ function StackMock() {
         className="mt-3 text-center"
         style={{ fontSize: 11, color: 'rgba(241,236,223,0.55)' }}
       >
-        เสร็จใน 90 วินาที พร้อมลงเลย
+        ในเสียงของคุณ พร้อมลงเลย
       </div>
     </MockShell>
   )
