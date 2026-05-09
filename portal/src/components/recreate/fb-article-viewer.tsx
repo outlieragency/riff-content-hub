@@ -122,11 +122,15 @@ export function FbArticleViewer({
   output,
   status,
   creativeStyleId,
+  creativeStyleName,
+  referenceImages = [],
 }: {
   draftId: string
   output: FbArticleOutput
   status: string
   creativeStyleId: string | null
+  creativeStyleName?: string | null
+  referenceImages?: { url: string; uploaded_at?: string }[]
 }) {
   const router = useRouter()
   const [copied, setCopied] = useState<'body' | 'cover' | null>(null)
@@ -274,6 +278,8 @@ export function FbArticleViewer({
         initial={output.cover}
         initialCoverUrl={output.cover_url}
         initialCoverPhotoUrl={output.cover_photo_url}
+        creativeStyleName={creativeStyleName ?? null}
+        referenceImages={referenceImages}
         onClose={() => setEditing(null)}
       />
     )

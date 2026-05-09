@@ -24,6 +24,8 @@ type Props = {
   initial: FbArticleCover
   initialCoverUrl: string | null | undefined
   initialCoverPhotoUrl?: string | null
+  creativeStyleName?: string | null
+  referenceImages?: { url: string; uploaded_at?: string }[]
   onClose: () => void
 }
 
@@ -309,6 +311,8 @@ export function FbCoverEditor({
   initial,
   initialCoverUrl,
   initialCoverPhotoUrl,
+  creativeStyleName,
+  referenceImages = [],
   onClose,
 }: Props) {
   const router = useRouter()
@@ -653,6 +657,13 @@ export function FbCoverEditor({
               </div>
             )}
           </div>
+
+          {referenceImages.length > 0 && (
+            <ReferenceImagePanel
+              styleName={creativeStyleName ?? null}
+              images={referenceImages}
+            />
+          )}
         </div>
 
         {/* Form fields — grouped into sections */}
@@ -829,6 +840,90 @@ export function FbCoverEditor({
           onClose={() => setCropperOpen(false)}
           onSaved={handleCropperSaved}
         />
+      )}
+    </div>
+  )
+}
+
+/**
+ * Side panel showing reference images from the user's selected creative_style.
+ * Lets the editor see "what they're aiming for" while iterating on the cover.
+ */
+function ReferenceImagePanel({
+  styleName,
+  images,
+}: {
+  styleName: string | null
+  images: { url: string; uploaded_at?: string }[]
+}) {
+  const [zoom, setZoom] = useState<string | null>(null)
+  const visible = images.slice(0, 6)
+
+  return (
+    <div className="rounded-lg border border-border bg-secondary/30 p-3 space-y-2">
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="text-[11px] font-semibold text-foreground">
+            กำลังเลียนแบบสไตล์
+          </div>
+          {styleName && (
+            <div className="text-[10.5px] text-muted-foreground mt-0.5">
+              Template · <span className="text-foreground font-medium">{styleName}</span>
+            </div>
+          )}
+        </div>
+        <span className="text-[10px] text-muted-foreground">
+          {images.length} ref
+        </span>
+      </div>
+
+      <div className="grid grid-cols-3 gap-1.5">
+        {visible.map((r) => (
+          <button
+            key={r.url}
+            type="button"
+            onClick={() => setZoom(r.url)}
+            className="relative aspect-square rounded-md overflow-hidden bg-muted hover:ring-2 hover:ring-brand transition-all"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={r.url}
+              alt="reference"
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          </button>
+        ))}
+      </div>
+
+      <p className="text-[10px] text-muted-foreground leading-tight">
+        คลิกที่รูปเพื่อ zoom · เปรียบเทียบกับ preview ด้านบน
+      </p>
+
+      {zoom && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4"
+          onClick={() => setZoom(null)}
+        >
+          <div
+            className="relative max-w-[1080px] max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setZoom(null)}
+              className="absolute -top-10 right-0 text-white/80 hover:text-white"
+              aria-label="Close"
+            >
+              <X size={22} />
+            </button>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={zoom}
+              alt="reference zoom"
+              className="max-w-full max-h-[90vh] rounded-lg shadow-xl"
+            />
+          </div>
+        </div>
       )}
     </div>
   )

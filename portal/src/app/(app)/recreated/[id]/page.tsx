@@ -39,6 +39,25 @@ export default async function RecreatedDetailPage({
 
   if (!draft) notFound()
 
+  // Fetch creative_style reference images so editor can show "you're aiming for"
+  let referenceImages: { url: string; uploaded_at?: string }[] = []
+  let creativeStyleName: string | null = null
+  if (draft.creative_style_id) {
+    const { data: style } = await supabase
+      .from('creative_styles')
+      .select('name, reference_images')
+      .eq('id', draft.creative_style_id)
+      .eq('user_id', user.id)
+      .maybeSingle()
+    if (style) {
+      creativeStyleName = style.name ?? null
+      const refs = Array.isArray(style.reference_images)
+        ? (style.reference_images as { url: string; uploaded_at?: string }[])
+        : []
+      referenceImages = refs.filter((r) => typeof r?.url === 'string')
+    }
+  }
+
   const meta = FORMAT_META[draft.format as RecreateFormat]
   const format = draft.format as RecreateFormat
 
@@ -67,6 +86,8 @@ export default async function RecreatedDetailPage({
           output={draft.output as FbArticleOutput}
           status={draft.status}
           creativeStyleId={draft.creative_style_id ?? null}
+          creativeStyleName={creativeStyleName}
+          referenceImages={referenceImages}
         />
       ) : format === 'carousel' && draft.output ? (
         <CarouselViewer
