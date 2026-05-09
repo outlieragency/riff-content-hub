@@ -46,6 +46,7 @@ export async function updateSession(request: NextRequest) {
     '/login',
     '/forgot-password',
     '/reset-password',
+    '/auth/callback',
   ]
   // Marketing routes — accessible to anyone (with or without auth)
   const marketingRoutes = ['/']

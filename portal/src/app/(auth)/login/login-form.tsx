@@ -26,6 +26,24 @@ export function LoginForm() {
     router.refresh()
   }
 
+  async function signInWithGoogle() {
+    setLoading(true)
+    setError(null)
+    const supabase = createClient()
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=/today`,
+        queryParams: { access_type: 'offline', prompt: 'consent' },
+      },
+    })
+    if (error) {
+      setLoading(false)
+      setError('เข้าผ่าน Google ไม่สำเร็จ ลองใหม่อีกครั้ง')
+    }
+    // On success Supabase redirects away, so no further state work here.
+  }
+
   return (
     <main
       id="main"
@@ -124,6 +142,25 @@ export function LoginForm() {
           onSubmit={onSubmit}
           className="bg-[#FBF7EC] rounded-[18px] p-7 space-y-4 text-left shadow-[0_24px_64px_-24px_rgba(0,0,0,0.4),0_0_0_1px_rgba(26,36,24,0.06)]"
         >
+          <button
+            type="button"
+            onClick={signInWithGoogle}
+            disabled={loading}
+            className="w-full h-11 rounded-[10px] bg-white hover:bg-[#F5F0E5] text-[#1A2418] font-medium text-[15px] flex items-center justify-center gap-2.5 transition-colors disabled:opacity-50"
+            style={{ border: '1px solid rgba(26,36,24,0.14)' }}
+          >
+            <GoogleIcon />
+            เข้าด้วย Google
+          </button>
+
+          <div className="relative flex items-center py-1">
+            <div className="flex-1 h-px bg-[#E4DFD2]" />
+            <span className="px-3 text-[11px] text-[#8A8170] tracking-[0.16em] uppercase">
+              หรือ
+            </span>
+            <div className="flex-1 h-px bg-[#E4DFD2]" />
+          </div>
+
           <div>
             <label className="block text-2xs font-medium text-[#5A5547] mb-1.5 tracking-[0.1em] uppercase">
               อีเมล
@@ -170,5 +207,28 @@ export function LoginForm() {
         </p>
       </div>
     </main>
+  )
+}
+
+function GoogleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+      <path
+        fill="#4285F4"
+        d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"
+      />
+      <path
+        fill="#34A853"
+        d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"
+      />
+      <path
+        fill="#EA4335"
+        d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"
+      />
+    </svg>
   )
 }
