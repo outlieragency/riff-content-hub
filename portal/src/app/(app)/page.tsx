@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import {
   ArrowRight,
+  Compass,
   Eye,
-  Flame,
   Lightbulb,
   Pencil,
   Send,
@@ -179,8 +179,8 @@ export default async function DashboardPage() {
             icon={Pencil}
             title="ไม่มี draft รอ review"
             description="ลุย idea ใหม่ → AI สร้างให้ → มาเจอที่นี่"
-            actionLabel="ดู Outliers"
-            actionHref="/outliers"
+            actionLabel="ไป Discover"
+            actionHref="/discover"
           />
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -216,9 +216,9 @@ export default async function DashboardPage() {
           <EmptyTile
             icon={Lightbulb}
             title="ยังไม่มี idea ใหม่"
-            description="ไปที่ Outliers — save outlier ที่อยากเอามา recreate"
-            actionLabel="ไปดู Outliers"
-            actionHref="/outliers"
+            description="ไป Discover — save video ที่อยากเอามา recreate"
+            actionLabel="ไป Discover"
+            actionHref="/discover"
           />
         ) : (
           <ul className="surface-1 rounded-[14px] divide-y divide-border-soft">
@@ -258,10 +258,10 @@ export default async function DashboardPage() {
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <QuickLink
-            href="/outliers"
-            icon={Flame}
-            title="Outliers ของช่องที่ติดตาม"
-            description="หา content ที่ดังในช่องของคู่แข่ง"
+            href="/discover"
+            icon={Compass}
+            title="Discover content"
+            description="ดู video ทั้งหมดจากช่องที่ติดตาม + filter outlier"
           />
           <QuickLink
             href="/channels"

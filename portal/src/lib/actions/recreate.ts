@@ -143,6 +143,66 @@ export async function saveDraftBody(
 }
 
 /**
+ * Resolve the SOURCE photo URL for a draft's cover (the input image, before
+ * text overlays). Returns override if uploaded, else YouTube thumbnail.
+ * Used by the in-app cropper to know what to crop.
+ */
+export async function getDraftSourcePhotoUrl(
+  draftId: string,
+): Promise<{ ok: true; url: string; isOverride: boolean } | { ok: false; error: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false, error: 'unauthorized' }
+
+  const { data: draft } = await supabase
+    .from('recreated_drafts')
+    .select('id, idea_id, output')
+    .eq('id', draftId)
+    .eq('user_id', user.id)
+    .maybeSingle()
+  if (!draft) return { ok: false, error: 'draft not found' }
+
+  // Override wins
+  const overrideUrl = (draft.output as { cover_photo_url?: string } | null)
+    ?.cover_photo_url
+  if (overrideUrl) {
+    return { ok: true, url: overrideUrl, isOverride: true }
+  }
+
+  // Fallback: resolve YT thumbnail via idea → video
+  if (!draft.idea_id) {
+    return { ok: false, error: 'no source photo (no override, no video link)' }
+  }
+  const { data: idea } = await supabase
+    .from('ideas')
+    .select('video_id')
+    .eq('id', draft.idea_id)
+    .eq('user_id', user.id)
+    .maybeSingle()
+  if (!idea?.video_id) {
+    return { ok: false, error: 'idea has no linked video' }
+  }
+  const { data: video } = await supabase
+    .from('videos')
+    .select('youtube_video_id, thumbnail_url')
+    .eq('id', idea.video_id)
+    .eq('user_id', user.id)
+    .maybeSingle()
+  if (!video) return { ok: false, error: 'video not found' }
+
+  // Prefer maxresdefault.jpg (cleaner — fewer black bars on cinematic refs)
+  const ytId = video.youtube_video_id
+  const url =
+    (ytId && `https://i.ytimg.com/vi/${ytId}/maxresdefault.jpg`) ||
+    video.thumbnail_url ||
+    null
+  if (!url) return { ok: false, error: 'no thumbnail available' }
+  return { ok: true, url, isOverride: false }
+}
+
+/**
  * Swap a draft's creative_style. Does NOT trigger re-render — caller should
  * follow with the existing /cover/save flow which picks up the new style.
  */

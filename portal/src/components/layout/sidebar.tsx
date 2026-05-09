@@ -2,37 +2,38 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import {
-  Flame,
+  Compass,
   Home,
   Image as ImageIcon,
   Lightbulb,
   Mic,
   Pencil,
-  Plus,
+  Settings as SettingsIcon,
   Sparkles,
   Tv,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { QuickRecreateModal } from '@/components/recreate/quick-recreate-modal'
 import { NavLink } from './nav-link'
 
 type NavItem = {
   href: string
   label: string
-  icon: typeof Flame
-  badge?: number
+  icon: typeof Home
 }
 
-const NAV: NavItem[] = [
+const WORKFLOW: NavItem[] = [
   { href: '/', label: 'Today', icon: Home },
-  { href: '/outliers', label: 'Outliers', icon: Flame },
-  { href: '/channels', label: 'Channels', icon: Tv },
+  { href: '/discover', label: 'Discover', icon: Compass },
   { href: '/ideas', label: 'Ideas', icon: Lightbulb },
   { href: '/recreated', label: 'Recreated', icon: Pencil },
+]
+
+const CONFIG: NavItem[] = [
+  { href: '/channels', label: 'Channels', icon: Tv },
   { href: '/voice', label: 'Voice', icon: Mic },
   { href: '/templates', label: 'Templates', icon: ImageIcon },
+  { href: '/settings', label: 'Settings', icon: SettingsIcon },
 ]
 
 const NAV_BASE =
@@ -42,7 +43,6 @@ const NAV_INACTIVE =
   'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'
 
 export function Sidebar() {
-  const pathname = usePathname()
   const [quickOpen, setQuickOpen] = useState(false)
 
   return (
@@ -70,7 +70,7 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 px-3 space-y-0.5">
-        {NAV.map((item) => (
+        {WORKFLOW.map((item) => (
           <NavLink
             key={item.href}
             href={item.href}
@@ -80,27 +80,24 @@ export function Sidebar() {
           >
             <item.icon size={15} strokeWidth={1.6} />
             <span className="flex-1">{item.label}</span>
-            {item.badge != null && (
-              <span className="text-2xs px-1.5 py-0.5 rounded-full bg-brand text-white font-medium">
-                {item.badge}
-              </span>
-            )}
+          </NavLink>
+        ))}
+
+        <div className="my-3 border-t border-border-soft" aria-hidden />
+
+        {CONFIG.map((item) => (
+          <NavLink
+            key={item.href}
+            href={item.href}
+            className={NAV_BASE}
+            activeClassName={NAV_ACTIVE}
+            inactiveClassName={NAV_INACTIVE}
+          >
+            <item.icon size={15} strokeWidth={1.6} />
+            <span className="flex-1">{item.label}</span>
           </NavLink>
         ))}
       </nav>
-
-      <div className="px-3 pb-4 space-y-0.5">
-        <NavLink
-          href="/channels"
-          className={cn(
-            NAV_BASE,
-            pathname.startsWith('/channels') ? NAV_ACTIVE : NAV_INACTIVE,
-          )}
-        >
-          <Plus size={15} strokeWidth={1.6} />
-          <span>Add channel</span>
-        </NavLink>
-      </div>
     </aside>
   )
 }

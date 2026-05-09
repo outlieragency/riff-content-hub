@@ -115,15 +115,15 @@ export default async function IdeasPage({
         <EmptyState
           icon={Lightbulb}
           title={filter === 'idea' ? 'ยังไม่ได้บันทึก idea' : 'ไม่มี idea ในสถานะนี้'}
-          description="ไปที่ Outliers แล้วกด Save ที่ video ที่อยากเก็บไว้"
+          description="ไป Discover แล้วกด Save ที่ video ที่อยากเก็บไว้"
           action={
             filter === 'idea' ? (
               <Link
-                href="/outliers"
+                href="/discover"
                 className="inline-flex items-center gap-1.5 h-9 px-4 rounded-[8px] bg-brand hover:bg-brand-hover text-white text-sm font-medium transition-colors"
               >
                 <Plus size={14} />
-                ไปดู Outliers
+                ไป Discover
               </Link>
             ) : undefined
           }

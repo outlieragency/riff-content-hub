@@ -3,15 +3,18 @@
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import {
+  Crop as CropIcon,
   ImagePlus,
   Loader2,
   RefreshCw,
+  RotateCcw,
   Save,
   Trash2,
-  Upload,
   X,
 } from 'lucide-react'
 import type { FbArticleCover } from '@/lib/types/recreate-formats'
+import { CoverPhotoCropper } from './cover-photo-cropper'
+import { getDraftSourcePhotoUrl } from '@/lib/actions/recreate'
 
 type Props = {
   draftId: string
@@ -125,7 +128,35 @@ export function FbCoverEditor({
   const [coverCacheBuster, setCoverCacheBuster] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
   const [autoPreview, setAutoPreview] = useState(true)
+  const [cropperOpen, setCropperOpen] = useState(false)
+  const [cropperImageUrl, setCropperImageUrl] = useState<string | null>(null)
+  const [resolvingSrc, setResolvingSrc] = useState(false)
   const previewReqRef = useRef(0)
+
+  const openCropper = async () => {
+    setError(null)
+    setResolvingSrc(true)
+    try {
+      const res = await getDraftSourcePhotoUrl(draftId)
+      if (!res.ok) {
+        setError(res.error)
+        return
+      }
+      setCropperImageUrl(res.url)
+      setCropperOpen(true)
+    } finally {
+      setResolvingSrc(false)
+    }
+  }
+
+  const handleCropperSaved = (next: { coverPhotoUrl: string; coverUrl: string | null }) => {
+    setCoverPhotoUrl(next.coverPhotoUrl)
+    if (next.coverUrl) setCoverUrl(next.coverUrl)
+    setCoverCacheBuster(String(Date.now()))
+    setPreviewUri(null)
+    setCropperOpen(false)
+    router.refresh()
+  }
 
   const update = <K extends keyof FbArticleCover>(k: K, v: FbArticleCover[K]) =>
     setCover((c) => ({ ...c, [k]: v }))
@@ -323,58 +354,66 @@ export function FbCoverEditor({
             </label>
           </div>
 
-          {/* Cover photo override drop-zone */}
+          {/* Cover photo controls — crop / upload / reset / clear */}
           <div
             onDragOver={(e) => e.preventDefault()}
             onDrop={onDropFile}
-            className="rounded-lg border-2 border-dashed border-border p-3 text-center"
+            className="rounded-lg border border-border p-3 space-y-2"
           >
-            {coverPhotoUrl ? (
-              <div className="space-y-2">
-                <div className="text-[11px] text-emerald-700 font-medium">
-                  ✓ ใช้ภาพ override อยู่ (แทน YouTube thumbnail)
+            <div className="text-[11px] font-medium text-foreground">
+              Cover Photo
+              {coverPhotoUrl ? (
+                <span className="ml-2 text-emerald-700">✓ ใช้ภาพ upload</span>
+              ) : (
+                <span className="ml-2 text-muted-foreground">ใช้ YouTube thumbnail</span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-1.5">
+              <button
+                type="button"
+                onClick={openCropper}
+                disabled={resolvingSrc || uploading}
+                className="inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-md bg-brand hover:bg-brand-hover disabled:opacity-50 text-white text-xs font-medium"
+              >
+                {resolvingSrc ? (
+                  <Loader2 className="animate-spin" size={11} />
+                ) : (
+                  <CropIcon size={11} />
+                )}
+                Crop / Position
+              </button>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-md bg-secondary hover:bg-secondary/70 text-foreground text-xs font-medium disabled:opacity-50"
+              >
+                <ImagePlus size={11} />
+                Upload ใหม่
+              </button>
+              {coverPhotoUrl ? (
+                <button
+                  type="button"
+                  onClick={handleClearOverride}
+                  disabled={uploading}
+                  className="col-span-2 inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-md text-red-600 hover:bg-red-50 text-xs disabled:opacity-50"
+                >
+                  <Trash2 size={11} />
+                  ลบ override (กลับไปใช้ YouTube thumbnail)
+                </button>
+              ) : (
+                <div className="col-span-2 text-[10px] text-muted-foreground text-center pt-0.5 inline-flex items-center justify-center gap-1">
+                  <RotateCcw size={9} />
+                  Crop YT thumbnail หรือ upload ภาพใหม่ก็ได้
                 </div>
-                <div className="flex items-center justify-center gap-2">
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploading}
-                    className="text-xs text-blue-600 hover:underline inline-flex items-center gap-1"
-                  >
-                    <ImagePlus size={11} />
-                    เปลี่ยน
-                  </button>
-                  <span className="text-muted-foreground">·</span>
-                  <button
-                    onClick={handleClearOverride}
-                    disabled={uploading}
-                    className="text-xs text-red-600 hover:underline inline-flex items-center gap-1"
-                  >
-                    <Trash2 size={11} />
-                    ลบ override
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-center text-muted-foreground">
-                  <Upload size={20} />
-                </div>
-                <div className="text-[11px] text-foreground font-medium">
-                  ลากภาพมาวาง หรือ
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploading}
-                    className="text-blue-600 hover:underline ml-1"
-                  >
-                    เลือกไฟล์
-                  </button>
-                </div>
-                <div className="text-[10px] text-muted-foreground leading-tight">
-                  ใช้แทน YouTube thumbnail (กรณีที่ thumbnail มี text ตกขอบ)<br />
-                  Recommended: 1080×890 PNG/JPG
-                </div>
-              </div>
-            )}
+              )}
+            </div>
+
+            <p className="text-[10px] text-muted-foreground leading-tight">
+              ลากไฟล์มาวางตรงนี้ก็ได้ · PNG/JPG/WEBP · แนะนำ 1080×890
+            </p>
+
             <input
               ref={fileInputRef}
               type="file"
@@ -386,7 +425,7 @@ export function FbCoverEditor({
               }}
             />
             {uploading && (
-              <div className="mt-2 flex items-center justify-center text-xs text-muted-foreground gap-1.5">
+              <div className="flex items-center justify-center text-xs text-muted-foreground gap-1.5">
                 <Loader2 className="animate-spin" size={12} />
                 กำลัง upload + re-render...
               </div>
@@ -551,6 +590,15 @@ export function FbCoverEditor({
           บันทึก + Re-render
         </button>
       </div>
+
+      {cropperOpen && cropperImageUrl && (
+        <CoverPhotoCropper
+          draftId={draftId}
+          imageUrl={cropperImageUrl}
+          onClose={() => setCropperOpen(false)}
+          onSaved={handleCropperSaved}
+        />
+      )}
     </div>
   )
 }
