@@ -44,7 +44,8 @@ grant execute on function public.is_email_allowed(text) to anon, authenticated;
 insert into public.allowed_emails (email, granted_by, notes)
 values
   ('ratipong.work@gmail.com', 'system', 'founder'),
-  ('earthrati@gmail.com', 'system', 'founder')
+  ('earthrati@gmail.com', 'system', 'founder'),
+  ('earthrati@outlieragency.co', 'system', 'founder')
 on conflict (email) do nothing;
 
 comment on table public.allowed_emails is
