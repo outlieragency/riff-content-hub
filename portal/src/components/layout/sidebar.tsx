@@ -12,7 +12,6 @@ import {
   Settings as SettingsIcon,
   Sparkles,
   Tv,
-  Wand2,
 } from 'lucide-react'
 import { QuickRecreateModal } from '@/components/recreate/quick-recreate-modal'
 import { NavLink } from './nav-link'
@@ -27,7 +26,6 @@ const WORKFLOW: NavItem[] = [
   { href: '/', label: 'Today', icon: Home },
   { href: '/discover', label: 'Discover', icon: Compass },
   { href: '/ideas', label: 'Ideas', icon: Lightbulb },
-  { href: '/tools', label: 'AI Tools', icon: Wand2 },
   { href: '/recreated', label: 'Recreated', icon: Pencil },
 ]
 
