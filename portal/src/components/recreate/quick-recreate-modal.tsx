@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, Sparkles, X } from 'lucide-react'
+import { AlertCircle, Loader2, Sparkles, X } from 'lucide-react'
 import { quickInitFromUrl } from '@/lib/actions/quick-recreate'
+import { createClient } from '@/lib/supabase/client'
 
 export function QuickRecreateModal({
   open,
@@ -16,6 +17,33 @@ export function QuickRecreateModal({
   const [url, setUrl] = useState('')
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const [activeJobCount, setActiveJobCount] = useState(0)
+
+  // Warn if any active jobs running — Earth otherwise might submit duplicates
+  useEffect(() => {
+    if (!open) return
+    const sb = createClient()
+    let cancelled = false
+
+    async function check() {
+      const { data: { user } } = await sb.auth.getUser()
+      if (!user || cancelled) return
+      const { count } = await sb
+        .from('jobs')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .in('status', ['queued', 'running'])
+      if (cancelled) return
+      setActiveJobCount(count ?? 0)
+    }
+
+    check()
+    const interval = setInterval(check, 4000)
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+    }
+  }, [open])
 
   if (!open) return null
 
@@ -56,11 +84,21 @@ export function QuickRecreateModal({
           </button>
         </div>
 
-        <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
+        <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
           วาง URL ของ YouTube video ที่อยากเอามาทำ post →
-          ระบบจะ fetch metadata + transcript ให้อัตโนมัติ
-          แล้วเข้า Idea page ให้กด recreate
+          ระบบจะ fetch metadata + transcript + AI generate FB post + cover
+          ให้อัตโนมัติ ใช้เวลา ~90-150 วินาที
         </p>
+
+        {activeJobCount > 0 && (
+          <div className="mb-3 px-3 py-2 rounded-[8px] bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-2">
+            <AlertCircle size={12} className="mt-0.5 shrink-0" />
+            <div>
+              <strong>ตอนนี้มี {activeJobCount} job รออยู่</strong> — submit
+              ใหม่ได้ แต่จะต่อคิว (จะรันทีละ 1) ดูสถานะใน popup ขวาล่างของหน้า
+            </div>
+          </div>
+        )}
 
         <form onSubmit={submit}>
           <input

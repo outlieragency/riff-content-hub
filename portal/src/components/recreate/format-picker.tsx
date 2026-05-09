@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   ChevronDown,
@@ -16,6 +16,7 @@ import {
 import { startRecreate } from '@/lib/actions/recreate'
 import { FORMAT_META, type RecreateFormat } from '@/lib/types/recreate-formats'
 import { JobProgress } from '@/components/jobs/job-progress'
+import { createClient } from '@/lib/supabase/client'
 import type { JobRow } from '@/lib/supabase/realtime'
 
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number }>> = {
@@ -43,8 +44,52 @@ export function FormatPicker({
   const [pending, start] = useTransition()
   const [extra, setExtra] = useState('')
   const [showOther, setShowOther] = useState(false)
+  const [existingJobFormat, setExistingJobFormat] = useState<RecreateFormat | null>(
+    null,
+  )
+
+  // Detect existing inflight job for this idea — prevent duplicate submission
+  useEffect(() => {
+    const sb = createClient()
+    let cancelled = false
+
+    async function check() {
+      const {
+        data: { user },
+      } = await sb.auth.getUser()
+      if (!user || cancelled) return
+      const { data } = await sb
+        .from('jobs')
+        .select('id, payload, status')
+        .eq('user_id', user.id)
+        .eq('kind', 'run_recreate')
+        .in('status', ['queued', 'running'])
+      if (cancelled || !data) return
+      const match = data.find(
+        (j) =>
+          (j.payload as { idea_id?: string } | null)?.idea_id === ideaId,
+      )
+      if (match) {
+        const fmt = (match.payload as { format?: string } | null)?.format
+        setActiveJobId(match.id)
+        if (fmt && (fmt === 'fb_article' || fmt === 'yt_script' || fmt === 'reels' || fmt === 'carousel')) {
+          setExistingJobFormat(fmt as RecreateFormat)
+          setPendingFormat(fmt as RecreateFormat)
+        }
+      }
+    }
+
+    check()
+    const interval = setInterval(check, 5000)
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+    }
+  }, [ideaId])
 
   function pick(format: RecreateFormat) {
+    // Block duplicate clicks: if any active job for this idea, ignore.
+    if (activeJobId || existingJobFormat) return
     setError(null)
     setPendingFormat(format)
     start(async () => {
@@ -57,6 +102,7 @@ export function FormatPicker({
         return
       }
       setActiveJobId(res.jobId)
+      setExistingJobFormat(format)
     })
   }
 
@@ -70,7 +116,11 @@ export function FormatPicker({
   function onJobError() {
     setActiveJobId(null)
     setPendingFormat(null)
+    setExistingJobFormat(null)
   }
+
+  // While job is running, lock all action buttons
+  const locked = activeJobId !== null || existingJobFormat !== null
 
   const primaryMeta = FORMAT_META[PRIMARY]
   const PrimaryIcon = ICON_MAP[primaryMeta.icon] ?? Sparkles
@@ -113,16 +163,16 @@ export function FormatPicker({
       <button
         type="button"
         onClick={() => pick(PRIMARY)}
-        disabled={!hasSummary || pending}
+        disabled={!hasSummary || pending || locked}
         className={`w-full text-left p-4 rounded-[14px] border-2 transition-all ${
-          hasSummary && !pending
+          hasSummary && !pending && !locked
             ? 'border-brand bg-brand-soft hover:bg-brand/15 cursor-pointer'
             : 'border-border bg-background opacity-50 cursor-not-allowed'
         }`}
       >
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-[10px] bg-brand text-white flex items-center justify-center shrink-0">
-            {isPrimaryPending ? (
+            {isPrimaryPending || (locked && existingJobFormat === PRIMARY) ? (
               <Loader2 size={20} className="animate-spin" />
             ) : (
               <PrimaryIcon size={20} />
@@ -143,7 +193,13 @@ export function FormatPicker({
             </p>
           </div>
           <div className="text-xs text-brand font-medium shrink-0">
-            {isPrimaryPending ? 'กำลัง generate…' : 'เริ่ม →'}
+            {locked
+              ? existingJobFormat === PRIMARY
+                ? 'กำลัง generate…'
+                : 'รอ job อื่นเสร็จ'
+              : isPrimaryPending
+                ? 'กำลัง generate…'
+                : 'เริ่ม →'}
           </div>
         </div>
       </button>
@@ -171,9 +227,9 @@ export function FormatPicker({
                   key={fmt}
                   type="button"
                   onClick={() => pick(fmt)}
-                  disabled={!hasSummary || pending}
+                  disabled={!hasSummary || pending || locked}
                   className={`text-left p-3 rounded-[10px] border transition-colors ${
-                    hasSummary
+                    hasSummary && !locked
                       ? 'border-border hover:border-brand hover:bg-brand-soft cursor-pointer'
                       : 'border-border opacity-50 cursor-not-allowed'
                   }`}
