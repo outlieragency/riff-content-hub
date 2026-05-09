@@ -407,13 +407,14 @@ export function FbCoverEditor({
     }
   }
 
-  // Debounced auto-preview when cover fields change (800ms after last edit).
-  // User can disable via toggle; manual "ดูตัวอย่าง" button still works.
+  // Debounced auto-preview when cover fields change (350ms after last edit).
+  // Lower than typical typing speed — preview re-renders feel snappy without
+  // spamming worker on every keystroke.
   useEffect(() => {
     if (!autoPreview) return
     const t = setTimeout(() => {
       renderPreview(true)
-    }, 800)
+    }, 350)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
