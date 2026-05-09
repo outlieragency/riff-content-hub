@@ -60,6 +60,7 @@ export default async function RecreatedDetailPage({
           draftId={draft.id}
           output={draft.output as FbArticleOutput}
           status={draft.status}
+          creativeStyleId={draft.creative_style_id ?? null}
         />
       ) : draft.output_markdown ? (
         <div className="surface-1 rounded-[14px] p-5">

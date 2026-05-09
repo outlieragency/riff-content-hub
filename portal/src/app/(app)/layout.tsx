@@ -6,6 +6,7 @@ import { Topbar } from '@/components/layout/topbar'
 import { RouteProgress } from '@/components/layout/route-progress'
 import { ActiveJobsBanner } from '@/components/jobs/active-jobs-banner'
 import { listVoiceProfiles } from '@/lib/actions/voice'
+import { ensureHeadlinerDefault } from '@/lib/actions/creative-styles'
 
 export default async function AppLayout({
   children,
@@ -24,6 +25,10 @@ export default async function AppLayout({
   // Fetched here so Topbar VoicePicker is always populated (no client-side
   // loading flash + works on every route)
   const voiceProfiles = await listVoiceProfiles()
+
+  // Auto-seed the Headliner default creative_style for fb_article covers
+  // (idempotent — does nothing after first visit). Backfills existing drafts.
+  await ensureHeadlinerDefault().catch(() => null)
 
   return (
     <div className="flex h-screen bg-background">

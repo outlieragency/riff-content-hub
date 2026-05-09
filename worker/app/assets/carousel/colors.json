@@ -1,0 +1,55 @@
+{
+  "$schema_note": "Outlier Agency / @earth.rati signature palette. แก้ได้ — renderer ใช้ค่าใน file นี้ทันที",
+  "brand": {
+    "orange": "#FF751F",
+    "black": "#0A0A0A",
+    "cream": "#F4EFE6",
+    "white": "#FFFFFF",
+    "twitter_red": "#E0245E",
+    "twitter_blue": "#1D9BF0"
+  },
+  "themes": {
+    "light": {
+      "bg": "#F4EFE6",
+      "fg": "#0A0A0A",
+      "muted": "#6B6B6B",
+      "accent": "#FF751F",
+      "border": "#E5E0D5"
+    },
+    "dark": {
+      "bg": "#0A0A0A",
+      "fg": "#F4EFE6",
+      "muted": "#A0A0A0",
+      "accent": "#FF751F",
+      "border": "#2A2A2A"
+    },
+    "cream": {
+      "bg": "#F4EFE6",
+      "fg": "#0A0A0A",
+      "muted": "#6B6B6B",
+      "accent": "#FF751F",
+      "border": "#E5E0D5"
+    },
+    "orange": {
+      "bg": "#FF751F",
+      "fg": "#FFFFFF",
+      "muted": "#FFE4D1",
+      "accent": "#FFFFFF",
+      "border": "#E0651A"
+    },
+    "white": {
+      "bg": "#FFFFFF",
+      "fg": "#0A0A0A",
+      "muted": "#6B6B6B",
+      "accent": "#FF751F",
+      "border": "#E5E5E5"
+    }
+  },
+  "default_theme": "cream",
+  "background_presets": {
+    "solid_black": "#0A0A0A",
+    "solid_white": "#FFFFFF",
+    "solid_cream": "#F4EFE6",
+    "solid_orange": "#FF751F"
+  }
+}

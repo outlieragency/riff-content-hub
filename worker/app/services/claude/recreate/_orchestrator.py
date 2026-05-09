@@ -36,6 +36,10 @@ class RecreateContext:
     video: dict[str, Any] | None  # title, channel, etc.
     transcripts_id: str
     instruction_extra: str | None = None  # extra ตามที่ user request
+    # Creative style for visual rendering (cover, carousel, etc.)
+    # None ก็ใช้ default จาก template hardcoded (Headliner)
+    creative_style_id: str | None = None
+    creative_style: dict[str, Any] | None = None  # full creative_styles row
 
 
 def load_recreate_context(
@@ -44,6 +48,8 @@ def load_recreate_context(
     user_id: str,
     idea_id: str,
     voice_profile_id: str | None,
+    creative_style_id: str | None = None,
+    creative_style_format_type: str = "cover",
 ) -> RecreateContext:
     """Load all data needed for recreate from DB.
 
@@ -126,6 +132,34 @@ def load_recreate_context(
     if not vp:
         raise ValueError("ยังไม่มี voice profile — สร้างก่อนใน /voice")
 
+    # 5. Creative style (optional — default to user's default for the format)
+    cs: dict[str, Any] | None = None
+    cs_id: str | None = creative_style_id
+    if cs_id:
+        cs_res = (
+            sb.table("creative_styles")
+            .select("id, name, format_type, style_guide_md, renderer_config, reference_images")
+            .eq("id", cs_id)
+            .eq("user_id", user_id)
+            .limit(1)
+            .execute()
+        )
+        cs = cs_res.data[0] if cs_res.data else None
+    if not cs:
+        # Fallback: default style for the format_type
+        default_res = (
+            sb.table("creative_styles")
+            .select("id, name, format_type, style_guide_md, renderer_config, reference_images")
+            .eq("user_id", user_id)
+            .eq("format_type", creative_style_format_type)
+            .eq("is_default", True)
+            .limit(1)
+            .execute()
+        )
+        cs = default_res.data[0] if default_res.data else None
+        if cs:
+            cs_id = cs.get("id")
+
     return RecreateContext(
         user_id=user_id,
         idea_id=idea_id,
@@ -134,6 +168,8 @@ def load_recreate_context(
         summary=tr["summary"],
         video=video,
         transcripts_id=tr["id"],
+        creative_style_id=cs_id,
+        creative_style=cs,
     )
 
 
@@ -149,6 +185,7 @@ def call_recreate(
     format_prompt_filename: str,
     max_tokens: int = 4000,
     temperature: float = 0.7,
+    inject_visual_style: bool = False,
 ) -> RecreateCallResult:
     """Cached call ที่ทุก format ใน idea เดียวกัน share cache.
 
@@ -182,6 +219,12 @@ def call_recreate(
         "---",
         "Recreate now. Output the JSON for this format. JSON only, no markdown, no commentary.",
     ]
+    if inject_visual_style and ctx.creative_style:
+        guide = (ctx.creative_style.get("style_guide_md") or "").strip()
+        if guide:
+            task_lines.append("")
+            task_lines.append("--- Visual Style Guide (for cover headline + photo cues) ---")
+            task_lines.append(guide)
     if ctx.instruction_extra:
         task_lines.append("")
         task_lines.append(f"Extra instruction from user: {ctx.instruction_extra.strip()}")
@@ -234,6 +277,7 @@ def insert_draft(
         "user_id": ctx.user_id,
         "idea_id": ctx.idea_id,
         "voice_profile_id": ctx.voice_profile_id,
+        "creative_style_id": ctx.creative_style_id,
         "format": format_id,
         "status": "ready" if not error else "error",
         "input_summary": ctx.summary,

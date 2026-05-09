@@ -8,11 +8,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;700;800;900&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@500;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg-black: #000000;
-    --fg: #FFFFFF;
-    --hl-red: #E53935;
-    --hl-yellow: #FFD400;
-    --hl-orange: #FF6B1A;  /* Earth CI — replaces TrendTech blue */
+    --bg-black: {{ theme.bg if theme and theme.bg else "#000000" }};
+    --fg: {{ theme.fg if theme and theme.fg else "#FFFFFF" }};
+    --hl-red: {{ theme.hl_red if theme and theme.hl_red else "#E53935" }};
+    --hl-yellow: {{ theme.hl_yellow if theme and theme.hl_yellow else "#FFD400" }};
+    --hl-orange: {{ theme.hl_orange if theme and theme.hl_orange else "#FF6B1A" }};
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {

@@ -59,6 +59,8 @@ class VideoMeta(BaseModel):
 class CoverPreviewRequest(BaseModel):
     cover: CoverFields
     video_meta: VideoMeta = Field(default_factory=VideoMeta)
+    user_id: str | None = None
+    creative_style_id: str | None = None
 
 
 class CoverPreviewResponse(BaseModel):
@@ -73,6 +75,29 @@ def post_preview(
 ) -> CoverPreviewResponse:
     """Render cover and return as base64 data URI (no Storage upload)."""
     require_worker_secret(authorization)
+
+    # Resolve theme + base_template from creative_style if supplied
+    theme: dict[str, str] | None = None
+    cover_template = body.cover.cover_template
+    if body.creative_style_id and body.user_id:
+        sb = get_supabase()
+        cs_res = (
+            sb.table("creative_styles")
+            .select("renderer_config")
+            .eq("id", body.creative_style_id)
+            .eq("user_id", body.user_id)
+            .limit(1)
+            .execute()
+        )
+        if cs_res.data:
+            cfg = cs_res.data[0].get("renderer_config") or {}
+            if isinstance(cfg, dict):
+                base = cfg.get("base_template")
+                if isinstance(base, str) and base:
+                    cover_template = base
+                theme_raw = cfg.get("theme")
+                if isinstance(theme_raw, dict):
+                    theme = {k: v for k, v in theme_raw.items() if isinstance(v, str)}
 
     try:
         png_bytes = render_cover_bytes(
@@ -91,7 +116,8 @@ def post_preview(
             arrow_caption_top=body.cover.arrow_caption_top,
             arrow_caption_bottom=body.cover.arrow_caption_bottom,
             arrow_position=body.cover.arrow_position,
-            cover_template=body.cover.cover_template,
+            cover_template=cover_template,
+            theme=theme,
         )
     except CoverRenderError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -115,6 +141,43 @@ class CoverSaveRequest(BaseModel):
 class CoverSaveResponse(BaseModel):
     cover_url: str | None
     warnings: list[str]
+
+
+def _resolve_creative_style(sb, user_id: str, draft_id: str) -> dict | None:
+    """Look up the draft's creative_style row (or default for cover)."""
+    draft_res = (
+        sb.table("recreated_drafts")
+        .select("creative_style_id")
+        .eq("id", draft_id)
+        .eq("user_id", user_id)
+        .limit(1)
+        .execute()
+    )
+    if not draft_res.data:
+        return None
+    cs_id = draft_res.data[0].get("creative_style_id")
+    if cs_id:
+        cs_res = (
+            sb.table("creative_styles")
+            .select("id, renderer_config, style_guide_md")
+            .eq("id", cs_id)
+            .eq("user_id", user_id)
+            .limit(1)
+            .execute()
+        )
+        if cs_res.data:
+            return cs_res.data[0]
+    # Fallback to the user's default cover style
+    default_res = (
+        sb.table("creative_styles")
+        .select("id, renderer_config, style_guide_md")
+        .eq("user_id", user_id)
+        .eq("format_type", "cover")
+        .eq("is_default", True)
+        .limit(1)
+        .execute()
+    )
+    return default_res.data[0] if default_res.data else None
 
 
 def _resolve_video_meta(
@@ -227,6 +290,7 @@ def post_save(
 
     # Auto-hydrate video_meta from DB if caller didn't supply it
     video_meta = _resolve_video_meta(sb, body.user_id, body.draft_id, body.video_meta)
+    creative_style = _resolve_creative_style(sb, body.user_id, body.draft_id)
 
     cover_url, warnings = render_and_upload_cover_for_draft(
         sb,
@@ -234,6 +298,7 @@ def post_save(
         draft_id=body.draft_id,
         output=new_output,
         video_meta=video_meta,
+        creative_style=creative_style,
     )
 
     new_output["cover_url"] = cover_url
@@ -346,6 +411,8 @@ async def post_upload_source(
                 video_meta["channel_avatar_url"] = ch.get("thumbnail_url")
                 video_meta["subscriber_count"] = ch.get("subscriber_count")
 
+    creative_style = _resolve_creative_style(sb, user_id, draft_id)
+
     # Re-render (will pick up the cover-photo.png override automatically).
     # Wrap in to_thread because render uses sync Playwright; route is async (file IO).
     def _render():
@@ -355,6 +422,7 @@ async def post_upload_source(
             draft_id=draft_id,
             output=output,
             video_meta=video_meta,
+            creative_style=creative_style,
         )
 
     cover_url, warnings = await asyncio.to_thread(_render)
@@ -445,12 +513,14 @@ def delete_clear_source(
                 video_meta["channel_avatar_url"] = ch.get("thumbnail_url")
                 video_meta["subscriber_count"] = ch.get("subscriber_count")
 
+    creative_style = _resolve_creative_style(sb, user_id, draft_id)
     cover_url, warnings = render_and_upload_cover_for_draft(
         sb,
         user_id=user_id,
         draft_id=draft_id,
         output=output,
         video_meta=video_meta,
+        creative_style=creative_style,
     )
 
     new_output = dict(output)

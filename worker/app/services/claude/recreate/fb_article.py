@@ -135,6 +135,7 @@ def generate(
         format_prompt_filename=PROMPT_FILE,
         max_tokens=6000,
         temperature=0.7,
+        inject_visual_style=True,
     )
     try:
         raw = parse_json_strict(res.raw_text)
@@ -176,10 +177,15 @@ def render_and_upload_cover_for_draft(
     draft_id: str,
     output: dict[str, Any],
     video_meta: dict[str, Any],
+    creative_style: dict[str, Any] | None = None,
 ) -> tuple[str | None, list[str]]:
     """Render cover.png and upload to Supabase Storage.
 
     Returns (public_url, warnings).
+
+    `creative_style` (optional) supplies renderer_config:
+      - renderer_config.base_template overrides cover_template
+      - renderer_config.theme overrides CSS variables
     """
     warnings: list[str] = []
     cover_data = output.get("cover") or {}
@@ -188,6 +194,19 @@ def render_and_upload_cover_for_draft(
 
     # Check for user-uploaded cover-photo override (P0-2)
     cover_photo_bytes = _try_fetch_cover_photo_override(sb, user_id, draft_id)
+
+    # Resolve template + theme from creative_style.renderer_config if present
+    cover_template = cover_data.get("cover_template", "headliner")
+    theme: dict[str, str] | None = None
+    if creative_style:
+        cfg = creative_style.get("renderer_config") or {}
+        if isinstance(cfg, dict):
+            base = cfg.get("base_template")
+            if isinstance(base, str) and base:
+                cover_template = base
+            theme_raw = cfg.get("theme")
+            if isinstance(theme_raw, dict):
+                theme = {k: v for k, v in theme_raw.items() if isinstance(v, str)}
 
     try:
         png_bytes = render_cover_bytes(
@@ -206,8 +225,9 @@ def render_and_upload_cover_for_draft(
             arrow_caption_top=cover_data.get("arrow_caption_top"),
             arrow_caption_bottom=cover_data.get("arrow_caption_bottom"),
             arrow_position=cover_data.get("arrow_position", "bottom-left"),
-            cover_template=cover_data.get("cover_template", "trendtech-portrait"),
+            cover_template=cover_template,
             cover_photo_bytes=cover_photo_bytes,
+            theme=theme,
         )
     except CoverRenderError as e:
         warnings.append(f"cover render failed: {e}")

@@ -30,9 +30,23 @@ SQUARE_VIEWPORT = {"width": 1080, "height": 1080}
 PORTRAIT_VIEWPORT = {"width": 1080, "height": 1350}
 DEVICE_SCALE = 2
 
-KNOWN_TEMPLATES = {"trendtech-portrait"}
-PORTRAIT_TEMPLATES = {"trendtech-portrait"}
-DEFAULT_TEMPLATE = "trendtech-portrait"
+# `headliner` = brand-neutral name for the original `trendtech-portrait` template
+# Both names resolve to the same template file (alias kept for backward compat).
+TEMPLATE_FILE_ALIASES: dict[str, str] = {
+    "headliner": "trendtech-portrait",
+    "trendtech-portrait": "trendtech-portrait",
+}
+KNOWN_TEMPLATES = set(TEMPLATE_FILE_ALIASES.keys())
+PORTRAIT_TEMPLATES = {"headliner", "trendtech-portrait"}
+DEFAULT_TEMPLATE = "headliner"
+
+DEFAULT_THEME: dict[str, str] = {
+    "bg": "#000000",
+    "fg": "#FFFFFF",
+    "hl_red": "#E53935",
+    "hl_yellow": "#FFD400",
+    "hl_orange": "#FF6B1A",
+}
 
 
 class CoverRenderError(RuntimeError):
@@ -139,15 +153,23 @@ def render_cover_bytes(
     tool_icon_bytes: bytes | None = None,
     inset_image_bytes: bytes | None = None,
     brand_mark_bytes: bytes | None = None,
+    theme: dict[str, str] | None = None,
 ) -> bytes:
-    """Render cover and return PNG bytes."""
+    """Render cover and return PNG bytes.
+
+    `theme` overrides the template's default CSS variables (bg, fg, accent,
+    hl_red, hl_yellow, hl_orange). Missing keys fall back to DEFAULT_THEME.
+    """
     if cover_template not in KNOWN_TEMPLATES:
         raise CoverRenderError(f"unknown cover_template: {cover_template}")
 
-    template_file = f"{cover_template}.html.j2"
+    template_basename = TEMPLATE_FILE_ALIASES[cover_template]
+    template_file = f"{template_basename}.html.j2"
     template_path = TEMPLATE_DIR / template_file
     if not template_path.exists():
         raise CoverRenderError(f"template missing: {template_path}")
+
+    merged_theme = {**DEFAULT_THEME, **(theme or {})}
 
     # ----- Image sources -----
     if cover_photo_bytes:
@@ -185,7 +207,7 @@ def render_cover_bytes(
         brand_mark_data_uri=brand_mark_uri,
         channel_name=channel_name,
         subscriber_text_en=_format_subs_en(subscriber_count),
-        subscriber_text=None,  # legacy field, not used by trendtech-portrait
+        subscriber_text=None,  # legacy field, not used by headliner template
         line1_html=line1_html,
         line2_html=line2_html,
         line3_html=line3_html,
@@ -193,6 +215,7 @@ def render_cover_bytes(
         arrow_caption_top=arrow_caption_top or "",
         arrow_caption_bottom=arrow_caption_bottom or "",
         arrow_position=arrow_position,
+        theme=merged_theme,
     )
 
     viewport = PORTRAIT_VIEWPORT if cover_template in PORTRAIT_TEMPLATES else SQUARE_VIEWPORT

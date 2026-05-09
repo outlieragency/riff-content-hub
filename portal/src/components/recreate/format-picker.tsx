@@ -16,8 +16,17 @@ import {
 import { startRecreate } from '@/lib/actions/recreate'
 import { FORMAT_META, type RecreateFormat } from '@/lib/types/recreate-formats'
 import { JobProgress } from '@/components/jobs/job-progress'
+import { StylePicker } from '@/components/recreate/style-picker'
 import { createClient } from '@/lib/supabase/client'
 import type { JobRow } from '@/lib/supabase/realtime'
+import type { FormatType } from '@/lib/types/creative-style'
+
+const FORMAT_TO_VISUAL: Record<RecreateFormat, FormatType> = {
+  fb_article: 'cover',
+  yt_script: 'thumbnail',
+  reels: 'reel',
+  carousel: 'carousel',
+}
 
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number }>> = {
   video: Video,
@@ -47,6 +56,7 @@ export function FormatPicker({
   const [existingJobFormat, setExistingJobFormat] = useState<RecreateFormat | null>(
     null,
   )
+  const [selectedStyleId, setSelectedStyleId] = useState<string | null>(null)
 
   // Detect existing inflight job for this idea — prevent duplicate submission
   useEffect(() => {
@@ -95,6 +105,7 @@ export function FormatPicker({
     start(async () => {
       const res = await startRecreate(ideaId, format, {
         instruction_extra: extra.trim() || undefined,
+        creative_style_id: selectedStyleId ?? undefined,
       })
       if (!res.ok) {
         setError(res.error)
@@ -146,6 +157,19 @@ export function FormatPicker({
           placeholder='เช่น "เพิ่ม Offer Point ของ Outlier Agency" หรือ "สั้นกว่านี้"'
           disabled={pending || !hasSummary}
           className="w-full h-9 px-3 rounded-[8px] border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-brand"
+        />
+      </div>
+
+      {/* Creative style picker — applies to cover render. Only relevant for primary FB. */}
+      <div>
+        <label className="block text-xs text-muted-foreground mb-1.5">
+          Visual style (Cover Template)
+        </label>
+        <StylePicker
+          formatType={FORMAT_TO_VISUAL[PRIMARY]}
+          selectedId={selectedStyleId}
+          onChange={setSelectedStyleId}
+          disabled={pending || !hasSummary || locked}
         />
       </div>
 

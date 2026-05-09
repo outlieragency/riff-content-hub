@@ -23,6 +23,8 @@ import { useRouter } from 'next/navigation'
 import type { FbArticleOutput } from '@/lib/types/recreate-formats'
 import { FbBodyEditor } from './fb-body-editor'
 import { FbCoverEditor } from './fb-cover-editor'
+import { StylePicker } from './style-picker'
+import { setDraftCreativeStyle } from '@/lib/actions/recreate'
 
 const SLOT_PATTERNS = [
   /\[ผู้เขียนใส่ pitch product\/service ของตัวเองตรงนี้\]/g,
@@ -119,10 +121,12 @@ export function FbArticleViewer({
   draftId,
   output,
   status,
+  creativeStyleId,
 }: {
   draftId: string
   output: FbArticleOutput
   status: string
+  creativeStyleId: string | null
 }) {
   const router = useRouter()
   const [copied, setCopied] = useState<'body' | 'cover' | null>(null)
@@ -132,6 +136,38 @@ export function FbArticleViewer({
   const [posting, startPosting] = useTransition()
   const [rerendering, startRerendering] = useTransition()
   const [toast, setToast] = useState<string | null>(null)
+  const [currentStyleId, setCurrentStyleId] = useState<string | null>(creativeStyleId)
+  const [swappingStyle, startStyleSwap] = useTransition()
+
+  const handleSwapStyle = (newId: string | null) => {
+    if (newId === currentStyleId) return
+    setCurrentStyleId(newId)
+    startStyleSwap(async () => {
+      const res = await setDraftCreativeStyle(draftId, newId)
+      if (!res.ok) {
+        showToast(res.error || 'swap style fail')
+        setCurrentStyleId(creativeStyleId)
+        return
+      }
+      // Auto-rerender with new style
+      try {
+        const rer = await fetch(`/api/recreated/${draftId}/save-cover`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cover: output.cover }),
+        })
+        if (!rer.ok) {
+          const data = await rer.json().catch(() => ({}))
+          showToast(data.error || 'rerender fail')
+          return
+        }
+        showToast('เปลี่ยน style + render ใหม่แล้ว ✓')
+        router.refresh()
+      } catch (e) {
+        showToast(e instanceof Error ? e.message : 'rerender error')
+      }
+    })
+  }
 
   const showToast = (msg: string) => {
     setToast(msg)
@@ -397,6 +433,25 @@ export function FbArticleViewer({
               ยังไม่มี cover (กำลัง render หรือ render fail)
             </div>
           )}
+
+          {/* Creative style swap */}
+          <div className="mt-3 pt-3 border-t border-border-soft">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">
+              Visual style
+            </div>
+            <StylePicker
+              formatType="cover"
+              selectedId={currentStyleId}
+              onChange={handleSwapStyle}
+              disabled={swappingStyle || rerendering}
+            />
+            {swappingStyle && (
+              <p className="text-[11px] text-muted-foreground mt-1.5 inline-flex items-center gap-1">
+                <Loader2 size={10} className="animate-spin" />
+                เปลี่ยน style + render ใหม่...
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Headline meta */}

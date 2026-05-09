@@ -336,6 +336,14 @@ async def handle_run_recreate(sb, job: dict[str, Any]) -> dict[str, Any]:
 
     update_progress(sb, job["id"], progress=10, step="loading_context")
 
+    # Map format → creative_style format_type for default lookup
+    visual_format_type = {
+        "fb_article": "cover",
+        "yt_script": "thumbnail",
+        "reels": "reel",
+        "carousel": "carousel",
+    }.get(fmt, "cover")
+
     try:
         ctx = await asyncio.to_thread(
             load_recreate_context,
@@ -343,6 +351,8 @@ async def handle_run_recreate(sb, job: dict[str, Any]) -> dict[str, Any]:
             user_id=user_id,
             idea_id=p["idea_id"],
             voice_profile_id=p.get("voice_profile_id"),
+            creative_style_id=p.get("creative_style_id"),
+            creative_style_format_type=visual_format_type,
         )
     except ValueError as exc:
         raise RuntimeError(str(exc)) from exc
@@ -429,6 +439,7 @@ async def handle_run_recreate(sb, job: dict[str, Any]) -> dict[str, Any]:
                 draft_id=draft_id,
                 output=output,
                 video_meta=video_meta,
+                creative_style=ctx.creative_style,
             )
 
             # Update draft.output with cover_url + warnings
@@ -442,6 +453,60 @@ async def handle_run_recreate(sb, job: dict[str, Any]) -> dict[str, Any]:
         except Exception as exc:  # noqa: BLE001
             cover_warnings.append(f"cover pipeline error: {exc}")
 
+    # ---- Carousel post-processing: render N slides, upload each to Storage ----
+    carousel_urls: list[str] = []
+    carousel_warnings: list[str] = []
+    if fmt == "carousel" and output.get("slides"):
+        update_progress(sb, job["id"], progress=80, step="rendering_carousel")
+        try:
+            from ..services.carousel_render import (
+                CarouselRenderError,
+                render_carousel_bytes,
+            )
+
+            cs = ctx.creative_style or {}
+            cs_cfg = cs.get("renderer_config") if isinstance(cs.get("renderer_config"), dict) else {}
+            base_template = (cs_cfg or {}).get("base_template") if cs_cfg else None
+            template_name = output.get("template") or base_template or "thread-x"
+            theme_name = output.get("theme") or "cream"
+            theme_override = (cs_cfg or {}).get("theme") if isinstance((cs_cfg or {}).get("theme"), dict) else None
+
+            try:
+                pngs = await asyncio.to_thread(
+                    render_carousel_bytes,
+                    slides=output["slides"],
+                    template=template_name,
+                    theme_name=theme_name,
+                    theme_override=theme_override,
+                )
+            except CarouselRenderError as exc:
+                carousel_warnings.append(f"carousel render failed: {exc}")
+                pngs = []
+
+            for i, png in enumerate(pngs, start=1):
+                path = f"{user_id}/{draft_id}/{i:02d}.png"
+                try:
+                    sb.storage.from_("fb-covers").upload(
+                        path,
+                        png,
+                        file_options={"upsert": "true", "content-type": "image/png"},
+                    )
+                    public = sb.storage.from_("fb-covers").get_public_url(path)
+                    carousel_urls.append(public)
+                except Exception as exc:  # noqa: BLE001
+                    carousel_warnings.append(f"slide {i} upload failed: {exc}")
+
+            patched = dict(output)
+            if carousel_urls:
+                patched["carousel_urls"] = carousel_urls
+            if carousel_warnings:
+                patched["carousel_warnings"] = carousel_warnings
+            sb.table("recreated_drafts").update({"output": patched}).eq(
+                "id", draft_id
+            ).execute()
+        except Exception as exc:  # noqa: BLE001
+            carousel_warnings.append(f"carousel pipeline error: {exc}")
+
     update_progress(sb, job["id"], progress=100, step="done")
     return {
         "draft_id": draft_id,
@@ -449,6 +514,8 @@ async def handle_run_recreate(sb, job: dict[str, Any]) -> dict[str, Any]:
         "title": title,
         "cover_url": cover_url,
         "cover_warnings": cover_warnings,
+        "carousel_urls": carousel_urls,
+        "carousel_warnings": carousel_warnings,
         "cache_hit_ratio": meta.to_jsonable()["cache_hit_ratio"],
         "latency_ms": meta.latency_ms,
     }

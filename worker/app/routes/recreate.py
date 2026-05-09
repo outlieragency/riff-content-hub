@@ -29,6 +29,10 @@ class RecreateRequest(BaseModel):
     idea_id: str = Field(..., description="UUID of public.ideas")
     format: str = Field(..., description="yt_script | fb_article | reels | carousel")
     voice_profile_id: str | None = None
+    creative_style_id: str | None = Field(
+        default=None,
+        description="UUID of public.creative_styles — controls visual cover style",
+    )
     instruction_extra: str | None = None
 
 
@@ -56,6 +60,7 @@ def post_enqueue(
         "idea_id": body.idea_id,
         "format": body.format,
         "voice_profile_id": body.voice_profile_id,
+        "creative_style_id": body.creative_style_id,
         "instruction_extra": body.instruction_extra,
     }
     try:

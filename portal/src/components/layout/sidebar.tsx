@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import {
   Flame,
   Home,
+  Image as ImageIcon,
   Lightbulb,
   Mic,
   Pencil,
@@ -31,6 +32,7 @@ const NAV: NavItem[] = [
   { href: '/ideas', label: 'Ideas', icon: Lightbulb },
   { href: '/recreated', label: 'Recreated', icon: Pencil },
   { href: '/voice', label: 'Voice', icon: Mic },
+  { href: '/templates', label: 'Templates', icon: ImageIcon },
 ]
 
 const NAV_BASE =

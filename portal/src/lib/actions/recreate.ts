@@ -17,7 +17,11 @@ export type StartRecreateResult =
 export async function startRecreate(
   ideaId: string,
   format: RecreateFormat,
-  opts: { instruction_extra?: string; voice_profile_id?: string } = {},
+  opts: {
+    instruction_extra?: string
+    voice_profile_id?: string
+    creative_style_id?: string
+  } = {},
 ): Promise<StartRecreateResult> {
   const supabase = await createClient()
   const {
@@ -43,6 +47,7 @@ export async function startRecreate(
       idea_id: ideaId,
       format,
       voice_profile_id: opts.voice_profile_id,
+      creative_style_id: opts.creative_style_id,
       instruction_extra: opts.instruction_extra,
     })
     revalidatePath(`/ideas/${ideaId}`)
@@ -133,6 +138,31 @@ export async function saveDraftBody(
     .eq('user_id', user.id)
   if (error) return { ok: false, error: error.message }
 
+  revalidatePath(`/recreated/${draftId}`)
+  return { ok: true }
+}
+
+/**
+ * Swap a draft's creative_style. Does NOT trigger re-render — caller should
+ * follow with the existing /cover/save flow which picks up the new style.
+ */
+export async function setDraftCreativeStyle(
+  draftId: string,
+  creativeStyleId: string | null,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false, error: 'unauthorized' }
+
+  const { error } = await supabase
+    .from('recreated_drafts')
+    .update({ creative_style_id: creativeStyleId })
+    .eq('id', draftId)
+    .eq('user_id', user.id)
+
+  if (error) return { ok: false, error: error.message }
   revalidatePath(`/recreated/${draftId}`)
   return { ok: true }
 }

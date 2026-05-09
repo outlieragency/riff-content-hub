@@ -102,6 +102,7 @@ export const worker = {
     idea_id: string
     format: string
     voice_profile_id?: string
+    creative_style_id?: string
     instruction_extra?: string
   }) => call<EnqueueResponse>('POST', '/recreate/enqueue', params),
 
@@ -119,6 +120,56 @@ export const worker = {
 
   pushNotion: (params: { user_id: string; draft_id: string }) =>
     call<NotionPushResponse>('POST', '/notion/push', params),
+
+  extractStyle: (params: {
+    user_id: string
+    references: { image_url: string; label?: string }[]
+    format_type?: string
+  }) => call<ExtractStyleResponse>('POST', '/styles/extract', params),
+}
+
+export type ExtractStyleResponse = {
+  creative_style: {
+    color_palette: {
+      background: string
+      foreground: string
+      accent_colors: string[]
+      highlight_colors: { primary: string; secondary: string; tertiary: string }
+    }
+    typography: {
+      heading_weight: string
+      heading_family: string
+      body_weight: string
+      is_thai_optimized: boolean
+    }
+    layout: {
+      photo_treatment: string
+      photo_position: string
+      headline_position: string
+      headline_lines: number
+      highlight_pattern: string
+      brand_mark_position: string
+      badge_position: string
+    }
+    visual_tone: {
+      primary_descriptor: string
+      energy_level: string
+      supporting_descriptors: string[]
+    }
+    suggested_base_template: string
+    style_guide_md: string
+    naming_suggestion: string
+  }
+  meta: {
+    model: string
+    input_tokens: number
+    output_tokens: number
+    cache_read_input_tokens: number
+    cache_creation_input_tokens: number
+    latency_ms: number
+    cache_hit_ratio: number
+    stop_reason: string | null
+  }
 }
 
 export type NotionPushResponse = {
