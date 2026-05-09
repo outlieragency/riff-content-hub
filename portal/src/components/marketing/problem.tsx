@@ -192,16 +192,15 @@ export function Problem() {
                 style={{ height: 240 }}
               >
                 <div
-                  className="rounded-[22px] flex items-center justify-center"
+                  className="rounded-[22px] flex items-center justify-center overflow-hidden"
                   style={{
                     width: 96,
                     height: 96,
-                    background: 'var(--rm-accent)',
                     boxShadow:
                       '0 0 0 1px rgba(255,107,53,0.3), 0 0 80px var(--rm-accent-glow)',
                   }}
                 >
-                  <RiffMark size={64} />
+                  <RiffMark size={96} />
                 </div>
                 <div className="flex gap-2 flex-wrap justify-center" style={{ maxWidth: 320 }}>
                   {CAPABILITIES.map((t) => (
