@@ -3,10 +3,16 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { FbArticleViewer } from '@/components/recreate/fb-article-viewer'
+import { CarouselViewer } from '@/components/recreate/carousel-viewer'
+import { ReelsViewer } from '@/components/recreate/reels-viewer'
+import { YtScriptViewer } from '@/components/recreate/yt-script-viewer'
 import {
   FORMAT_META,
+  type CarouselOutput,
   type FbArticleOutput,
   type RecreateFormat,
+  type ReelsOutput,
+  type YtScriptOutput,
 } from '@/lib/types/recreate-formats'
 import { timeAgo } from '@/lib/utils'
 
@@ -34,7 +40,7 @@ export default async function RecreatedDetailPage({
   if (!draft) notFound()
 
   const meta = FORMAT_META[draft.format as RecreateFormat]
-  const isFbArticle = draft.format === 'fb_article'
+  const format = draft.format as RecreateFormat
 
   return (
     <div className="max-w-[1100px] mx-auto px-6 py-6">
@@ -55,13 +61,22 @@ export default async function RecreatedDetailPage({
         </h1>
       </div>
 
-      {isFbArticle && draft.output ? (
+      {format === 'fb_article' && draft.output ? (
         <FbArticleViewer
           draftId={draft.id}
           output={draft.output as FbArticleOutput}
           status={draft.status}
           creativeStyleId={draft.creative_style_id ?? null}
         />
+      ) : format === 'carousel' && draft.output ? (
+        <CarouselViewer
+          draftId={draft.id}
+          output={draft.output as CarouselOutput}
+        />
+      ) : format === 'reels' && draft.output ? (
+        <ReelsViewer output={draft.output as ReelsOutput} />
+      ) : format === 'yt_script' && draft.output ? (
+        <YtScriptViewer output={draft.output as YtScriptOutput} />
       ) : draft.output_markdown ? (
         <div className="surface-1 rounded-[14px] p-5">
           <h2 className="text-sm font-semibold text-foreground mb-3">
@@ -74,7 +89,7 @@ export default async function RecreatedDetailPage({
       ) : (
         <div className="surface-1 rounded-[14px] p-5">
           <p className="text-sm text-muted-foreground italic">
-            Editor ของ format นี้กำลัง build ใน Slice ถัดไป
+            ไม่มี content จะแสดง — draft อาจ corrupt
           </p>
         </div>
       )}

@@ -74,6 +74,19 @@ export type CarouselOutput = {
   template: 'thread-x' | 'minimal-thai'
   theme: 'light' | 'dark' | 'cream' | 'orange' | 'white'
   slides: CarouselSlide[]
+  // Populated post-render by worker (rendered slide PNG URLs in slide order)
+  carousel_urls?: string[]
+  carousel_warnings?: string[]
+}
+
+export type ReelsOutputExt = ReelsOutput & {
+  notion_hub_url?: string
+  notion_output_url?: string
+}
+
+export type YtScriptOutputExt = YtScriptOutput & {
+  notion_hub_url?: string
+  notion_output_url?: string
 }
 
 export type RecreateOutputByFormat = {
