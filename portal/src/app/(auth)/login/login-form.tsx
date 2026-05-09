@@ -1,27 +1,62 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+
+const NOT_ALLOWED_MSG =
+  'อีเมลนี้ยังไม่ได้รับสิทธิ์ใช้งาน — เข้า waitlist ที่ riff.outlieragency.co หรือทักผมที่ hi@outlieragency.co'
 
 export function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  // Surface ?error=... from OAuth callback (e.g. not_allowed)
+  useEffect(() => {
+    const e = searchParams.get('error')
+    if (!e) return
+    if (e === 'not_allowed' || e === 'no_email') setError(NOT_ALLOWED_MSG)
+    else if (e === 'allowlist_check_failed')
+      setError('ตรวจสิทธิ์ไม่สำเร็จ ลองใหม่อีกครั้ง')
+    else setError('เข้าระบบไม่สำเร็จ ลองใหม่อีกครั้ง')
+  }, [searchParams])
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError(null)
     const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    setLoading(false)
-    if (error) {
+    const { error: signInErr } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+    if (signInErr) {
+      setLoading(false)
       setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง')
       return
     }
+    // Allowlist gate — same check as OAuth callback.
+    const { data: allowed, error: rpcErr } = await supabase.rpc(
+      'is_email_allowed',
+      { check_email: email },
+    )
+    if (rpcErr) {
+      await supabase.auth.signOut()
+      setLoading(false)
+      setError('ตรวจสิทธิ์ไม่สำเร็จ ลองใหม่อีกครั้ง')
+      return
+    }
+    if (!allowed) {
+      await supabase.auth.signOut()
+      setLoading(false)
+      setError(NOT_ALLOWED_MSG)
+      return
+    }
+    setLoading(false)
     router.push('/today')
     router.refresh()
   }
