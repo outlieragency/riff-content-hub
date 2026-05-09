@@ -48,7 +48,7 @@ export function FinalCTA({ count }: { count: number }) {
         </div>
         <div
           className="mt-3.5 text-[var(--rm-muted-2)] flex justify-center gap-2 flex-wrap"
-          style={{ fontSize: 12, letterSpacing: '0.04em' }}
+          style={{ fontSize: 13.5, letterSpacing: '0.04em' }}
         >
           <span>ไม่มี spam</span>
           <span>·</span>

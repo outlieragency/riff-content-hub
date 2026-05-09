@@ -87,7 +87,7 @@ export function Problem() {
                 className="font-mono uppercase"
                 style={{
                   color: 'rgba(239,68,68,0.7)',
-                  fontSize: 12,
+                  fontSize: 13.5,
                   letterSpacing: '0.14em',
                 }}
               >
@@ -116,7 +116,7 @@ export function Problem() {
                         border: `1px solid ${t.c}33`,
                         background: 'var(--rm-surface-2)',
                         fontFamily: 'inherit',
-                        fontSize: 13,
+                        fontSize: 14.5,
                         fontWeight: 600,
                         color: t.c,
                         boxShadow: '0 8px 24px -10px rgba(0,0,0,0.6)',
@@ -159,7 +159,7 @@ export function Problem() {
 
               <div
                 className="font-mono mt-2 pt-3.5 border-t border-dashed text-[var(--rm-muted-2)]"
-                style={{ fontSize: 12, borderColor: 'var(--rm-border-2)' }}
+                style={{ fontSize: 13.5, borderColor: 'var(--rm-border-2)' }}
               >
                 ⏱ เฉลี่ย 4 ชม./โพสต์ · สลับ tab 47 ครั้ง · ลืมไอเดียไป 3 อย่าง
               </div>
@@ -180,7 +180,7 @@ export function Problem() {
                 className="font-mono uppercase"
                 style={{
                   color: 'var(--rm-accent)',
-                  fontSize: 12,
+                  fontSize: 13.5,
                   letterSpacing: '0.14em',
                 }}
               >
@@ -215,7 +215,7 @@ export function Problem() {
                       key={t}
                       className="font-thai font-mono text-[var(--rm-muted)]"
                       style={{
-                        fontSize: 11,
+                        fontSize: 13,
                         padding: '4px 9px',
                         borderRadius: 999,
                         border: '1px solid var(--rm-border-2)',
@@ -229,7 +229,7 @@ export function Problem() {
 
               <div
                 className="font-mono mt-2 pt-3.5 border-t border-dashed text-[var(--rm-muted-2)]"
-                style={{ fontSize: 12, borderColor: 'var(--rm-border-2)' }}
+                style={{ fontSize: 13.5, borderColor: 'var(--rm-border-2)' }}
               >
                 ⏱ 5 นาที/โพสต์ · ไม่ต้องสลับ tab · ไอเดียบันทึกอัตโนมัติ
               </div>

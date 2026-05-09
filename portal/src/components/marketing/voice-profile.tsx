@@ -46,7 +46,7 @@ export function VoiceProfile() {
           </h2>
           <p
             className="text-[var(--rm-muted)]"
-            style={{ fontSize: 'clamp(15px, 1.4vw, 18px)', marginTop: 18, lineHeight: 1.6 }}
+            style={{ fontSize: 'clamp(16px, 1.4vw, 18px)', marginTop: 18, lineHeight: 1.6 }}
           >
             Riff อ่าน post เก่าของคุณ 20+ ชิ้น จับวิธีเขียน จังหวะประโยค
             คำที่คุณใช้บ่อย แล้วเขียนใหม่ในแบบเดียวกัน
@@ -64,7 +64,7 @@ export function VoiceProfile() {
                 key={t}
                 className="font-mono"
                 style={{
-                  fontSize: 11.5,
+                  fontSize: 13,
                   padding: '6px 10px',
                   borderRadius: 999,
                   border: '1px solid rgba(74,222,128,0.3)',
@@ -90,13 +90,13 @@ export function VoiceProfile() {
             <div className="flex justify-between items-center mb-4.5">
               <div
                 className="font-mono uppercase text-[var(--rm-muted)]"
-                style={{ fontSize: 12, letterSpacing: '0.14em' }}
+                style={{ fontSize: 13.5, letterSpacing: '0.14em' }}
               >
                 เสียงของ @earthrati
               </div>
               <span
                 className="font-mono"
-                style={{ fontSize: 10.5, color: 'var(--rm-success)' }}
+                style={{ fontSize: 12, color: 'var(--rm-success)' }}
               >
                 ● พร้อมใช้
               </span>
@@ -112,11 +112,11 @@ export function VoiceProfile() {
               >
                 <div
                   className="font-thai text-[var(--rm-muted-2)] pt-0.5"
-                  style={{ fontSize: 12 }}
+                  style={{ fontSize: 13.5 }}
                 >
                   {row.k}
                 </div>
-                <div className="font-thai text-[var(--rm-text)]" style={{ fontSize: 13.5 }}>
+                <div className="font-thai text-[var(--rm-text)]" style={{ fontSize: 15 }}>
                   {row.v}
                 </div>
               </div>
@@ -130,11 +130,11 @@ export function VoiceProfile() {
             >
               <div
                 className="font-mono uppercase mb-2 text-[var(--rm-muted)]"
-                style={{ fontSize: 10, letterSpacing: '0.14em' }}
+                style={{ fontSize: 12, letterSpacing: '0.14em' }}
               >
                 ตัวอย่าง · ในเสียงคุณ
               </div>
-              <div className="font-thai" style={{ fontSize: 14.5, lineHeight: 1.55 }}>
+              <div className="font-thai" style={{ fontSize: 15.5, lineHeight: 1.55 }}>
                 <strong>Viral ไม่ใช่ดวง มันคือ signal.</strong>
                 <br />
                 ถ้าหา content แบบ random คุณก็พลาดทุกครั้ง.

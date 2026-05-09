@@ -38,7 +38,7 @@ function StepMock({ kind }: { kind: string }) {
     border: '1px solid var(--rm-border)',
     background: 'rgba(0,0,0,0.25)',
     padding: 12,
-    fontSize: 12,
+    fontSize: 13.5,
     color: 'var(--rm-muted)',
     minHeight: 130,
   }
@@ -48,7 +48,7 @@ function StepMock({ kind }: { kind: string }) {
       <div style={wrap}>
         <div
           className="font-mono uppercase mb-2 text-[var(--rm-muted)]"
-          style={{ fontSize: 10, letterSpacing: '0.14em' }}
+          style={{ fontSize: 12, letterSpacing: '0.14em' }}
         >
           PASTE URL
         </div>
@@ -56,7 +56,7 @@ function StepMock({ kind }: { kind: string }) {
           <input
             readOnly
             value="youtube.com/@earthrati"
-            style={{ height: 32, fontSize: 12 }}
+            style={{ height: 32, fontSize: 13.5 }}
           />
           <button
             className="rm-btn rm-btn-primary rm-btn-sm"
@@ -67,7 +67,7 @@ function StepMock({ kind }: { kind: string }) {
         </div>
         <div
           className="font-mono mt-2.5 text-[var(--rm-muted-2)]"
-          style={{ fontSize: 10.5 }}
+          style={{ fontSize: 12 }}
         >
           ✓ 612 videos · 180.2K subs · synced
         </div>
@@ -79,7 +79,7 @@ function StepMock({ kind }: { kind: string }) {
       <div style={wrap}>
         <div
           className="font-mono uppercase mb-2 text-[var(--rm-muted)]"
-          style={{ fontSize: 10, letterSpacing: '0.14em' }}
+          style={{ fontSize: 12, letterSpacing: '0.14em' }}
         >
           SORT BY OUTLIER
         </div>
@@ -122,7 +122,7 @@ function StepMock({ kind }: { kind: string }) {
       <div style={wrap}>
         <div
           className="font-mono uppercase mb-2 text-[var(--rm-muted)]"
-          style={{ fontSize: 10, letterSpacing: '0.14em' }}
+          style={{ fontSize: 12, letterSpacing: '0.14em' }}
         >
           IDEA LIBRARY · 23
         </div>
@@ -135,10 +135,10 @@ function StepMock({ kind }: { kind: string }) {
                 borderBottom: i < 2 ? '1px dashed var(--rm-border)' : 'none',
               }}
             >
-              <span className="font-thai text-[var(--rm-text)]" style={{ fontSize: 11.5 }}>
+              <span className="font-thai text-[var(--rm-text)]" style={{ fontSize: 13 }}>
                 {t}
               </span>
-              <span style={{ color: 'var(--rm-accent)', fontSize: 12 }}>★</span>
+              <span style={{ color: 'var(--rm-accent)', fontSize: 13.5 }}>★</span>
             </div>
           ),
         )}
@@ -150,7 +150,7 @@ function StepMock({ kind }: { kind: string }) {
       <div style={wrap}>
         <div
           className="font-mono uppercase mb-2 text-[var(--rm-muted)]"
-          style={{ fontSize: 10, letterSpacing: '0.14em' }}
+          style={{ fontSize: 12, letterSpacing: '0.14em' }}
         >
           AI RECREATING…
         </div>
@@ -163,7 +163,7 @@ function StepMock({ kind }: { kind: string }) {
               key={t}
               className="font-mono text-[var(--rm-muted)]"
               style={{
-                fontSize: 10,
+                fontSize: 12,
                 padding: '2px 6px',
                 borderRadius: 4,
                 border: '1px solid var(--rm-border-2)',
@@ -181,7 +181,7 @@ function StepMock({ kind }: { kind: string }) {
       <div style={wrap}>
         <div
           className="font-mono uppercase mb-2 text-[var(--rm-muted)]"
-          style={{ fontSize: 10, letterSpacing: '0.14em' }}
+          style={{ fontSize: 12, letterSpacing: '0.14em' }}
         >
           EXPORT TO
         </div>
@@ -193,12 +193,12 @@ function StepMock({ kind }: { kind: string }) {
           <div
             key={i}
             className="flex justify-between items-center py-1"
-            style={{ fontSize: 12 }}
+            style={{ fontSize: 13.5 }}
           >
             <span className="text-[var(--rm-text)]">
               {x.i} {x.l}
             </span>
-            <span className="font-mono" style={{ fontSize: 10.5, color: 'var(--rm-success)' }}>
+            <span className="font-mono" style={{ fontSize: 12, color: 'var(--rm-success)' }}>
               ✓ {x.s}
             </span>
           </div>
@@ -257,7 +257,7 @@ export function HowItWorks() {
                 <div className="rm-step-num">{s.n}</div>
                 <div
                   className="font-mono mt-2 text-[var(--rm-muted-2)]"
-                  style={{ fontSize: 10 }}
+                  style={{ fontSize: 12 }}
                 >
                   STEP {i + 1}/5
                 </div>
@@ -274,7 +274,7 @@ export function HowItWorks() {
               </div>
               <div
                 className="font-thai text-[var(--rm-muted)]"
-                style={{ fontSize: 13, lineHeight: 1.5, minHeight: 56 }}
+                style={{ fontSize: 14.5, lineHeight: 1.5, minHeight: 56 }}
               >
                 {s.th}
               </div>

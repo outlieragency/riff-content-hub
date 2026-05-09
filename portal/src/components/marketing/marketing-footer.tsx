@@ -5,7 +5,7 @@ export function MarketingFooter() {
       style={{ borderTop: '1px solid var(--rm-border)' }}
     >
       <div className="rm-container flex justify-between items-center flex-wrap gap-4">
-        <div className="font-mono text-[var(--rm-muted-2)]" style={{ fontSize: 12 }}>
+        <div className="font-mono text-[var(--rm-muted-2)]" style={{ fontSize: 13.5 }}>
           Riff<span style={{ color: 'var(--rm-accent)' }}>.</span> by Outlier
           Agency · © 2026
         </div>
@@ -20,7 +20,7 @@ export function MarketingFooter() {
               key={t.label}
               href={t.href}
               className="no-underline text-[var(--rm-muted)] hover:text-[var(--rm-text)]"
-              style={{ fontSize: 13 }}
+              style={{ fontSize: 14.5 }}
             >
               {t.label}
             </a>
@@ -28,7 +28,7 @@ export function MarketingFooter() {
         </div>
         <div
           className="font-mono text-[var(--rm-muted-2)]"
-          style={{ fontSize: 11 }}
+          style={{ fontSize: 13 }}
         >
           Built in BKK · v0.4.1
         </div>

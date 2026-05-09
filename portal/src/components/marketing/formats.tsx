@@ -23,11 +23,11 @@ const FORMATS: Format[] = [
       <div>
         <div
           className="font-mono text-[var(--rm-muted-2)]"
-          style={{ fontSize: 10 }}
+          style={{ fontSize: 12 }}
         >
           {'// 5 TITLES'}
         </div>
-        <div className="font-thai mt-1" style={{ fontSize: 13 }}>
+        <div className="font-thai mt-1" style={{ fontSize: 14.5 }}>
           1. ทำไมคนไทย 90% ตกหลุมพรางนี้
           <br />
           2. The 1 thing rich Thai families teach…
@@ -38,11 +38,11 @@ const FORMATS: Format[] = [
         </div>
         <div
           className="font-mono mt-2.5 text-[var(--rm-muted-2)]"
-          style={{ fontSize: 10 }}
+          style={{ fontSize: 12 }}
         >
           {'// HOOK (0:00–0:08)'}
         </div>
-        <div className="font-thai mt-1 italic" style={{ fontSize: 13 }}>
+        <div className="font-thai mt-1 italic" style={{ fontSize: 14.5 }}>
           &ldquo;ถ้าคุณยัง scroll อยู่ตอนนี้ — มี 1
           ประโยคที่จะเปลี่ยนวิธีคิดของคุณภายใน 8 วินาที&rdquo;
         </div>
@@ -58,7 +58,7 @@ const FORMATS: Format[] = [
     desc: 'Post ยาว 800–1,500 คำ จังหวะภาษาไทยเป็นธรรมชาติ',
     sample: (
       <div>
-        <div className="font-thai" style={{ fontSize: 13.5, lineHeight: 1.65 }}>
+        <div className="font-thai" style={{ fontSize: 15, lineHeight: 1.65 }}>
           <strong>Outlier = Reach beyond your fans.</strong>
           <br />
           <br />
@@ -71,7 +71,7 @@ const FORMATS: Format[] = [
         </div>
         <div
           className="font-mono mt-2.5 text-[var(--rm-muted-2)]"
-          style={{ fontSize: 10 }}
+          style={{ fontSize: 12 }}
         >
           1,247 / 1,500 words
         </div>
@@ -95,11 +95,11 @@ const FORMATS: Format[] = [
           <div key={i} style={{ borderLeft: `2px solid ${b.col}`, paddingLeft: 10 }}>
             <div
               className="font-mono text-[var(--rm-muted-2)]"
-              style={{ fontSize: 9.5, letterSpacing: '0.1em' }}
+              style={{ fontSize: 12, letterSpacing: '0.1em' }}
             >
               {b.t}
             </div>
-            <div className="font-thai mt-0.5" style={{ fontSize: 12.5 }}>
+            <div className="font-thai mt-0.5" style={{ fontSize: 14 }}>
               {b.c}
             </div>
           </div>
@@ -132,19 +132,19 @@ const FORMATS: Format[] = [
               borderColor: 'var(--rm-border-2)',
             }}
           >
-            <div className="font-mono opacity-60" style={{ fontSize: 8 }}>
+            <div className="font-mono opacity-60" style={{ fontSize: 12 }}>
               {s.n}
             </div>
             <div>
               <div
                 className="font-display"
-                style={{ fontWeight: 700, fontSize: 11, lineHeight: 1.1 }}
+                style={{ fontWeight: 700, fontSize: 13, lineHeight: 1.1 }}
               >
                 {s.t}
               </div>
               <div
                 className="font-thai opacity-75 mt-0.5"
-                style={{ fontSize: 8.5 }}
+                style={{ fontSize: 12 }}
               >
                 {s.s}
               </div>
@@ -184,7 +184,7 @@ export function Formats() {
           </h2>
           <p
             className="mt-4 text-[var(--rm-muted)]"
-            style={{ fontSize: 'clamp(15px, 1.4vw, 18px)', lineHeight: 1.6 }}
+            style={{ fontSize: 'clamp(16px, 1.4vw, 18px)', lineHeight: 1.6 }}
           >
             ไม่ใช่แค่ตัด post ยาวให้สั้นลง Riff เขียนแยกตาม platform จริง
             FB เป็น FB · Reels เป็น Reels · YT เป็น YT · IG เป็น IG
@@ -205,7 +205,7 @@ export function Formats() {
                 color: active === f.id ? 'var(--rm-text)' : 'var(--rm-muted)',
                 padding: '10px 14px',
                 borderRadius: 8,
-                fontSize: 13.5,
+                fontSize: 15,
                 fontWeight: 600,
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -214,7 +214,7 @@ export function Formats() {
                 transition: 'all .15s',
               }}
             >
-              <span style={{ fontSize: 14 }}>{f.icon}</span> {f.name}
+              <span style={{ fontSize: 15.5 }}>{f.icon}</span> {f.name}
             </button>
           ))}
         </div>
@@ -253,7 +253,7 @@ export function Formats() {
                 </span>
                 <span
                   className="font-mono text-[var(--rm-muted-2)]"
-                  style={{ fontSize: 10 }}
+                  style={{ fontSize: 12 }}
                 >
                   {f.id.toUpperCase()}
                 </span>
@@ -271,7 +271,7 @@ export function Formats() {
                 </div>
                 <div
                   className="font-thai mt-1 text-[var(--rm-muted)]"
-                  style={{ fontSize: 12.5, lineHeight: 1.5 }}
+                  style={{ fontSize: 14, lineHeight: 1.5 }}
                 >
                   {f.desc}
                 </div>
@@ -282,7 +282,7 @@ export function Formats() {
                   background: 'rgba(0,0,0,0.3)',
                   border: '1px solid var(--rm-border)',
                   minHeight: 180,
-                  fontSize: 12.5,
+                  fontSize: 14,
                 }}
               >
                 {f.sample}
@@ -293,7 +293,7 @@ export function Formats() {
                     key={t}
                     className="font-mono text-[var(--rm-muted)]"
                     style={{
-                      fontSize: 10,
+                      fontSize: 12,
                       padding: '2px 6px',
                       borderRadius: 4,
                       background: 'rgba(255,255,255,0.04)',

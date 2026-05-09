@@ -90,7 +90,7 @@ export function WhatIsRiff() {
           </p>
           <p
             className="mt-2 text-[var(--rm-muted)]"
-            style={{ fontSize: 14 }}
+            style={{ fontSize: 15.5 }}
           >
             จาก 4 ชั่วโมง/โพสต์ เหลือ 5 นาที ลงได้ทุกวัน ตลอดทั้งปี
           </p>
@@ -146,7 +146,7 @@ function EngineStep({
           <div
             className="font-mono"
             style={{
-              fontSize: 11,
+              fontSize: 13,
               letterSpacing: '0.14em',
               color: 'var(--rm-muted-2)',
             }}
@@ -165,7 +165,7 @@ function EngineStep({
             {title}
             <span
               className="font-thai font-normal text-[var(--rm-muted)]"
-              style={{ fontSize: 14, marginLeft: 8 }}
+              style={{ fontSize: 15.5, marginLeft: 8 }}
             >
               {subtitle}
             </span>
@@ -174,7 +174,7 @@ function EngineStep({
       </div>
       <p
         className="font-thai text-[var(--rm-muted)]"
-        style={{ fontSize: 14.5, lineHeight: 1.6 }}
+        style={{ fontSize: 15.5, lineHeight: 1.6 }}
       >
         {body}
       </p>

@@ -30,7 +30,7 @@ export function RiffLogo({ small = false }: { small?: boolean }) {
         </span>
         <span
           className="font-mono uppercase mt-0.5 text-[var(--rm-muted-2)]"
-          style={{ fontSize: 9.5, letterSpacing: '0.16em' }}
+          style={{ fontSize: 12, letterSpacing: '0.16em' }}
         >
           by Outlier Agency
         </span>

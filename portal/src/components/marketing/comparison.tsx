@@ -30,7 +30,7 @@ export function Comparison() {
           </h2>
           <p
             className="mt-4 text-[var(--rm-muted)]"
-            style={{ fontSize: 'clamp(15px, 1.4vw, 17px)', lineHeight: 1.55 }}
+            style={{ fontSize: 'clamp(16px, 1.4vw, 18px)', lineHeight: 1.55 }}
           >
             มาดูกันว่าทำไมทางเลือกอื่นไม่ work สำหรับ creator คนเดียว
           </p>
@@ -42,7 +42,7 @@ export function Comparison() {
             <div
               className="font-mono uppercase"
               style={{
-                fontSize: 12,
+                fontSize: 13.5,
                 letterSpacing: '0.14em',
                 color: 'rgba(239,68,68,0.7)',
               }}
@@ -74,7 +74,7 @@ export function Comparison() {
             <div
               className="font-mono uppercase"
               style={{
-                fontSize: 12,
+                fontSize: 13.5,
                 letterSpacing: '0.14em',
                 color: 'rgba(245,158,11,0.7)',
               }}
@@ -106,7 +106,7 @@ export function Comparison() {
             <div
               className="font-mono uppercase"
               style={{
-                fontSize: 12,
+                fontSize: 13.5,
                 letterSpacing: '0.14em',
                 color: 'rgba(96,165,250,0.7)',
               }}
@@ -144,7 +144,7 @@ export function Comparison() {
             <div
               className="font-mono uppercase"
               style={{
-                fontSize: 12,
+                fontSize: 13.5,
                 letterSpacing: '0.14em',
                 color: 'var(--rm-accent)',
               }}
@@ -186,7 +186,7 @@ function PainPoint({ text }: { text: string }) {
   return (
     <li
       className="font-thai flex items-start gap-2 text-[var(--rm-muted)]"
-      style={{ fontSize: 13.5, lineHeight: 1.5 }}
+      style={{ fontSize: 15, lineHeight: 1.5 }}
     >
       <span style={{ color: 'rgba(239,68,68,0.7)', flexShrink: 0 }}>✗</span>
       <span>{text}</span>
@@ -199,7 +199,7 @@ function Win({ text }: { text: string }) {
     <li
       className="font-thai flex items-start gap-2"
       style={{
-        fontSize: 13.5,
+        fontSize: 15,
         lineHeight: 1.5,
         color: 'var(--rm-text)',
       }}

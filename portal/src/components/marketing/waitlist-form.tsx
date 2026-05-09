@@ -97,7 +97,7 @@ function NativeWaitlistForm({
       {error && (
         <div
           className="font-mono mt-2 text-[var(--rm-danger)]"
-          style={{ fontSize: 11, letterSpacing: '0.06em' }}
+          style={{ fontSize: 13, letterSpacing: '0.06em' }}
         >
           {error}
         </div>

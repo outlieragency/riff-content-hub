@@ -125,7 +125,7 @@ function OutcomeCard({
       </div>
       <div
         className="font-mono mt-1.5 text-[var(--rm-muted-2)]"
-        style={{ fontSize: 11, letterSpacing: '0.06em' }}
+        style={{ fontSize: 13, letterSpacing: '0.06em' }}
       >
         {metricSub}
       </div>
@@ -137,7 +137,7 @@ function OutcomeCard({
       </h3>
       <p
         className="font-thai mt-2 text-[var(--rm-muted)]"
-        style={{ fontSize: 14, lineHeight: 1.6 }}
+        style={{ fontSize: 15.5, lineHeight: 1.6 }}
       >
         {body}
       </p>

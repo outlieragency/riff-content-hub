@@ -19,7 +19,7 @@ export function SocialProof() {
       <div className="rm-container px-6 flex items-center gap-8 flex-wrap justify-center">
         <span
           className="font-mono uppercase text-[var(--rm-muted-2)]"
-          style={{ fontSize: 11.5, letterSpacing: '0.14em' }}
+          style={{ fontSize: 13, letterSpacing: '0.14em' }}
         >
           Built by the team behind →
         </span>
@@ -32,7 +32,7 @@ export function SocialProof() {
                 fontWeight: 600,
                 opacity: 0.7,
                 letterSpacing: '-0.01em',
-                fontSize: 14,
+                fontSize: 15.5,
                 color: 'var(--rm-muted)',
               }}
             >

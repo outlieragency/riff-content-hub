@@ -42,7 +42,7 @@ export function MarketingNav() {
               key={href}
               href={href}
               className="font-thai text-[var(--rm-muted)] hover:text-[var(--rm-text)] no-underline transition-colors"
-              style={{ fontSize: 14, fontWeight: 500 }}
+              style={{ fontSize: 15.5, fontWeight: 500 }}
             >
               {label}
             </a>
@@ -53,7 +53,7 @@ export function MarketingNav() {
           <Link
             href="/login"
             className="font-thai text-[var(--rm-muted)] hover:text-[var(--rm-text)] no-underline"
-            style={{ fontSize: 14, fontWeight: 500 }}
+            style={{ fontSize: 15.5, fontWeight: 500 }}
           >
             เข้าสู่ระบบ
           </Link>

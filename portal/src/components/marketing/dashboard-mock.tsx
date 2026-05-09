@@ -72,7 +72,7 @@ function VideoThumb({
         style={{
           background: 'rgba(0,0,0,0.7)',
           color: '#e8eee8',
-          fontSize: 10.5,
+          fontSize: 12,
           padding: '2px 5px',
           borderRadius: 4,
         }}
@@ -115,11 +115,11 @@ export function DashboardMock() {
             <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#4a3d1a' }} />
             <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#1f3a23' }} />
           </div>
-          <span className="font-mono text-[var(--rm-muted)]" style={{ fontSize: 11 }}>
+          <span className="font-mono text-[var(--rm-muted)]" style={{ fontSize: 13 }}>
             app.riff.so / channels / @earthrati
           </span>
         </div>
-        <div className="font-mono rm-hide-md text-[var(--rm-muted-2)]" style={{ fontSize: 11 }}>
+        <div className="font-mono rm-hide-md text-[var(--rm-muted-2)]" style={{ fontSize: 13 }}>
           ⌘K
         </div>
       </div>
@@ -132,7 +132,7 @@ export function DashboardMock() {
         >
           <div
             className="font-mono uppercase text-[var(--rm-muted)] tracking-[0.14em]"
-            style={{ fontSize: 10, padding: '8px 8px 6px' }}
+            style={{ fontSize: 12, padding: '8px 8px 6px' }}
           >
             WORKSPACE
           </div>
@@ -149,20 +149,20 @@ export function DashboardMock() {
               style={{
                 background: it.active ? 'rgba(255,107,53,0.08)' : 'transparent',
                 color: it.active ? 'var(--rm-text)' : 'var(--rm-muted)',
-                fontSize: 13,
+                fontSize: 14.5,
                 borderLeft: it.active
                   ? '2px solid var(--rm-accent)'
                   : '2px solid transparent',
               }}
             >
               <span className="inline-flex gap-2 items-center">
-                <span className="w-3.5 text-center" style={{ fontSize: 11 }}>
+                <span className="w-3.5 text-center" style={{ fontSize: 13 }}>
                   {it.icon}
                 </span>
                 {it.label}
               </span>
               {it.n != null && (
-                <span className="font-mono text-[var(--rm-muted-2)]" style={{ fontSize: 10.5 }}>
+                <span className="font-mono text-[var(--rm-muted-2)]" style={{ fontSize: 12 }}>
                   {it.n}
                 </span>
               )}
@@ -171,7 +171,7 @@ export function DashboardMock() {
           <div className="mt-4">
             <div
               className="font-mono uppercase text-[var(--rm-muted)]"
-              style={{ fontSize: 10, padding: '8px 8px 6px', letterSpacing: '0.14em' }}
+              style={{ fontSize: 12, padding: '8px 8px 6px', letterSpacing: '0.14em' }}
             >
               RECENT
             </div>
@@ -179,7 +179,7 @@ export function DashboardMock() {
               <div
                 key={i}
                 className="flex items-center gap-2 px-2 py-1 text-[var(--rm-muted)]"
-                style={{ fontSize: 12.5 }}
+                style={{ fontSize: 14 }}
               >
                 <span
                   className="rounded-full"
@@ -208,8 +208,8 @@ export function DashboardMock() {
                 }}
               />
               <div className="leading-[1.15]">
-                <div className="font-semibold" style={{ fontSize: 14 }}>Earth Rati</div>
-                <div className="font-mono text-[var(--rm-muted-2)]" style={{ fontSize: 10.5 }}>
+                <div className="font-semibold" style={{ fontSize: 15.5 }}>Earth Rati</div>
+                <div className="font-mono text-[var(--rm-muted-2)]" style={{ fontSize: 12 }}>
                   180.2K subscribers · 612 videos
                 </div>
               </div>
@@ -249,7 +249,7 @@ export function DashboardMock() {
                   <div
                     className="font-thai font-medium leading-tight text-[var(--rm-text)]"
                     style={{
-                      fontSize: 12.5,
+                      fontSize: 14,
                       display: '-webkit-box',
                       WebkitLineClamp: 2,
                       WebkitBoxOrient: 'vertical',
@@ -260,7 +260,7 @@ export function DashboardMock() {
                   </div>
                   <div
                     className="font-mono text-[var(--rm-muted-2)] mt-0.5 flex justify-between"
-                    style={{ fontSize: 10.5 }}
+                    style={{ fontSize: 12 }}
                   >
                     <span>{v.views} views</span>
                     <span>
@@ -274,7 +274,7 @@ export function DashboardMock() {
 
           <div
             className="mt-3.5 px-2.5 py-2 border-t border-dashed border-[var(--rm-border-2)] flex justify-between font-mono text-[var(--rm-muted-2)]"
-            style={{ fontSize: 10.5 }}
+            style={{ fontSize: 12 }}
           >
             <span>87 outliers found · 5 mega-viral · synced 3m ago</span>
             <span>RIFF v0.4.1</span>

@@ -64,7 +64,7 @@ export function Hero({ count }: { count: number }) {
 
           <p
             style={{
-              fontSize: 16,
+              fontSize: 'clamp(15px, 1.3vw, 17px)',
               color: 'var(--rm-muted)',
               marginTop: 12,
               maxWidth: 580,
@@ -84,7 +84,7 @@ export function Hero({ count }: { count: number }) {
 
           <div
             className="mt-3 text-[var(--rm-muted-2)] flex gap-3 flex-wrap"
-            style={{ fontSize: 13 }}
+            style={{ fontSize: 14.5 }}
           >
             <span>
               <span style={{ color: 'var(--rm-accent)' }}>●</span> {count}{' '}
@@ -131,7 +131,7 @@ export function Hero({ count }: { count: number }) {
           >
             <div
               className="text-[var(--rm-muted)]"
-              style={{ fontSize: 11, letterSpacing: '0.06em', fontWeight: 500 }}
+              style={{ fontSize: 13, letterSpacing: '0.06em', fontWeight: 500 }}
             >
               video ดังที่เจอ
             </div>
@@ -143,7 +143,7 @@ export function Hero({ count }: { count: number }) {
             </div>
             <div
               className="text-[var(--rm-muted-2)]"
-              style={{ fontSize: 11 }}
+              style={{ fontSize: 13 }}
             >
               ใน 90 วันที่ผ่านมา
             </div>

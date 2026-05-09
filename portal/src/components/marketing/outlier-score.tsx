@@ -62,7 +62,7 @@ export function OutlierScore() {
             </p>
             <p
               className="mt-3 text-[var(--rm-muted-2)]"
-              style={{ fontSize: 14, lineHeight: 1.55 }}
+              style={{ fontSize: 15.5, lineHeight: 1.55 }}
             >
               เป็นสูตรเดียวกับที่ vidIQ และ agency ใช้กันจริง ไม่ใช่
               vanity metric ที่หลอกตา
@@ -82,7 +82,7 @@ export function OutlierScore() {
             >
               <div
                 className="text-[var(--rm-muted-2)]"
-                style={{ fontSize: 11, letterSpacing: '0.14em' }}
+                style={{ fontSize: 13, letterSpacing: '0.14em' }}
               >
                 {'// FORMULA'}
               </div>
@@ -94,7 +94,7 @@ export function OutlierScore() {
               </div>
               <div
                 className="text-[var(--rm-muted-2)] mt-3 italic"
-                style={{ fontSize: 12 }}
+                style={{ fontSize: 13.5 }}
               >
                 e.g. 2.1M views ÷ 180K subs ={' '}
                 <span className="text-[var(--rm-text)]">11.7×</span>
@@ -106,7 +106,7 @@ export function OutlierScore() {
           <div>
             <div
               className="font-mono uppercase mb-3.5 text-[var(--rm-muted)]"
-              style={{ fontSize: 12, letterSpacing: '0.14em' }}
+              style={{ fontSize: 13.5, letterSpacing: '0.14em' }}
             >
               5 ระดับ · ที่เห็นใน app
             </div>
@@ -129,7 +129,7 @@ export function OutlierScore() {
                   </span>
                   <span
                     className="font-display font-semibold"
-                    style={{ fontSize: 14, color: t.color }}
+                    style={{ fontSize: 15.5, color: t.color }}
                   >
                     {t.label}
                   </span>
@@ -150,7 +150,7 @@ export function OutlierScore() {
             </div>
             <div
               className="font-mono mt-5 pt-3.5 border-t border-dashed text-[var(--rm-muted-2)]"
-              style={{ fontSize: 11, borderColor: 'var(--rm-border-2)' }}
+              style={{ fontSize: 13, borderColor: 'var(--rm-border-2)' }}
             >
               Tier thresholds tuned with 2.4M video benchmark across creator
               economy TH/EN.

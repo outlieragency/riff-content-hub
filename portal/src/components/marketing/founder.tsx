@@ -40,7 +40,7 @@ export function Founder() {
             style={{
               left: 12,
               bottom: 10,
-              fontSize: 9.5,
+              fontSize: 12,
               color: 'var(--rm-muted-2)',
               letterSpacing: '0.14em',
             }}
@@ -73,7 +73,7 @@ export function Founder() {
           <p
             className="text-[var(--rm-muted)]"
             style={{
-              fontSize: 'clamp(15px, 1.4vw, 18px)',
+              fontSize: 'clamp(16px, 1.4vw, 18px)',
               marginTop: 18,
               lineHeight: 1.6,
               maxWidth: 620,
@@ -96,7 +96,7 @@ export function Founder() {
             </p>
             <footer
               className="mt-3 text-[var(--rm-muted-2)]"
-              style={{ fontSize: 12, letterSpacing: '0.06em', fontWeight: 500 }}
+              style={{ fontSize: 13.5, letterSpacing: '0.06em', fontWeight: 500 }}
             >
               EARTH RATI · FOUNDER, OUTLIER AGENCY
             </footer>
