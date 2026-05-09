@@ -2,32 +2,32 @@ const STEPS = [
   {
     n: '01',
     k: 'url',
-    t: 'Add channel',
-    th: 'วาง YouTube URL — Riff ดึงทุก video + metadata อัตโนมัติ',
+    t: 'เพิ่ม channel',
+    th: 'วาง YouTube URL ของ creator ที่อยากตาม Riff จะ scan ทุก video ให้',
   },
   {
     n: '02',
     k: 'outliers',
-    t: 'Spot outliers',
-    th: 'Sort by Outlier Score เพื่อหา video ที่ break out จากฐานแฟนเดิม',
+    t: 'หาตัวดัง',
+    th: 'เห็นชัดว่า video ไหนคือตัวที่ปังเกินค่าเฉลี่ย จัดเรียงให้อัตโนมัติ',
   },
   {
     n: '03',
     k: 'save',
-    t: 'Save ideas',
-    th: 'Bookmark video น่าสนใจไว้ใน Idea Library',
+    t: 'เก็บไอเดีย',
+    th: 'กด save video ที่ชอบ → เข้า Idea Library ของคุณ',
   },
   {
     n: '04',
     k: 'recreate',
-    t: 'Recreate',
-    th: 'AI ทำ transcript → translate → summarize → rewrite ใน voice ของคุณ',
+    t: 'AI เขียนให้',
+    th: 'AI ทำ transcript แปลไทย สรุป แล้วเขียนใหม่ในเสียงคุณ ภายใน 90 วินาที',
   },
   {
     n: '05',
     k: 'publish',
-    t: 'Publish',
-    th: 'Export ตรงไป Notion · clipboard · direct post',
+    t: 'ลงเลย',
+    th: 'Copy ไป FB/IG/YT หรือ push เข้า Notion ได้เลย พร้อม cover ปก',
   },
 ] as const
 
@@ -223,22 +223,27 @@ export function HowItWorks() {
         <div style={{ maxWidth: 760, marginBottom: 56 }}>
           <div className="rm-eyebrow">
             <span className="dot" />
-            THE WORKFLOW
+            ลงรายละเอียด
           </div>
           <h2
             className="font-thai mt-3.5"
             style={{
-              fontSize: 'clamp(32px, 4.4vw, 52px)',
+              fontSize: 'clamp(28px, 4.4vw, 48px)',
               fontWeight: 700,
-              lineHeight: 1.04,
-              letterSpacing: '-0.025em',
+              lineHeight: 1.15,
+              letterSpacing: '-0.02em',
               textWrap: 'balance' as const,
             }}
           >
-            จาก YouTube link ถึง content ที่{' '}
-            <span style={{ color: 'var(--rm-accent)' }}>post ได้</span> — ใน 5
-            steps
+            จาก YouTube link ถึงโพสต์ที่{' '}
+            <span style={{ color: 'var(--rm-accent)' }}>ลงได้เลย</span> ใน 5 ขั้น
           </h2>
+          <p
+            className="font-thai mt-4 text-[var(--rm-muted)]"
+            style={{ fontSize: 'clamp(16px, 1.4vw, 18px)', lineHeight: 1.55 }}
+          >
+            ทุกขั้นตอนเห็นภาพได้ + ทำได้จริงในเวลาไม่ถึง 5 นาที
+          </p>
         </div>
 
         <div className="grid gap-4 how-grid">

@@ -8,7 +8,6 @@ export function Hero({ count }: { count: number }) {
       className="rm-section rm-grid-bg relative"
       style={{ paddingTop: 132, paddingBottom: 72 }}
     >
-      {/* Radial accent glow top-right */}
       <div
         className="absolute pointer-events-none"
         style={{
@@ -23,24 +22,23 @@ export function Hero({ count }: { count: number }) {
       />
 
       <div className="rm-container grid gap-14 items-center hero-grid">
-        {/* Left column */}
         <div>
           <div className="rm-eyebrow">
             <span className="dot" />
-            IN PRIVATE BETA · INVITE-ONLY
+            BETA · เปิดให้ครีเอเตอร์ไทยเท่านั้น
           </div>
 
           <h1
             className="font-display"
             style={{
               marginTop: 18,
-              fontSize: 'clamp(40px, 6.4vw, 76px)',
+              fontSize: 'clamp(38px, 6vw, 70px)',
               fontWeight: 800,
-              lineHeight: 1.04,
+              lineHeight: 1.06,
               textWrap: 'balance' as const,
             }}
           >
-            Turn YouTube outliers into your{' '}
+            ลงโพสต์ทุกวัน{' '}
             <span
               style={{
                 color: 'var(--rm-accent)',
@@ -48,27 +46,49 @@ export function Hero({ count }: { count: number }) {
                 fontWeight: 700,
               }}
             >
-              next viral post.
+              ในเสียงของคุณ
             </span>
+            <br />
+            ใช้แค่ 5 นาที.
           </h1>
 
           <p
             className="font-thai"
             style={{
-              fontSize: 'clamp(18px, 1.6vw, 22px)',
+              fontSize: 'clamp(17px, 1.5vw, 21px)',
               color: 'var(--rm-muted)',
-              marginTop: 22,
+              marginTop: 24,
               maxWidth: 580,
-              lineHeight: 1.5,
+              lineHeight: 1.55,
             }}
           >
-            Riff หา video ที่{' '}
-            <span style={{ color: 'var(--rm-text)' }}>break out</span> จาก
-            channel อื่น แล้ว recreate เป็น{' '}
+            Riff หา{' '}
             <span style={{ color: 'var(--rm-text)' }}>
-              script · article · reel · carousel
+              video YouTube ที่ดังที่สุด
             </span>{' '}
-            ใน voice ของคุณ — ใน 1 tool.
+            ในนิชของคุณ แล้วเขียนเป็น{' '}
+            <span style={{ color: 'var(--rm-text)' }}>
+              FB post · IG carousel · Reels · YT script
+            </span>{' '}
+            ในแบบที่คุณเขียนเอง ไม่ใช่สำเนา ไม่ใช่ AI generic
+          </p>
+
+          <p
+            className="font-thai"
+            style={{
+              fontSize: 17,
+              color: 'var(--rm-text)',
+              marginTop: 14,
+              fontWeight: 500,
+              maxWidth: 580,
+              lineHeight: 1.55,
+            }}
+          >
+            ไม่ต้องจ้าง agency ไม่ต้องมีทีม content เป็น{' '}
+            <span style={{ color: 'var(--rm-accent)', fontWeight: 700 }}>
+              1-Person Content Marketing
+            </span>{' '}
+            ได้เลย.
           </p>
 
           <div id="waitlist" className="mt-7">
@@ -81,16 +101,15 @@ export function Hero({ count }: { count: number }) {
           >
             <span>
               <span style={{ color: 'var(--rm-accent)' }}>●</span> {count}{' '}
-              creators waiting
+              ครีเอเตอร์รออยู่
             </span>
             <span>·</span>
-            <span>No spam, ever</span>
+            <span>ไม่มี spam</span>
             <span>·</span>
-            <span>Unsubscribe in one click</span>
+            <span>ยกเลิกเมื่อไหร่ก็ได้</span>
           </div>
         </div>
 
-        {/* Right column — dashboard mock */}
         <div className="relative dashboard-wrap">
           <div
             className="absolute pointer-events-none"
@@ -111,7 +130,6 @@ export function Hero({ count }: { count: number }) {
           >
             <DashboardMock />
           </div>
-          {/* Floating stat tag */}
           <div
             className="absolute z-20"
             style={{
@@ -128,7 +146,7 @@ export function Hero({ count }: { count: number }) {
               className="font-mono uppercase text-[var(--rm-muted)]"
               style={{ fontSize: 10, letterSpacing: '0.14em' }}
             >
-              OUTLIERS FOUND
+              VIDEO ดัง ๆ ที่เจอ
             </div>
             <div
               className="font-mono text-[var(--rm-text)] font-semibold"
@@ -140,7 +158,7 @@ export function Hero({ count }: { count: number }) {
               className="font-mono text-[var(--rm-muted-2)]"
               style={{ fontSize: 10 }}
             >
-              past 90 days
+              ใน 90 วันที่ผ่านมา
             </div>
           </div>
         </div>

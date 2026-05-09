@@ -11,10 +11,10 @@ export function MarketingFooter() {
         </div>
         <div className="flex gap-6">
           {[
-            { label: 'Privacy', href: '#' },
-            { label: 'Terms', href: '#' },
+            { label: 'นโยบายความเป็นส่วนตัว', href: '#' },
+            { label: 'เงื่อนไขการใช้งาน', href: '#' },
             { label: 'YouTube', href: 'https://youtube.com/@earthrati' },
-            { label: 'Login', href: '/login' },
+            { label: 'เข้าสู่ระบบ', href: '/login' },
           ].map((t) => (
             <a
               key={t.label}

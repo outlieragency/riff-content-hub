@@ -28,13 +28,13 @@ const ARROWS = [
 ]
 
 const CAPABILITIES = [
-  'YouTube sync',
-  'Outlier scoring',
-  'Transcript',
-  'TH ↔ EN',
-  'Voice rewrite',
+  'หา outlier',
+  'transcript',
+  'แปล TH/EN',
+  'voice ของคุณ',
   '4 formats',
-  'Export',
+  'cover ปก',
+  'export',
 ]
 
 export function Problem() {
@@ -44,25 +44,32 @@ export function Problem() {
         <div style={{ maxWidth: 760, marginBottom: 48 }}>
           <div className="rm-eyebrow">
             <span className="dot" />
-            THE PAIN
+            ปัญหาที่คุณเจออยู่
           </div>
           <h2
-            className="font-thai"
+            className="font-thai mt-3.5"
             style={{
-              fontSize: 'clamp(32px, 4.4vw, 52px)',
-              marginTop: 14,
+              fontSize: 'clamp(28px, 4.4vw, 48px)',
               fontWeight: 700,
-              lineHeight: 1.04,
-              letterSpacing: '-0.025em',
+              lineHeight: 1.15,
+              letterSpacing: '-0.02em',
               textWrap: 'balance' as const,
             }}
           >
-            Content workflow ของคุณตอนนี้ดู{' '}
+            ทำ content คนเดียว{' '}
             <span style={{ color: 'var(--rm-accent)', fontStyle: 'italic' }}>
-              messy
+              เหนื่อยจน burn out
             </span>{' '}
-            หรือเปล่า?
+            ใช่ไหม?
           </h2>
+          <p
+            className="font-thai mt-4 text-[var(--rm-muted)]"
+            style={{ fontSize: 'clamp(16px, 1.4vw, 18px)', lineHeight: 1.55 }}
+          >
+            อยากลง content ทุกวันเพื่อโต — แต่เปิด tab 6 อย่าง คิดไอเดีย 1
+            ชั่วโมง เขียน 2 ชั่วโมง ทำภาพอีก 30 นาที. กว่าจะลง 1 โพสต์ =
+            ครึ่งวัน. ทำ 1 อาทิตย์ก็หมดแรง.
+          </p>
         </div>
 
         <div className="grid gap-6 problem-grid">
@@ -84,13 +91,13 @@ export function Problem() {
                   letterSpacing: '0.14em',
                 }}
               >
-                ทุกวันนี้ — 6 tools, 4 hours, 1 post
+                ทุกวันนี้ — 6 tools, 4 ชั่วโมง, 1 โพสต์
               </div>
               <h3
                 className="font-thai mt-2 mb-6 text-[var(--rm-muted)]"
-                style={{ fontSize: 26, fontWeight: 700, lineHeight: 1.2 }}
+                style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.3 }}
               >
-                สลับ tab ไป-มา จนลืม voice ตัวเอง
+                สลับ tab ไปมา จนลืมว่าตัวเองเขียนยังไง
               </h3>
 
               <div className="relative" style={{ height: 240 }}>
@@ -154,7 +161,7 @@ export function Problem() {
                 className="font-mono mt-2 pt-3.5 border-t border-dashed text-[var(--rm-muted-2)]"
                 style={{ fontSize: 12, borderColor: 'var(--rm-border-2)' }}
               >
-                ⏱ avg. 4h 12m per post · 47 tab switches · 3 lost ideas
+                ⏱ เฉลี่ย 4 ชม./โพสต์ · สลับ tab 47 ครั้ง · ลืมไอเดียไป 3 อย่าง
               </div>
             </div>
           </div>
@@ -177,14 +184,14 @@ export function Problem() {
                   letterSpacing: '0.14em',
                 }}
               >
-                ด้วย Riff — 1 tool, 12 minutes, 1 post
+                ใช้ Riff — 1 tool, 5 นาที, 1 โพสต์
               </div>
               <h3
                 className="font-thai mt-2 mb-6"
-                style={{ fontSize: 26, fontWeight: 700, lineHeight: 1.2 }}
+                style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.3 }}
               >
-                One workflow.{' '}
-                <span style={{ color: 'var(--rm-accent)' }}>Your voice.</span>
+                เห็น idea, click, ได้ post —{' '}
+                <span style={{ color: 'var(--rm-accent)' }}>ในเสียงคุณ</span>
               </h3>
 
               <div
@@ -206,7 +213,7 @@ export function Problem() {
                   {CAPABILITIES.map((t) => (
                     <span
                       key={t}
-                      className="font-mono text-[var(--rm-muted)]"
+                      className="font-thai font-mono text-[var(--rm-muted)]"
                       style={{
                         fontSize: 11,
                         padding: '4px 9px',
@@ -224,7 +231,7 @@ export function Problem() {
                 className="font-mono mt-2 pt-3.5 border-t border-dashed text-[var(--rm-muted-2)]"
                 style={{ fontSize: 12, borderColor: 'var(--rm-border-2)' }}
               >
-                ⏱ avg. 12m per post · 0 tab switches · ideas saved automatically
+                ⏱ 5 นาที/โพสต์ · ไม่ต้องสลับ tab · ไอเดียบันทึกอัตโนมัติ
               </div>
             </div>
           </div>

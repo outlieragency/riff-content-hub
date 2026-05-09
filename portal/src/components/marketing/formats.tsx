@@ -18,7 +18,7 @@ const FORMATS: Format[] = [
     color: '#ff4747',
     name: 'YouTube Script',
     id: 'yt',
-    desc: 'Outline + full script + 5 titles + thumbnail brief',
+    desc: 'Outline + script เต็ม + 5 title + brief ปก thumbnail',
     sample: (
       <div>
         <div
@@ -53,9 +53,9 @@ const FORMATS: Format[] = [
   {
     icon: '📘',
     color: '#1577ff',
-    name: 'Facebook Article',
+    name: 'Facebook Post',
     id: 'fb',
-    desc: '800–1,500 word Thai post — long-form, native Thai cadence',
+    desc: 'Post ยาว 800–1,500 คำ จังหวะภาษาไทยเป็นธรรมชาติ',
     sample: (
       <div>
         <div className="font-thai" style={{ fontSize: 13.5, lineHeight: 1.65 }}>
@@ -84,7 +84,7 @@ const FORMATS: Format[] = [
     color: '#e1306c',
     name: 'Reels Script',
     id: 'rl',
-    desc: 'Hook (5s) + Body (30–50s) + CTA (5s) — beat-by-beat',
+    desc: 'Hook 5 วิ + Body 30–50 วิ + CTA 5 วิ ระบุจังหวะให้ครบ',
     sample: (
       <div className="flex flex-col gap-2">
         {[
@@ -111,9 +111,9 @@ const FORMATS: Format[] = [
   {
     icon: '🎴',
     color: '#7d2ae8',
-    name: 'Instagram Carousel',
+    name: 'IG Carousel',
     id: 'ig',
-    desc: 'Fully-formatted slides — copy + slot, ready to paste',
+    desc: 'Slide พร้อม copy ครบ ลากใส่ template ลงได้เลย',
     sample: (
       <div className="flex gap-1.5 overflow-hidden">
         {[
@@ -166,37 +166,26 @@ export function Formats() {
         <div style={{ maxWidth: 760, marginBottom: 48 }}>
           <div className="rm-eyebrow">
             <span className="dot" />
-            OUTPUT
+            ผลลัพธ์ที่ได้
           </div>
           <h2
-            className="font-display mt-3.5"
+            className="font-thai mt-3.5"
             style={{
-              fontSize: 'clamp(32px, 4.4vw, 52px)',
+              fontSize: 'clamp(28px, 4.4vw, 48px)',
               fontWeight: 700,
-              lineHeight: 1.04,
+              lineHeight: 1.1,
               letterSpacing: '-0.025em',
               textWrap: 'balance' as const,
             }}
           >
-            <span
-              className="font-mono"
-              style={{
-                color: 'var(--rm-accent)',
-                fontWeight: 500,
-                fontSize: '0.85em',
-              }}
-            >
-              4
-            </span>{' '}
-            formats. <span style={{ color: 'var(--rm-accent)' }}>1 voice.</span>{' '}
-            Zero copy-paste.
+            1 video <span style={{ color: 'var(--rm-accent)' }}>= 4 โพสต์</span> ลงทุก platform
           </h2>
           <p
             className="font-thai mt-4 text-[var(--rm-muted)]"
-            style={{ fontSize: 18 }}
+            style={{ fontSize: 'clamp(15px, 1.4vw, 18px)', lineHeight: 1.55 }}
           >
-            แต่ละ format ถูก train แยกกัน — ไม่ใช่ generic prompt ที่เปลี่ยน
-            &ldquo;make it shorter&rdquo;.
+            แต่ละ format Riff เขียนแยกตาม platform จริง ไม่ใช่แค่ตัด post ยาวให้สั้นลง
+            FB ก็เป็น FB · Reels ก็เป็น Reels · YT ก็เป็น YT · IG ก็เป็น IG
           </p>
         </div>
 

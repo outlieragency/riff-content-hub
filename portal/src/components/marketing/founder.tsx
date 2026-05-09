@@ -52,46 +52,47 @@ export function Founder() {
         <div>
           <div className="rm-eyebrow">
             <span className="dot" />
-            THE STORY
+            ใครเป็นคนสร้าง
           </div>
           <h2
-            className="font-display mt-3.5"
+            className="font-thai mt-3.5"
             style={{
-              fontSize: 'clamp(28px, 3.6vw, 42px)',
+              fontSize: 'clamp(26px, 3.6vw, 40px)',
               fontWeight: 700,
-              lineHeight: 1.04,
+              lineHeight: 1.15,
               letterSpacing: '-0.025em',
               textWrap: 'balance' as const,
             }}
           >
-            Built by a creator,{' '}
-            <span style={{ color: 'var(--rm-accent)', fontStyle: 'italic' }}>
-              for creators.
-            </span>
+            สร้างโดย creator{' '}
+            <span style={{ color: 'var(--rm-accent)' }}>
+              ที่ใช้เอง
+            </span>{' '}
+            ทุกวัน
           </h2>
           <p
             className="font-thai text-[var(--rm-muted)]"
             style={{
-              fontSize: 18,
+              fontSize: 'clamp(15px, 1.4vw, 18px)',
               marginTop: 18,
-              lineHeight: 1.55,
+              lineHeight: 1.6,
               maxWidth: 620,
             }}
           >
-            Earth สร้าง Riff ขึ้นมาเพื่อใช้ run agency ของตัวเอง (Outlier Agency)
-            — ไม่ใช่ faceless SaaS. ถ้ามันทำงานได้สำหรับ 7-figure creator ที่ ship
-            content ทุกวัน — มันจะทำงานได้สำหรับคุณ.
+            ผม Earth Rati ทำ content คนเดียวมาตลอด 3 ปี เคยสร้างยอดขายหลักล้าน/เดือน
+            จาก digital product เพราะลง content ทุกวัน. Riff คือเครื่องมือที่ผมสร้างเพื่อใช้เอง
+            ให้ทำได้เร็วขึ้นโดยไม่เสีย voice ตัวเอง.
           </p>
           <blockquote
             className="mt-6 pl-5"
             style={{ borderLeft: '2px solid var(--rm-accent)' }}
           >
             <p
-              className="font-thai italic m-0 text-[var(--rm-text)]"
-              style={{ fontSize: 19, lineHeight: 1.5 }}
+              className="font-thai m-0 text-[var(--rm-text)]"
+              style={{ fontSize: 'clamp(16px, 1.6vw, 19px)', lineHeight: 1.55, fontStyle: 'italic' }}
             >
-              &ldquo;ผมเบื่อการสลับ tab 6 tabs เพื่อเขียน 1 post — เลยสร้าง Riff
-              ขึ้นมาใช้เอง. ตอนนี้เปิดให้ creator คนอื่นใช้ด้วย.&rdquo;
+              &ldquo;ผมเบื่อเปิด tab 6 อันเพื่อเขียน 1 โพสต์ เลยสร้าง Riff ใช้เอง
+              วันนี้เปิดให้ creator คนอื่นใช้ด้วย&rdquo;
             </p>
             <footer
               className="font-mono mt-2.5 text-[var(--rm-muted-2)]"

@@ -3,10 +3,13 @@ import { MarketingNav } from '@/components/marketing/nav'
 import { Hero } from '@/components/marketing/hero'
 import { SocialProof } from '@/components/marketing/social-proof'
 import { Problem } from '@/components/marketing/problem'
+import { WhatIsRiff } from '@/components/marketing/what-is-riff'
 import { HowItWorks } from '@/components/marketing/how-it-works'
 import { OutlierScore } from '@/components/marketing/outlier-score'
 import { Formats } from '@/components/marketing/formats'
 import { VoiceProfile } from '@/components/marketing/voice-profile'
+import { Outcomes } from '@/components/marketing/outcomes'
+import { Comparison } from '@/components/marketing/comparison'
 import { Founder } from '@/components/marketing/founder'
 import { FAQ } from '@/components/marketing/faq'
 import { FinalCTA } from '@/components/marketing/final-cta'
@@ -45,10 +48,13 @@ export default async function MarketingHomePage({
       <Hero count={count} />
       <SocialProof />
       <Problem />
+      <WhatIsRiff />
       <HowItWorks />
       <OutlierScore />
       <Formats />
       <VoiceProfile />
+      <Outcomes />
+      <Comparison />
       <Founder />
       <FAQ />
       <FinalCTA count={count} />

@@ -33,28 +33,38 @@ export function OutlierScore() {
           <div>
             <div className="rm-eyebrow">
               <span className="dot" />
-              THE SIGNAL
+              สูตรลับ
             </div>
             <h2
-              className="font-display mt-3.5"
+              className="font-thai mt-3.5"
               style={{
-                fontSize: 'clamp(32px, 4.4vw, 52px)',
+                fontSize: 'clamp(28px, 4.4vw, 48px)',
                 fontWeight: 700,
-                lineHeight: 1.04,
-                letterSpacing: '-0.025em',
+                lineHeight: 1.15,
+                letterSpacing: '-0.02em',
                 textWrap: 'balance' as const,
               }}
             >
-              What&apos;s an{' '}
-              <span style={{ color: 'var(--rm-accent)' }}>Outlier Score</span>?
+              <span style={{ color: 'var(--rm-accent)' }}>Outlier Score</span>{' '}
+              คืออะไร?
             </h2>
             <p
-              className="font-thai mt-4.5 text-[var(--rm-muted)]"
-              style={{ fontSize: 18, marginTop: 18, lineHeight: 1.55 }}
+              className="font-thai mt-4 text-[var(--rm-muted)]"
+              style={{
+                fontSize: 'clamp(16px, 1.4vw, 18px)',
+                lineHeight: 1.6,
+              }}
             >
-              Score ยิ่งสูง = video reach ออกนอกฐานแฟนเดิมไปไกล = viral signal.
-              เป็น industry-standard formula ที่ creator agency ใช้กันจริง —
-              ไม่ใช่ vanity metric.
+              คะแนนนี้บอกว่า <strong className="text-[var(--rm-text)]">video ตัวนี้ดังเกินค่าเฉลี่ยกี่เท่า</strong>.
+              ยิ่งคะแนนสูง = ดังเกินฐานแฟนของ creator คนนั้น = ไอเดียที่ใช้ได้จริง,
+              ไม่ใช่แค่ดังในวงปิด.
+            </p>
+            <p
+              className="font-thai mt-3 text-[var(--rm-muted-2)]"
+              style={{ fontSize: 14, lineHeight: 1.55 }}
+            >
+              เป็นสูตรเดียวกับที่ creator agency ใช้กันจริง ไม่ใช่
+              vanity metric ที่หลอกตา
             </p>
 
             <div
@@ -97,7 +107,7 @@ export function OutlierScore() {
               className="font-mono uppercase mb-3.5 text-[var(--rm-muted)]"
               style={{ fontSize: 12, letterSpacing: '0.14em' }}
             >
-              5 TIERS — AS THEY APPEAR IN-APP
+              5 ระดับ · ที่เห็นใน app
             </div>
             <div className="flex flex-col gap-3">
               {TIERS.map((t) => (

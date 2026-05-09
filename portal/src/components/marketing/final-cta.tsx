@@ -19,38 +19,42 @@ export function FinalCTA({ count }: { count: number }) {
       >
         <div className="rm-eyebrow inline-flex justify-center">
           <span className="dot" />
-          EARLY ACCESS · BATCH 03 OPENS NEXT WEEK
+          เปิดให้ใช้ batch ถัดไปสัปดาห์หน้า
         </div>
         <h2
-          className="font-display"
+          className="font-thai"
           style={{
-            fontSize: 'clamp(40px, 6vw, 76px)',
+            fontSize: 'clamp(32px, 6vw, 64px)',
             marginTop: 18,
             fontWeight: 800,
             textWrap: 'balance' as const,
-            lineHeight: 1.02,
+            lineHeight: 1.1,
             letterSpacing: '-0.025em',
           }}
         >
-          Stop juggling 6 tools. <br />
-          <span style={{ color: 'var(--rm-accent)', fontStyle: 'italic' }}>
-            Start riffing.
+          เลิกเปิด tab 6 อัน<br />
+          <span style={{ color: 'var(--rm-accent)' }}>
+            ลงโพสต์ได้ทุกวัน
           </span>
         </h2>
         <p
           className="font-thai text-[var(--rm-muted)]"
-          style={{ fontSize: 19, marginTop: 22 }}
+          style={{ fontSize: 'clamp(16px, 1.6vw, 19px)', marginTop: 22, lineHeight: 1.55 }}
         >
-          Join {count} creators on the waitlist · Early access drops in batches.
+          {count} ครีเอเตอร์รอใช้อยู่ ทยอยเปิดให้ใช้เป็น batch
         </p>
         <div className="mt-7 flex justify-center">
           <WaitlistForm size="lg" source="final-cta" />
         </div>
         <div
-          className="font-mono mt-3.5 text-[var(--rm-muted-2)]"
-          style={{ fontSize: 11.5, letterSpacing: '0.08em' }}
+          className="font-mono mt-3.5 text-[var(--rm-muted-2)] flex justify-center gap-2 flex-wrap"
+          style={{ fontSize: 11.5, letterSpacing: '0.06em' }}
         >
-          NO SPAM · NO PRICING SURPRISES · UNSUBSCRIBE IN ONE CLICK
+          <span>ไม่มี spam</span>
+          <span>·</span>
+          <span>ราคาเปิดเผย</span>
+          <span>·</span>
+          <span>ยกเลิก click เดียว</span>
         </div>
       </div>
     </section>

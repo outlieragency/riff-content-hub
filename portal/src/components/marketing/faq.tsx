@@ -4,36 +4,36 @@ import { useState } from 'react'
 
 const ITEMS = [
   {
-    q: 'Riff ใช้ AI ตัวไหน?',
-    a: 'Riff ใช้ frontier models ผสมกัน (Claude สำหรับ rewriting, Whisper สำหรับ transcript, custom embedding model สำหรับ voice match). คุณไม่ต้องใส่ API key — รวมอยู่ใน subscription. หรือถ้าอยาก BYOK ก็ paste key ของตัวเองได้ใน Settings.',
+    q: 'Riff ทำงานยังไง สั้นๆ',
+    a: 'คุณวาง URL channel YouTube ที่อยาก follow Riff scan ทุก video หา outlier ที่ดังเกินค่าเฉลี่ย คุณกด save video ที่ชอบ AI จะอ่าน transcript แปลไทย สรุป แล้วเขียนใหม่เป็น FB/IG/Reels/YT ในเสียงของคุณ ภายใน 90 วินาที',
   },
   {
-    q: 'Voice ของผมจะเหมือนจริงแค่ไหน?',
-    a: 'หลัง train ด้วย content เก่าของคุณ 20+ posts, average match score อยู่ที่ ~91%. แต่ output ทุกครั้งสามารถ edit ได้ใน vault — Riff ออกแบบมาเป็น first draft ที่เกือบ ship ได้ ไม่ใช่ final draft.',
+    q: 'AI จะเขียนเหมือนผมจริงๆ ไหม',
+    a: 'Riff อ่าน post เก่าของคุณ 20+ ชิ้น แล้วเรียนวิธีเขียน จังหวะประโยค คำที่คุณใช้บ่อย match เฉลี่ย 91%. ทุก draft แก้ได้ ออกแบบให้เป็น first draft ที่เกือบลงได้เลย ไม่ใช่ final draft',
   },
   {
-    q: 'รองรับภาษาอะไรบ้าง?',
-    a: 'ตอน MVP รองรับ Thai ↔ English เต็มรูปแบบ (input + output ทั้ง 2 ทิศทาง). ภาษาอื่น (ID, VI, JA) อยู่ใน roadmap Q3 2026.',
+    q: 'รองรับภาษาอะไร',
+    a: 'ตอนนี้รองรับไทย กับ อังกฤษ เต็มรูปแบบ video EN ก็แปลเป็น TH ได้ video TH ก็เขียน EN ได้',
   },
   {
-    q: 'ทำไมถึงเป็น YouTube only ตอนเริ่ม?',
-    a: 'YouTube มี structured metadata (subs, views, transcripts) ที่ทำให้ Outlier Score คำนวณได้แม่น. TikTok + IG มีเร็วๆ นี้ แต่จะไม่มี transcript-level recreation จนกว่า platform API จะเปิด.',
+    q: 'ทำไมเริ่มจาก YouTube ก่อน',
+    a: 'YouTube มี data ครบ subscriber count, views, transcript ทำให้คำนวณ Outlier Score ได้แม่น TikTok กับ IG มาตามทีหลัง',
   },
   {
-    q: 'Pricing เท่าไหร่ตอน launch?',
-    a: 'Public pricing ยังไม่ประกาศ. Waitlist members lock ใน early-creator rate (~50% ถูกกว่า public price) ตลอด first year. ไม่มี free tier — Riff สำหรับ creator ที่ ship จริง.',
+    q: 'ราคาเท่าไหร่',
+    a: 'ยังไม่เปิด public pricing คนใน waitlist จะได้ early-creator rate ถูกกว่า public ~50% ตลอดปีแรก ไม่มี free tier เพราะออกแบบให้คนทำ content จริงๆ ใช้',
   },
   {
-    q: 'Data ของผมปลอดภัยไหม?',
-    a: 'Voice profile + drafts ของคุณ encrypt at rest. ไม่ถูกใช้ train shared models. Delete account = hard delete ทุก data ภายใน 24 ชม.',
+    q: 'ข้อมูลผมปลอดภัยไหม',
+    a: 'Voice profile กับ draft ของคุณ encrypt ไม่เอาไป train shared model ลบ account = ลบทุกอย่างภายใน 24 ชม',
   },
   {
-    q: 'Outlier Score คำนวณยังไง?',
-    a: 'Views ÷ Subscribers, ปรับด้วย video age curve (video ใหม่ score คำนวณกับ projected views, ไม่ใช่ current). 5 tiers: <1 (below avg) → >10 (mega viral).',
+    q: 'Outlier Score คำนวณยังไง',
+    a: 'เอา views หาร subscribers ปรับด้วยอายุ video score 1.0 = ดังตามค่าเฉลี่ย channel score 5.0 ขึ้นไป = video ที่ reach ออกนอกฐานแฟนชัดเจน',
   },
   {
-    q: 'ใช้ได้กับ team ไหม?',
-    a: 'Solo plan ตอน launch. Team workspace (shared voice profiles, role-based access, billing) coming Q2 2026 — บน same waitlist.',
+    q: 'ใช้กับทีมได้ไหม',
+    a: 'ตอนนี้ solo plan ก่อน Team workspace (share voice profile, แบ่ง role) มาช่วงกลางปี 2026 ใช้ waitlist เดียวกัน',
   },
 ]
 
@@ -45,26 +45,26 @@ export function FAQ() {
         <div>
           <div className="rm-eyebrow">
             <span className="dot" />
-            FAQ
+            คำถามที่พบบ่อย
           </div>
           <h2
-            className="font-display mt-3.5"
+            className="font-thai mt-3.5"
             style={{
-              fontSize: 'clamp(28px, 3.6vw, 44px)',
+              fontSize: 'clamp(26px, 3.6vw, 40px)',
               fontWeight: 700,
-              lineHeight: 1.04,
+              lineHeight: 1.15,
               letterSpacing: '-0.025em',
               textWrap: 'balance' as const,
             }}
           >
-            Questions,{' '}
-            <span style={{ color: 'var(--rm-accent)' }}>answered.</span>
+            สงสัยอะไร{' '}
+            <span style={{ color: 'var(--rm-accent)' }}>ถามได้</span>
           </h2>
           <p
             className="font-thai mt-3.5 text-[var(--rm-muted)]"
             style={{ fontSize: 15.5, lineHeight: 1.55 }}
           >
-            ยังไม่เจอคำตอบ? ส่ง email มาที่{' '}
+            ยังไม่เจอคำตอบที่ตรงใจ? ส่ง email มาที่{' '}
             <a
               href="mailto:hi@outlieragency.co"
               className="no-underline"
@@ -72,7 +72,7 @@ export function FAQ() {
             >
               hi@outlieragency.co
             </a>{' '}
-            — Earth ตอบเอง.
+            ตอบเองทุกฉบับ
           </p>
         </div>
 
@@ -116,7 +116,7 @@ export function FAQ() {
               </button>
               <div
                 style={{
-                  maxHeight: open === i ? 300 : 0,
+                  maxHeight: open === i ? 500 : 0,
                   overflow: 'hidden',
                   transition: 'max-height .3s ease',
                 }}

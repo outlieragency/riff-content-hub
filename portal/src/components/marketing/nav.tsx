@@ -1,13 +1,14 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { RiffLogo } from './logo'
 
 const NAV_LINKS: [string, string][] = [
-  ['Features', '#features'],
-  ['How it works', '#how'],
-  ['Outlier Score', '#score'],
-  ['FAQ', '#faq'],
+  ['Riff คืออะไร', '#what'],
+  ['ทำงานยังไง', '#how'],
+  ['ผลลัพธ์', '#outcomes'],
+  ['คำถามที่พบบ่อย', '#faq'],
 ]
 
 export function MarketingNav() {
@@ -40,7 +41,7 @@ export function MarketingNav() {
             <a
               key={href}
               href={href}
-              className="text-[var(--rm-muted)] hover:text-[var(--rm-text)] no-underline transition-colors"
+              className="font-thai text-[var(--rm-muted)] hover:text-[var(--rm-text)] no-underline transition-colors"
               style={{ fontSize: 14, fontWeight: 500 }}
             >
               {label}
@@ -48,23 +49,24 @@ export function MarketingNav() {
           ))}
         </div>
 
-        <div className="flex gap-2.5 items-center">
-          <span
-            className="font-mono rm-hide-md text-[var(--rm-muted-2)]"
-            style={{ fontSize: 11 }}
+        <div className="flex gap-3 items-center">
+          <Link
+            href="/login"
+            className="font-thai text-[var(--rm-muted)] hover:text-[var(--rm-text)] no-underline"
+            style={{ fontSize: 14, fontWeight: 500 }}
           >
-            v0.4 · private beta
-          </span>
+            เข้าสู่ระบบ
+          </Link>
           <a
             href="#waitlist"
-            className="rm-btn rm-btn-primary rm-btn-sm"
+            className="rm-btn rm-btn-primary rm-btn-sm font-thai"
             style={{
               opacity: scrolled ? 1 : 0,
               pointerEvents: scrolled ? 'auto' : 'none',
               transition: 'opacity .25s',
             }}
           >
-            Join waitlist →
+            ขอสิทธิ์ใช้ก่อน →
           </a>
         </div>
       </div>
