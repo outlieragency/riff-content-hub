@@ -51,9 +51,11 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  if (user && (pathname === '/' || pathname === '/login')) {
+  // Logged-in user hitting /login → bounce to home (Today Dashboard).
+  // (Pre-Day 3 we also caught '/' here, but '/' is now the Dashboard route.)
+  if (user && pathname === '/login') {
     const url = request.nextUrl.clone()
-    url.pathname = '/outliers'
+    url.pathname = '/'
     return NextResponse.redirect(url)
   }
 
