@@ -44,31 +44,31 @@ export function Problem() {
         <div style={{ maxWidth: 760, marginBottom: 48 }}>
           <div className="rm-eyebrow">
             <span className="dot" />
-            ปัญหาที่คุณเจออยู่
+            ปัญหาที่ creator คนเดียวเจอทุกวัน
           </div>
           <h2
-            className="font-thai mt-3.5"
+            className="mt-3.5"
             style={{
-              fontSize: 'clamp(28px, 4.4vw, 48px)',
+              fontSize: 'clamp(28px, 4.4vw, 46px)',
               fontWeight: 700,
               lineHeight: 1.15,
-              letterSpacing: '-0.02em',
+              letterSpacing: '-0.025em',
               textWrap: 'balance' as const,
             }}
           >
-            ทำ content คนเดียว{' '}
-            <span style={{ color: 'var(--rm-accent)', fontStyle: 'italic' }}>
-              เหนื่อยจน burn out
+            เปิด tab 6 อัน นั่ง 4 ชั่วโมง{' '}
+            <span style={{ color: 'var(--rm-accent)' }}>
+              ได้ 1 โพสต์
             </span>{' '}
-            ใช่ไหม?
+            ทำได้นานแค่ไหน?
           </h2>
           <p
-            className="font-thai mt-4 text-[var(--rm-muted)]"
-            style={{ fontSize: 'clamp(16px, 1.4vw, 18px)', lineHeight: 1.55 }}
+            className="mt-4 text-[var(--rm-muted)]"
+            style={{ fontSize: 'clamp(16px, 1.4vw, 18px)', lineHeight: 1.6 }}
           >
-            อยากลง content ทุกวันเพื่อโต — แต่เปิด tab 6 อย่าง คิดไอเดีย 1
-            ชั่วโมง เขียน 2 ชั่วโมง ทำภาพอีก 30 นาที. กว่าจะลง 1 โพสต์ =
-            ครึ่งวัน. ทำ 1 อาทิตย์ก็หมดแรง.
+            อยากลง content ทุกวันเพื่อโต แต่หาไอเดีย 1 ชั่วโมง เขียน 2 ชั่วโมง
+            ทำภาพอีก 30 นาที 1 โพสต์ = ครึ่งวัน 1 อาทิตย์ = ไอเดียตัน
+            1 เดือน = burnout เลิกลง
           </p>
         </div>
 
@@ -115,7 +115,7 @@ export function Problem() {
                         borderRadius: 8,
                         border: `1px solid ${t.c}33`,
                         background: 'var(--rm-surface-2)',
-                        fontFamily: 'Inter Tight, sans-serif',
+                        fontFamily: 'inherit',
                         fontSize: 13,
                         fontWeight: 600,
                         color: t.c,

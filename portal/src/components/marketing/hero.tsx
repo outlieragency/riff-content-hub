@@ -25,70 +25,57 @@ export function Hero({ count }: { count: number }) {
         <div>
           <div className="rm-eyebrow">
             <span className="dot" />
-            BETA · เปิดให้ครีเอเตอร์ไทยเท่านั้น
+            สำหรับ creator ไทยที่ทำ content คนเดียว
           </div>
 
           <h1
             className="font-display"
             style={{
-              marginTop: 18,
-              fontSize: 'clamp(38px, 6vw, 70px)',
-              fontWeight: 800,
-              lineHeight: 1.06,
+              marginTop: 20,
+              fontSize: 'clamp(36px, 5.6vw, 66px)',
+              fontWeight: 700,
+              lineHeight: 1.05,
+              letterSpacing: '-0.03em',
               textWrap: 'balance' as const,
             }}
           >
-            ลงโพสต์ทุกวัน{' '}
-            <span
-              style={{
-                color: 'var(--rm-accent)',
-                fontStyle: 'italic',
-                fontWeight: 700,
-              }}
-            >
-              ในเสียงของคุณ
-            </span>
+            1 video YouTube{' '}
+            <span style={{ color: 'var(--rm-accent)' }}>= 4 โพสต์</span>
             <br />
-            ใช้แค่ 5 นาที.
+            ในเสียงคุณ ใน 5 นาที
           </h1>
 
           <p
-            className="font-thai"
             style={{
-              fontSize: 'clamp(17px, 1.5vw, 21px)',
+              fontSize: 'clamp(17px, 1.5vw, 20px)',
               color: 'var(--rm-muted)',
-              marginTop: 24,
+              marginTop: 22,
               maxWidth: 580,
               lineHeight: 1.55,
             }}
           >
-            Riff หา{' '}
-            <span style={{ color: 'var(--rm-text)' }}>
-              video YouTube ที่ดังที่สุด
-            </span>{' '}
-            ในนิชของคุณ แล้วเขียนเป็น{' '}
-            <span style={{ color: 'var(--rm-text)' }}>
+            Riff หาวิดีโอที่ดังจริงในนิชของคุณ แล้วเขียนเป็น{' '}
+            <span style={{ color: 'var(--rm-text)', fontWeight: 600 }}>
               FB post · IG carousel · Reels · YT script
             </span>{' '}
-            ในแบบที่คุณเขียนเอง ไม่ใช่สำเนา ไม่ใช่ AI generic
+            ในเสียงคุณเอง ลงได้ทุกวัน โดยไม่ต้องคิดไอเดียเอง ไม่ต้องเขียนเอง
+            ไม่ต้องจ้าง agency
           </p>
 
           <p
-            className="font-thai"
             style={{
-              fontSize: 17,
-              color: 'var(--rm-text)',
-              marginTop: 14,
-              fontWeight: 500,
+              fontSize: 16,
+              color: 'var(--rm-muted)',
+              marginTop: 12,
               maxWidth: 580,
               lineHeight: 1.55,
             }}
           >
-            ไม่ต้องจ้าง agency ไม่ต้องมีทีม content เป็น{' '}
+            เคยใช้ <s style={{ color: 'var(--rm-muted-2)' }}>4 ชั่วโมง</s> ตอนนี้ใช้{' '}
             <span style={{ color: 'var(--rm-accent)', fontWeight: 700 }}>
-              1-Person Content Marketing
+              5 นาที
             </span>{' '}
-            ได้เลย.
+            ต่อ 1 โพสต์
           </p>
 
           <div id="waitlist" className="mt-7">
@@ -96,17 +83,17 @@ export function Hero({ count }: { count: number }) {
           </div>
 
           <div
-            className="font-mono mt-3 text-[var(--rm-muted-2)] flex gap-3 flex-wrap"
-            style={{ fontSize: 12 }}
+            className="mt-3 text-[var(--rm-muted-2)] flex gap-3 flex-wrap"
+            style={{ fontSize: 13 }}
           >
             <span>
               <span style={{ color: 'var(--rm-accent)' }}>●</span> {count}{' '}
-              ครีเอเตอร์รออยู่
+              creator รออยู่
             </span>
             <span>·</span>
-            <span>ไม่มี spam</span>
+            <span>ล็อกราคา early-creator ถูกกว่า 50%</span>
             <span>·</span>
-            <span>ยกเลิกเมื่อไหร่ก็ได้</span>
+            <span>ยกเลิกได้ตลอด</span>
           </div>
         </div>
 
@@ -143,20 +130,20 @@ export function Hero({ count }: { count: number }) {
             }}
           >
             <div
-              className="font-mono uppercase text-[var(--rm-muted)]"
-              style={{ fontSize: 10, letterSpacing: '0.14em' }}
+              className="text-[var(--rm-muted)]"
+              style={{ fontSize: 11, letterSpacing: '0.06em', fontWeight: 500 }}
             >
-              VIDEO ดัง ๆ ที่เจอ
+              video ดังที่เจอ
             </div>
             <div
-              className="font-mono text-[var(--rm-text)] font-semibold"
-              style={{ fontSize: 22 }}
+              className="text-[var(--rm-text)]"
+              style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.02em' }}
             >
               87<span style={{ color: 'var(--rm-accent)' }}>↑</span>
             </div>
             <div
-              className="font-mono text-[var(--rm-muted-2)]"
-              style={{ fontSize: 10 }}
+              className="text-[var(--rm-muted-2)]"
+              style={{ fontSize: 11 }}
             >
               ใน 90 วันที่ผ่านมา
             </div>

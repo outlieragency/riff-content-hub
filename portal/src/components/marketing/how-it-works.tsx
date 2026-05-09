@@ -223,26 +223,26 @@ export function HowItWorks() {
         <div style={{ maxWidth: 760, marginBottom: 56 }}>
           <div className="rm-eyebrow">
             <span className="dot" />
-            ลงรายละเอียด
+            ใช้ยังไง
           </div>
           <h2
-            className="font-thai mt-3.5"
+            className="mt-3.5"
             style={{
-              fontSize: 'clamp(28px, 4.4vw, 48px)',
+              fontSize: 'clamp(28px, 4.4vw, 46px)',
               fontWeight: 700,
               lineHeight: 1.15,
-              letterSpacing: '-0.02em',
+              letterSpacing: '-0.025em',
               textWrap: 'balance' as const,
             }}
           >
-            จาก YouTube link ถึงโพสต์ที่{' '}
-            <span style={{ color: 'var(--rm-accent)' }}>ลงได้เลย</span> ใน 5 ขั้น
+            5 click จาก URL ถึง{' '}
+            <span style={{ color: 'var(--rm-accent)' }}>โพสต์พร้อมลง</span>
           </h2>
           <p
-            className="font-thai mt-4 text-[var(--rm-muted)]"
+            className="mt-4 text-[var(--rm-muted)]"
             style={{ fontSize: 'clamp(16px, 1.4vw, 18px)', lineHeight: 1.55 }}
           >
-            ทุกขั้นตอนเห็นภาพได้ + ทำได้จริงในเวลาไม่ถึง 5 นาที
+            ไม่มี learning curve ดู 1 ครั้ง ใช้เป็นเลย
           </p>
         </div>
 

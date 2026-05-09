@@ -48,17 +48,17 @@ export function FAQ() {
             คำถามที่พบบ่อย
           </div>
           <h2
-            className="font-thai mt-3.5"
+            className="mt-3.5"
             style={{
-              fontSize: 'clamp(26px, 3.6vw, 40px)',
+              fontSize: 'clamp(26px, 3.6vw, 38px)',
               fontWeight: 700,
               lineHeight: 1.15,
               letterSpacing: '-0.025em',
               textWrap: 'balance' as const,
             }}
           >
-            สงสัยอะไร{' '}
-            <span style={{ color: 'var(--rm-accent)' }}>ถามได้</span>
+            ก่อนตัดสินใจ{' '}
+            <span style={{ color: 'var(--rm-accent)' }}>เช็คให้ชัวร์</span>
           </h2>
           <p
             className="font-thai mt-3.5 text-[var(--rm-muted)]"

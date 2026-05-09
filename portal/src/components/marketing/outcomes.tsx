@@ -9,27 +9,29 @@ export function Outcomes() {
         <div style={{ maxWidth: 760, marginBottom: 56 }}>
           <div className="rm-eyebrow">
             <span className="dot" />
-            ผลลัพธ์ที่จับต้องได้
+            ผลลัพธ์ที่ creator จะได้
           </div>
           <h2
-            className="font-thai mt-3.5"
+            className="mt-3.5"
             style={{
-              fontSize: 'clamp(28px, 4.4vw, 48px)',
+              fontSize: 'clamp(28px, 4.4vw, 46px)',
               fontWeight: 700,
               lineHeight: 1.15,
-              letterSpacing: '-0.02em',
+              letterSpacing: '-0.025em',
               textWrap: 'balance' as const,
             }}
           >
-            ใช้ Riff แล้ว{' '}
-            <span style={{ color: 'var(--rm-accent)' }}>คุณจะเป็นแบบนี้</span>
+            ทำงานน้อยลง 50 เท่า{' '}
+            <span style={{ color: 'var(--rm-accent)' }}>
+              ได้ผลมากขึ้น 4 เท่า
+            </span>
           </h2>
           <p
-            className="font-thai mt-4 text-[var(--rm-muted)]"
-            style={{ fontSize: 'clamp(16px, 1.4vw, 18px)', lineHeight: 1.55 }}
+            className="mt-4 text-[var(--rm-muted)]"
+            style={{ fontSize: 'clamp(16px, 1.4vw, 18px)', lineHeight: 1.6 }}
           >
-            ไม่ใช่แค่ tool แต่คือเครื่องจักรที่ช่วยให้ครีเอเตอร์ไทยทำงานน้อยลง
-            ได้ผลมากขึ้น
+            ภายใน 7 วันแรก คุณจะรู้สึกได้ว่าการทำ content เปลี่ยนไป
+            ลงได้ทุกวัน ไอเดียไม่ตัน เสียงเหมือนเดิม ไม่ burnout
           </p>
         </div>
 

@@ -11,21 +11,29 @@ export function Comparison() {
         <div style={{ maxWidth: 760, marginBottom: 48 }}>
           <div className="rm-eyebrow">
             <span className="dot" />
-            ทำไมต้อง RIFF
+            ทำไมต้อง Riff
           </div>
           <h2
-            className="font-thai mt-3.5"
+            className="mt-3.5"
             style={{
-              fontSize: 'clamp(28px, 4.4vw, 48px)',
+              fontSize: 'clamp(28px, 4.4vw, 46px)',
               fontWeight: 700,
               lineHeight: 1.15,
-              letterSpacing: '-0.02em',
+              letterSpacing: '-0.025em',
               textWrap: 'balance' as const,
             }}
           >
-            แล้วทำไม{' '}
-            <span style={{ color: 'var(--rm-accent)' }}>ไม่ใช้</span> วิธีอื่น?
+            ถูกกว่า agency 30 เท่า{' '}
+            <span style={{ color: 'var(--rm-accent)' }}>
+              เร็วกว่าทำเอง 48 เท่า
+            </span>
           </h2>
+          <p
+            className="mt-4 text-[var(--rm-muted)]"
+            style={{ fontSize: 'clamp(15px, 1.4vw, 17px)', lineHeight: 1.55 }}
+          >
+            มาดูกันว่าทำไมทางเลือกอื่นไม่ work สำหรับ creator คนเดียว
+          </p>
         </div>
 
         <div className="grid gap-4 comparison-grid">

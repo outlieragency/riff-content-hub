@@ -33,37 +33,38 @@ export function OutlierScore() {
           <div>
             <div className="rm-eyebrow">
               <span className="dot" />
-              สูตรลับ
+              ทำไม Riff ถึงหา idea แม่น
             </div>
             <h2
-              className="font-thai mt-3.5"
+              className="mt-3.5"
               style={{
-                fontSize: 'clamp(28px, 4.4vw, 48px)',
+                fontSize: 'clamp(28px, 4.4vw, 46px)',
                 fontWeight: 700,
                 lineHeight: 1.15,
-                letterSpacing: '-0.02em',
+                letterSpacing: '-0.025em',
                 textWrap: 'balance' as const,
               }}
             >
-              <span style={{ color: 'var(--rm-accent)' }}>Outlier Score</span>{' '}
-              คืออะไร?
+              เลิกเดาว่า idea ไหน{' '}
+              <span style={{ color: 'var(--rm-accent)' }}>จะปัง</span>
             </h2>
             <p
-              className="font-thai mt-4 text-[var(--rm-muted)]"
+              className="mt-4 text-[var(--rm-muted)]"
               style={{
                 fontSize: 'clamp(16px, 1.4vw, 18px)',
                 lineHeight: 1.6,
               }}
             >
-              คะแนนนี้บอกว่า <strong className="text-[var(--rm-text)]">video ตัวนี้ดังเกินค่าเฉลี่ยกี่เท่า</strong>.
-              ยิ่งคะแนนสูง = ดังเกินฐานแฟนของ creator คนนั้น = ไอเดียที่ใช้ได้จริง,
-              ไม่ใช่แค่ดังในวงปิด.
+              <strong className="text-[var(--rm-text)]">Outlier Score</strong>{' '}
+              คือคะแนนที่บอกว่า video ตัวนี้ดังเกินค่าเฉลี่ย channel กี่เท่า
+              ยิ่งสูง = ยิ่ง reach ออกนอกฐานแฟน = idea ที่ใช้ได้จริงในวงกว้าง
+              ไม่ใช่แค่ดังในวงปิด
             </p>
             <p
-              className="font-thai mt-3 text-[var(--rm-muted-2)]"
+              className="mt-3 text-[var(--rm-muted-2)]"
               style={{ fontSize: 14, lineHeight: 1.55 }}
             >
-              เป็นสูตรเดียวกับที่ creator agency ใช้กันจริง ไม่ใช่
+              เป็นสูตรเดียวกับที่ vidIQ และ agency ใช้กันจริง ไม่ใช่
               vanity metric ที่หลอกตา
             </p>
 
@@ -74,7 +75,7 @@ export function OutlierScore() {
                 borderRadius: 12,
                 background: 'rgba(0,0,0,0.35)',
                 border: '1px solid var(--rm-border-2)',
-                fontFamily: 'JetBrains Mono, monospace',
+                fontFamily: 'inherit',
                 fontSize: 18,
                 lineHeight: 1.5,
               }}

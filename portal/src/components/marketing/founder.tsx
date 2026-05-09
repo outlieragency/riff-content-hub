@@ -20,7 +20,7 @@ export function Founder() {
             background: 'linear-gradient(135deg, #4a2a1c, #1a0a04 70%)',
             border: '1px solid var(--rm-border-2)',
             color: 'var(--rm-accent)',
-            fontFamily: 'Inter Tight, sans-serif',
+            fontFamily: 'inherit',
             fontWeight: 700,
             fontSize: 80,
           }}
@@ -55,7 +55,7 @@ export function Founder() {
             ใครเป็นคนสร้าง
           </div>
           <h2
-            className="font-thai mt-3.5"
+            className="mt-3.5"
             style={{
               fontSize: 'clamp(26px, 3.6vw, 40px)',
               fontWeight: 700,
@@ -64,14 +64,14 @@ export function Founder() {
               textWrap: 'balance' as const,
             }}
           >
-            สร้างโดย creator{' '}
+            ไม่ได้สร้างโดย tech bro{' '}
             <span style={{ color: 'var(--rm-accent)' }}>
-              ที่ใช้เอง
+              สร้างโดย creator
             </span>{' '}
-            ทุกวัน
+            ที่ใช้เองทุกวัน
           </h2>
           <p
-            className="font-thai text-[var(--rm-muted)]"
+            className="text-[var(--rm-muted)]"
             style={{
               fontSize: 'clamp(15px, 1.4vw, 18px)',
               marginTop: 18,
@@ -79,26 +79,26 @@ export function Founder() {
               maxWidth: 620,
             }}
           >
-            ผม Earth Rati ทำ content คนเดียวมาตลอด 3 ปี เคยสร้างยอดขายหลักล้าน/เดือน
-            จาก digital product เพราะลง content ทุกวัน. Riff คือเครื่องมือที่ผมสร้างเพื่อใช้เอง
-            ให้ทำได้เร็วขึ้นโดยไม่เสีย voice ตัวเอง.
+            ผม Earth Rati ทำ content คนเดียวมา 3 ปี สร้างยอดขายหลักล้าน/เดือน
+            จาก digital product เพราะลง content ทุกวันได้ Riff คือเครื่องมือที่ผมสร้าง
+            เพื่อให้ตัวเองทำได้เร็วขึ้นโดยไม่เสีย voice และเปิดให้ creator คนอื่นใช้ด้วย
           </p>
           <blockquote
             className="mt-6 pl-5"
             style={{ borderLeft: '2px solid var(--rm-accent)' }}
           >
             <p
-              className="font-thai m-0 text-[var(--rm-text)]"
-              style={{ fontSize: 'clamp(16px, 1.6vw, 19px)', lineHeight: 1.55, fontStyle: 'italic' }}
+              className="m-0 text-[var(--rm-text)]"
+              style={{ fontSize: 'clamp(17px, 1.7vw, 20px)', lineHeight: 1.5, fontStyle: 'italic', fontWeight: 500 }}
             >
-              &ldquo;ผมเบื่อเปิด tab 6 อันเพื่อเขียน 1 โพสต์ เลยสร้าง Riff ใช้เอง
-              วันนี้เปิดให้ creator คนอื่นใช้ด้วย&rdquo;
+              &ldquo;ถ้า Riff ทำงานได้กับผม ที่ลง content ทุกวันมา 3 ปี
+              มันจะทำงานได้กับคุณ&rdquo;
             </p>
             <footer
-              className="font-mono mt-2.5 text-[var(--rm-muted-2)]"
-              style={{ fontSize: 12, letterSpacing: '0.06em' }}
+              className="mt-3 text-[var(--rm-muted-2)]"
+              style={{ fontSize: 12, letterSpacing: '0.06em', fontWeight: 500 }}
             >
-              — EARTH RATI · FOUNDER, OUTLIER AGENCY
+              EARTH RATI · FOUNDER, OUTLIER AGENCY
             </footer>
           </blockquote>
         </div>

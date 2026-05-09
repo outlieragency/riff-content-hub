@@ -169,23 +169,26 @@ export function Formats() {
             ผลลัพธ์ที่ได้
           </div>
           <h2
-            className="font-thai mt-3.5"
+            className="mt-3.5"
             style={{
-              fontSize: 'clamp(28px, 4.4vw, 48px)',
+              fontSize: 'clamp(28px, 4.4vw, 46px)',
               fontWeight: 700,
-              lineHeight: 1.1,
+              lineHeight: 1.15,
               letterSpacing: '-0.025em',
               textWrap: 'balance' as const,
             }}
           >
-            1 video <span style={{ color: 'var(--rm-accent)' }}>= 4 โพสต์</span> ลงทุก platform
+            1 video ลงได้ทั้ง{' '}
+            <span style={{ color: 'var(--rm-accent)' }}>4 platform</span>{' '}
+            ในวันเดียว
           </h2>
           <p
-            className="font-thai mt-4 text-[var(--rm-muted)]"
-            style={{ fontSize: 'clamp(15px, 1.4vw, 18px)', lineHeight: 1.55 }}
+            className="mt-4 text-[var(--rm-muted)]"
+            style={{ fontSize: 'clamp(15px, 1.4vw, 18px)', lineHeight: 1.6 }}
           >
-            แต่ละ format Riff เขียนแยกตาม platform จริง ไม่ใช่แค่ตัด post ยาวให้สั้นลง
-            FB ก็เป็น FB · Reels ก็เป็น Reels · YT ก็เป็น YT · IG ก็เป็น IG
+            ไม่ใช่แค่ตัด post ยาวให้สั้นลง Riff เขียนแยกตาม platform จริง
+            FB เป็น FB · Reels เป็น Reels · YT เป็น YT · IG เป็น IG
+            audience ทุกที่ได้ content ที่เหมาะกับ feed
           </p>
         </div>
 

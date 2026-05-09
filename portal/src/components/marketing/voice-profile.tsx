@@ -31,27 +31,29 @@ export function VoiceProfile() {
             ไม่ใช่ AI generic
           </div>
           <h2
-            className="font-thai mt-3.5"
+            className="mt-3.5"
             style={{
-              fontSize: 'clamp(28px, 4.4vw, 48px)',
+              fontSize: 'clamp(28px, 4.4vw, 46px)',
               fontWeight: 700,
-              lineHeight: 1.1,
+              lineHeight: 1.15,
               letterSpacing: '-0.025em',
               textWrap: 'balance' as const,
             }}
           >
-            AI ที่เขียน{' '}
-            <span style={{ color: 'var(--rm-accent)' }}>เหมือนคุณจริงๆ</span>
+            AI ที่เขียนเหมือนคุณ{' '}
+            <span style={{ color: 'var(--rm-accent)' }}>91%</span>{' '}
+            (คนอ่านแยกไม่ออก)
           </h2>
           <p
-            className="font-thai text-[var(--rm-muted)]"
-            style={{ fontSize: 'clamp(15px, 1.4vw, 18px)', marginTop: 18, lineHeight: 1.55 }}
+            className="text-[var(--rm-muted)]"
+            style={{ fontSize: 'clamp(15px, 1.4vw, 18px)', marginTop: 18, lineHeight: 1.6 }}
           >
-            Riff อ่าน post เก่าของคุณ จับวิธีเขียน · จังหวะประโยค · คำที่คุณใช้บ่อย
-            แล้วเขียนใหม่ในแบบเดียวกัน เหมือนมีตัวคุณนั่งเขียนเองแต่เร็วกว่า 50 เท่า
+            Riff อ่าน post เก่าของคุณ 20+ ชิ้น จับวิธีเขียน จังหวะประโยค
+            คำที่คุณใช้บ่อย แล้วเขียนใหม่ในแบบเดียวกัน
+            เหมือนคุณนั่งเขียนเอง แต่เร็วกว่า 50 เท่า
           </p>
           <p
-            className="font-thai text-[var(--rm-muted-2)]"
+            className="text-[var(--rm-muted-2)]"
             style={{ fontSize: 15, marginTop: 12, maxWidth: 480, fontStyle: 'italic' }}
           >
             &ldquo;AI ทั่วไปอ่านออกได้ทันทีว่าเป็น AI เสียงคุณอ่านไม่ออก&rdquo;

@@ -11,7 +11,7 @@
    ======================================================================== */
 
 @theme {
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-ibm-plex-sans-thai);
   --font-thai: var(--font-ibm-plex-sans-thai);
   --font-serif: var(--font-instrument-serif);
 
@@ -141,7 +141,7 @@ html, body {
 }
 
 body {
-  font-family: var(--font-inter), var(--font-ibm-plex-sans-thai), -apple-system, sans-serif;
+  font-family: var(--font-ibm-plex-sans-thai), 'IBM Plex Sans Thai', -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   transition: background-color 150ms ease, color 150ms ease;
 }
@@ -262,21 +262,23 @@ body {
   --rm-danger: #EF4444;
   --rm-info: #60A5FA;
 
-  font-family: 'IBM Plex Sans', 'IBM Plex Sans Thai', system-ui, sans-serif;
+  font-family: var(--font-ibm-plex-sans-thai), 'IBM Plex Sans Thai', system-ui, sans-serif;
   font-size: 17px;
   line-height: 1.55;
-  font-feature-settings: 'ss01', 'cv11';
 }
 
+.riff-marketing .font-display,
+.riff-marketing .font-thai,
+.riff-marketing .font-mono {
+  font-family: var(--font-ibm-plex-sans-thai), 'IBM Plex Sans Thai', sans-serif;
+}
 .riff-marketing .font-display {
-  font-family: 'Inter Tight', 'IBM Plex Sans Thai Looped', sans-serif;
   letter-spacing: -0.025em;
+  font-weight: 700;
 }
 .riff-marketing .font-mono {
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-}
-.riff-marketing .font-thai {
-  font-family: 'IBM Plex Sans Thai', 'IBM Plex Sans', sans-serif;
+  letter-spacing: 0.04em;
+  font-feature-settings: 'tnum';
 }
 
 /* Eyebrow caption */
@@ -284,10 +286,10 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11.5px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-family: var(--font-ibm-plex-sans-thai), 'IBM Plex Sans Thai', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
   color: var(--rm-muted);
 }
 .riff-marketing .rm-eyebrow .dot {
@@ -309,7 +311,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  font-family: 'Inter Tight', sans-serif;
+  font-family: var(--font-ibm-plex-sans-thai), 'IBM Plex Sans Thai', sans-serif;
   font-weight: 600;
   letter-spacing: -0.005em;
   height: 44px;
@@ -412,22 +414,24 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11.5px;
+  font-family: var(--font-ibm-plex-sans-thai), 'IBM Plex Sans Thai', sans-serif;
+  font-size: 12px;
   padding: 3px 8px;
   border-radius: 6px;
   border: 1px solid;
-  font-weight: 500;
+  font-weight: 600;
+  font-feature-settings: 'tnum';
 }
 
 /* Step number */
 .riff-marketing .rm-step-num {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-ibm-plex-sans-thai), 'IBM Plex Sans Thai', sans-serif;
   font-size: 56px;
   line-height: 1;
   color: var(--rm-accent);
-  font-weight: 500;
-  letter-spacing: -0.02em;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  font-feature-settings: 'tnum';
 }
 
 /* Shimmer */
