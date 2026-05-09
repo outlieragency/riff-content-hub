@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { joinWaitlist } from '@/lib/actions/waitlist'
 
 /**
@@ -48,6 +49,7 @@ function NativeWaitlistForm({
   size: 'md' | 'lg'
   source: string
 }) {
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [joined, setJoined] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -55,18 +57,20 @@ function NativeWaitlistForm({
 
   function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!email.trim()) {
+    const trimmed = email.trim()
+    if (!trimmed) {
       setError('ใส่ email ก่อน')
       return
     }
     setError(null)
     start(async () => {
-      const res = await joinWaitlist({ email: email.trim(), source })
+      const res = await joinWaitlist({ email: trimmed, source })
       if (!res.ok) {
         setError(res.error)
         return
       }
       setJoined(true)
+      router.push(`/waitlist/thanks?email=${encodeURIComponent(trimmed)}`)
     })
   }
 

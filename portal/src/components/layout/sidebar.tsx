@@ -13,6 +13,7 @@ import {
   Sparkles,
   Tv,
   UserPlus,
+  Mail,
 } from 'lucide-react'
 import { QuickRecreateModal } from '@/components/recreate/quick-recreate-modal'
 import { NavLink } from './nav-link'
@@ -113,6 +114,15 @@ export function Sidebar({ isFounder = false }: { isFounder?: boolean }) {
             >
               <UserPlus size={15} strokeWidth={1.6} />
               <span className="flex-1">Users</span>
+            </NavLink>
+            <NavLink
+              href="/admin/waitlist"
+              className={NAV_BASE}
+              activeClassName={NAV_ACTIVE}
+              inactiveClassName={NAV_INACTIVE}
+            >
+              <Mail size={15} strokeWidth={1.6} />
+              <span className="flex-1">Waitlist</span>
             </NavLink>
           </>
         )}
