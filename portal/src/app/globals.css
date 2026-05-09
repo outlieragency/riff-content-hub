@@ -242,29 +242,105 @@ body {
 }
 
 /* ============================================================
- * Riff Marketing Landing — scoped tokens + utilities
- * Only applied within .riff-marketing wrapper to avoid
- * polluting the dark-green-orange palette into the app shell.
+ * Riff Marketing Landing — Eden-style cream paper + forest panels
+ * Default surface = warm cream paper. Sections can opt into
+ * forest-green panel via .rm-forest class.
  * ============================================================ */
 .riff-marketing {
-  --rm-bg: #0A0F0A;
-  --rm-surface: #131A13;
-  --rm-surface-2: #18221A;
-  --rm-border: #1F2A1F;
-  --rm-border-2: #283528;
-  --rm-text: #F5F5F0;
-  --rm-muted: #8A938A;
-  --rm-muted-2: #5C665C;
+  /* Paper (default light surface) */
+  --rm-bg: #F5F0E5;
+  --rm-surface: #FBF7EC;
+  --rm-surface-2: #F1E9D6;
+  --rm-border: rgba(26, 36, 24, 0.08);
+  --rm-border-2: rgba(26, 36, 24, 0.14);
+  --rm-text: #1A2418;
+  --rm-muted: #5A5547;
+  --rm-muted-2: #8A8170;
+  /* Forest tokens (used inside .rm-forest panels) */
+  --rm-forest-bg: #1A2418;
+  --rm-forest-surface: #243024;
+  --rm-forest-text: #F1ECDF;
+  --rm-forest-muted: #9C9385;
+  --rm-forest-border: rgba(241, 236, 223, 0.12);
+  /* Accent — Riff orange retained for CTA + small dots */
   --rm-accent: #FF6B35;
   --rm-accent-glow: rgba(255, 107, 53, 0.35);
-  --rm-success: #4ADE80;
-  --rm-warning: #F59E0B;
-  --rm-danger: #EF4444;
-  --rm-info: #60A5FA;
+  /* Eden warm tones for highlights */
+  --rm-tan: #C99A6E;
+  --rm-gold: #D4A574;
+  /* States */
+  --rm-success: #4A7B3A;
+  --rm-warning: #B8782A;
+  --rm-danger: #9F2A18;
 
+  background: var(--rm-bg);
+  color: var(--rm-text);
   font-family: var(--font-ibm-plex-sans-thai), 'IBM Plex Sans Thai', system-ui, sans-serif;
   font-size: 17px;
-  line-height: 1.55;
+  line-height: 1.6;
+}
+
+/* Forest-green panel — for alternating dark sections */
+.riff-marketing .rm-forest {
+  background: var(--rm-forest-bg);
+  color: var(--rm-forest-text);
+}
+.riff-marketing .rm-forest .rm-eyebrow,
+.riff-marketing .rm-forest .rm-muted-text {
+  color: var(--rm-forest-muted);
+}
+.riff-marketing .rm-forest a { color: var(--rm-forest-text); }
+
+/* Serif italic emphasis (Instrument Serif) — Eden's signature */
+.riff-marketing .rm-serif-italic {
+  font-family: var(--font-instrument-serif), 'Instrument Serif', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.005em;
+}
+
+/* Polaroid frame — white card, slight rotation, soft shadow */
+.riff-marketing .rm-polaroid {
+  background: #FBF7EC;
+  border-radius: 4px;
+  padding: 10px 10px 14px;
+  box-shadow:
+    0 0 0 1px rgba(26, 36, 24, 0.08),
+    0 24px 48px -16px rgba(26, 36, 24, 0.18),
+    0 8px 16px -8px rgba(26, 36, 24, 0.10);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.riff-marketing .rm-polaroid:hover {
+  transform: translateY(-3px) rotate(0deg) !important;
+  box-shadow:
+    0 0 0 1px rgba(26, 36, 24, 0.12),
+    0 32px 64px -16px rgba(26, 36, 24, 0.24);
+}
+
+/* Soft cream card (no rotation, used inside content blocks) */
+.riff-marketing .rm-soft-card {
+  background: #FBF7EC;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow:
+    0 0 0 1px rgba(26, 36, 24, 0.06),
+    0 4px 12px -4px rgba(26, 36, 24, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.riff-marketing .rm-soft-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 0 1px rgba(26, 36, 24, 0.10),
+    0 12px 32px -8px rgba(26, 36, 24, 0.14);
+}
+
+/* Forest variant for inside dark panels */
+.riff-marketing .rm-forest .rm-soft-card {
+  background: rgba(255, 252, 240, 0.04);
+  box-shadow: 0 0 0 1px rgba(241, 236, 223, 0.10);
+}
+.riff-marketing .rm-forest .rm-soft-card:hover {
+  background: rgba(255, 252, 240, 0.06);
 }
 
 .riff-marketing .font-display,
@@ -314,9 +390,9 @@ body {
   font-family: var(--font-ibm-plex-sans-thai), 'IBM Plex Sans Thai', sans-serif;
   font-weight: 600;
   letter-spacing: -0.005em;
-  height: 44px;
-  padding: 0 18px;
-  border-radius: 8px;
+  height: 46px;
+  padding: 0 22px;
+  border-radius: 999px;
   font-size: 15px;
   cursor: pointer;
   transition: all 0.18s ease;
@@ -324,73 +400,87 @@ body {
   white-space: nowrap;
 }
 .riff-marketing .rm-btn-primary {
-  background: var(--rm-accent);
-  color: #1a0a04;
-  box-shadow:
-    0 0 0 1px rgba(255, 107, 53, 0.4) inset,
-    0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  background: var(--rm-forest-bg);
+  color: var(--rm-forest-text);
 }
 .riff-marketing .rm-btn-primary:hover {
-  box-shadow:
-    0 0 0 1px rgba(255, 107, 53, 0.6) inset,
-    0 1px 0 rgba(255, 255, 255, 0.25) inset,
-    0 0 32px var(--rm-accent-glow);
+  background: var(--rm-forest-surface);
   transform: translateY(-1px);
+  box-shadow: 0 12px 28px -10px rgba(26, 36, 24, 0.4);
+}
+.riff-marketing .rm-forest .rm-btn-primary {
+  background: #FBF7EC;
+  color: var(--rm-forest-bg);
+}
+.riff-marketing .rm-forest .rm-btn-primary:hover {
+  background: #FFF;
+  box-shadow: 0 12px 28px -10px rgba(0, 0, 0, 0.4);
+}
+.riff-marketing .rm-btn-secondary {
+  background: transparent;
+  color: var(--rm-text);
+  border-color: var(--rm-border-2);
+}
+.riff-marketing .rm-forest .rm-btn-secondary {
+  color: var(--rm-forest-text);
+  border-color: var(--rm-forest-border);
 }
 .riff-marketing .rm-btn-sm {
-  height: 36px;
-  padding: 0 14px;
-  font-size: 13.5px;
-  border-radius: 7px;
+  height: 38px;
+  padding: 0 16px;
+  font-size: 14px;
 }
 
 /* Field (email input pill) */
 .riff-marketing .rm-field {
   display: flex;
   align-items: stretch;
-  gap: 8px;
-  background: var(--rm-surface);
-  border: 1px solid var(--rm-border-2);
-  border-radius: 10px;
-  padding: 6px;
+  gap: 6px;
+  background: #FBF7EC;
+  border: 1px solid rgba(26, 36, 24, 0.14);
+  border-radius: 999px;
+  padding: 6px 6px 6px 10px;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .riff-marketing .rm-field:focus-within {
-  border-color: var(--rm-accent);
-  box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.12);
+  border-color: var(--rm-forest-bg);
+  box-shadow: 0 0 0 4px rgba(26, 36, 24, 0.06);
 }
 .riff-marketing .rm-field input {
   flex: 1;
   min-width: 0;
-  height: 44px;
+  height: 40px;
   background: transparent;
   border: 0;
   outline: none;
   color: var(--rm-text);
   font: inherit;
-  padding: 0 10px;
+  padding: 0 8px;
   font-size: 15px;
 }
 .riff-marketing .rm-field input::placeholder { color: var(--rm-muted-2); }
 
-/* Card */
+/* Card (legacy — kept for backward compat with existing components) */
 .riff-marketing .rm-card {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.015), transparent),
-    var(--rm-surface);
-  border: 1px solid var(--rm-border);
-  border-radius: 14px;
+  background: #FBF7EC;
+  border: 1px solid rgba(26, 36, 24, 0.06);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px -4px rgba(26, 36, 24, 0.08);
   position: relative;
-  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 .riff-marketing .rm-card:hover {
-  border-color: var(--rm-border-2);
   transform: translateY(-2px);
+  box-shadow: 0 12px 32px -8px rgba(26, 36, 24, 0.14);
+}
+.riff-marketing .rm-forest .rm-card {
+  background: rgba(255, 252, 240, 0.04);
+  border-color: rgba(241, 236, 223, 0.10);
+  color: var(--rm-forest-text);
+  box-shadow: none;
 }
 .riff-marketing .rm-card-glow:hover {
-  box-shadow:
-    0 0 0 1px rgba(255, 107, 53, 0.18),
-    0 24px 60px -30px var(--rm-accent-glow);
+  box-shadow: 0 16px 40px -12px rgba(26, 36, 24, 0.18);
 }
 
 /* Container + section padding */

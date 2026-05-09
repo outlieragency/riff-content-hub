@@ -6,8 +6,7 @@ export default function MarketingLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="riff-marketing min-h-screen bg-[#0A0F0A] text-[#F5F5F0] antialiased">
-      <div className="noise-overlay pointer-events-none fixed inset-0 z-0" />
+    <div className="riff-marketing min-h-screen antialiased">
       {children}
       {/* Tiny escape link for logged-in users browsing the landing in preview mode */}
       <Link

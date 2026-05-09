@@ -23,14 +23,14 @@ export function RiffLogo({ small = false }: { small?: boolean }) {
       <RiffMark size={small ? 24 : 28} />
       <span className="inline-flex flex-col leading-none">
         <span
-          className="font-display font-extrabold tracking-[-0.04em]"
-          style={{ fontSize: small ? 18 : 21 }}
+          className="font-bold tracking-[-0.03em]"
+          style={{ fontSize: small ? 19 : 22, letterSpacing: '-0.03em' }}
         >
-          Riff<span className="text-[var(--rm-accent)]">.</span>
+          Riff<span style={{ color: 'var(--rm-accent)' }}>.</span>
         </span>
         <span
-          className="font-mono uppercase mt-0.5 text-[var(--rm-muted-2)]"
-          style={{ fontSize: 12, letterSpacing: '0.16em' }}
+          className="uppercase mt-1 text-[var(--rm-muted-2)]"
+          style={{ fontSize: 10, letterSpacing: '0.18em', fontWeight: 500 }}
         >
           by Outlier Agency
         </span>
