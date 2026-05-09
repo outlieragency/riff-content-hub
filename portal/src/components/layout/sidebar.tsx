@@ -12,6 +12,7 @@ import {
   Settings as SettingsIcon,
   Sparkles,
   Tv,
+  UserPlus,
 } from 'lucide-react'
 import { QuickRecreateModal } from '@/components/recreate/quick-recreate-modal'
 import { NavLink } from './nav-link'
@@ -42,7 +43,7 @@ const NAV_ACTIVE = 'bg-secondary text-foreground font-medium'
 const NAV_INACTIVE =
   'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'
 
-export function Sidebar() {
+export function Sidebar({ isFounder = false }: { isFounder?: boolean }) {
   const [quickOpen, setQuickOpen] = useState(false)
 
   return (
@@ -97,6 +98,24 @@ export function Sidebar() {
             <span className="flex-1">{item.label}</span>
           </NavLink>
         ))}
+
+        {isFounder && (
+          <>
+            <div className="my-3 border-t border-border-soft" aria-hidden />
+            <div className="px-3 mb-1.5 text-2xs uppercase tracking-wider text-muted-foreground font-medium">
+              Founder
+            </div>
+            <NavLink
+              href="/admin/users"
+              className={NAV_BASE}
+              activeClassName={NAV_ACTIVE}
+              inactiveClassName={NAV_INACTIVE}
+            >
+              <UserPlus size={15} strokeWidth={1.6} />
+              <span className="flex-1">Users</span>
+            </NavLink>
+          </>
+        )}
       </nav>
     </aside>
   )

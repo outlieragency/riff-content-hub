@@ -5,6 +5,7 @@ import { Sidebar } from '@/components/layout/sidebar'
 import { Topbar } from '@/components/layout/topbar'
 import { RouteProgress } from '@/components/layout/route-progress'
 import { ActiveJobsBanner } from '@/components/jobs/active-jobs-banner'
+import { isFounderEmail } from '@/lib/auth/founder'
 
 export default async function AppLayout({
   children,
@@ -40,7 +41,7 @@ export default async function AppLayout({
         <RouteProgress />
       </Suspense>
       <ActiveJobsBanner />
-      <Sidebar />
+      <Sidebar isFounder={isFounderEmail(user.email)} />
       <div className="flex-1 flex flex-col min-w-0">
         <Topbar email={user.email ?? null} voiceProfiles={voiceProfiles} />
         <main id="main" className="flex-1 overflow-y-auto">
