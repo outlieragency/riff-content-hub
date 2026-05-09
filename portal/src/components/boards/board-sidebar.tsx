@@ -148,7 +148,7 @@ function NewBoardButton() {
       </button>
       {open && (
         <div
-          className="absolute right-0 top-6 z-30 w-[260px] rounded-[10px] border border-border-soft bg-card p-3 shadow-xl"
+          className="absolute left-0 top-6 z-50 w-[260px] rounded-[10px] border border-border-soft bg-card p-3 shadow-2xl"
           onMouseLeave={() => !pending && setOpen(false)}
         >
           <div className="text-xs font-semibold text-foreground mb-2">
