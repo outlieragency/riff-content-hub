@@ -90,7 +90,10 @@ def _coerce(raw: Any) -> dict[str, Any]:
     }
 
 
-def summarize_transcript(thai_text: str) -> SummaryResult:
+def summarize_transcript(
+    thai_text: str,
+    user_id: str | None = None,
+) -> SummaryResult:
     """Summarize Thai transcript into structured JSON."""
     if not thai_text.strip():
         raise SummarizeError("thai_text ห้ามว่าง")
@@ -99,25 +102,47 @@ def summarize_transcript(thai_text: str) -> SummaryResult:
     prompt_template = load_prompt("summarize.md")
 
     system_blocks = [cached_text_block(prompt_template)]
+    user_messages = [
+        {
+            "role": "user",
+            "content": [
+                cached_text_block(thai_text),
+                {
+                    "type": "text",
+                    "text": "Output the structured summary JSON now. JSON only, no commentary, no markdown.",
+                },
+            ],
+        }
+    ]
 
-    msg, meta = call_messages(
-        model=settings.sonnet_model,
-        system=system_blocks,
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    cached_text_block(thai_text),
-                    {
-                        "type": "text",
-                        "text": "Output the structured summary JSON now. JSON only, no commentary, no markdown.",
-                    },
-                ],
-            }
-        ],
-        max_tokens=6000,
-        temperature=0.3,
-    )
+    if user_id:
+        try:
+            from ..llm import call_via_router
+
+            msg, meta = call_via_router(
+                user_id=user_id,
+                task="transcript_summarize",
+                system=system_blocks,
+                messages=user_messages,
+                max_tokens=6000,
+                temperature=0.3,
+            )
+        except Exception:
+            msg, meta = call_messages(
+                model=settings.sonnet_model,
+                system=system_blocks,
+                messages=user_messages,
+                max_tokens=6000,
+                temperature=0.3,
+            )
+    else:
+        msg, meta = call_messages(
+            model=settings.sonnet_model,
+            system=system_blocks,
+            messages=user_messages,
+            max_tokens=6000,
+            temperature=0.3,
+        )
 
     text = _strip_code_fence(extract_text(msg).strip())
     try:

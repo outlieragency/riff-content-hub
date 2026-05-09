@@ -151,3 +151,32 @@ def _get_or_create_anthropic(api_key: str) -> AnthropicAdapter:
     LRU bounded so multi-tenant doesn't leak — older keys evicted.
     """
     return AnthropicAdapter(api_key)
+
+
+def call_via_router(
+    *,
+    user_id: str,
+    task: TaskKind,
+    system: list[dict] | str | None,
+    messages: list[dict],
+    max_tokens: int,
+    temperature: float = 0.7,
+    extra_headers: dict[str, str] | None = None,
+):
+    """Resolve user's per-task model + provider via router, then call.
+
+    Returns (raw_response, CallMeta). Falls back to env-based Anthropic if
+    user has no provider key configured for the resolved provider.
+
+    This is the high-level helper that services should use to honor user's
+    AI Provider settings (Settings page).
+    """
+    client, model = get_client_for_task(user_id, task)
+    return client.messages_create(
+        system=system,
+        messages=messages,
+        model=model,
+        max_tokens=max_tokens,
+        temperature=temperature,
+        extra_headers=extra_headers,
+    )

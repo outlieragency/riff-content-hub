@@ -8,6 +8,7 @@ import { ScorePill } from './score-pill'
 import { toggleSaveIdea } from '@/lib/actions/save-idea'
 import { formatCount, formatDuration, timeAgo } from '@/lib/utils'
 import type { OutlierVideo } from './outlier-row'
+import { VideoActionModal } from './video-action-modal'
 
 /**
  * Eden-inspired card for /discover feed.
@@ -22,6 +23,7 @@ export function OutlierCard({
 }) {
   const [saved, setSaved] = useState(video.is_saved)
   const [pending, start] = useTransition()
+  const [actionOpen, setActionOpen] = useState(false)
 
   function onToggle(e: React.MouseEvent) {
     e.preventDefault()
@@ -32,15 +34,19 @@ export function OutlierCard({
     })
   }
 
-  const ytUrl = `https://youtube.com/watch?v=${video.youtube_video_id}`
+  function openActions(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setActionOpen(true)
+  }
 
   return (
     <article className="group flex flex-col rounded-[14px] bg-card border border-border-soft overflow-hidden hover:shadow-lg transition-all">
-      <a
-        href={ytUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="relative block aspect-video bg-muted"
+      <button
+        type="button"
+        onClick={openActions}
+        className="relative block aspect-video bg-muted text-left w-full cursor-pointer"
+        aria-label={`Open actions for ${video.title}`}
       >
         {video.thumbnail_url ? (
           <Image
@@ -98,17 +104,16 @@ export function OutlierCard({
               : `${video.outlier_score.toFixed(1)}x`}
           </span>
         )}
-      </a>
+      </button>
 
       <div className="p-3 flex flex-col gap-1.5">
-        <a
-          href={ytUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-sm font-semibold text-foreground line-clamp-2 leading-snug hover:text-brand transition-colors"
+        <button
+          type="button"
+          onClick={openActions}
+          className="text-left text-sm font-semibold text-foreground line-clamp-2 leading-snug hover:text-brand transition-colors"
         >
           {video.title}
-        </a>
+        </button>
 
         {/* Channel link */}
         {channelHref ? (
@@ -146,6 +151,13 @@ export function OutlierCard({
           )}
         </div>
       </div>
+
+      <VideoActionModal
+        video={video}
+        open={actionOpen}
+        onClose={() => setActionOpen(false)}
+        onSavedChange={(s) => setSaved(s)}
+      />
     </article>
   )
 }

@@ -226,8 +226,14 @@ def _build_image_blocks(refs: list[StyleReference]) -> list[dict[str, Any]]:
     return blocks
 
 
-def extract_creative_style(refs: list[StyleReference]) -> ExtractedStyle:
-    """Extract CreativeStyle from N reference images via Claude Vision (Sonnet)."""
+def extract_creative_style(
+    refs: list[StyleReference],
+    user_id: str | None = None,
+) -> ExtractedStyle:
+    """Extract CreativeStyle from N reference images via Claude Vision (Sonnet).
+
+    `user_id` routes through Settings → AI Providers.
+    """
     if not refs:
         raise StyleExtractError("ต้องมี reference image อย่างน้อย 1 ภาพ")
     if len(refs) > 12:
@@ -236,7 +242,6 @@ def extract_creative_style(refs: list[StyleReference]) -> ExtractedStyle:
     settings = get_settings()
     prompt_text = load_prompt("extract-creative-style.md")
 
-    # System = analysis rules (cached on subsequent calls)
     system_blocks = [cached_text_block(prompt_text)]
 
     image_blocks = _build_image_blocks(refs)
@@ -250,14 +255,36 @@ def extract_creative_style(refs: list[StyleReference]) -> ExtractedStyle:
             ),
         },
     ]
+    user_messages = [{"role": "user", "content": user_content}]
 
-    msg, meta = call_messages(
-        model=settings.sonnet_model,
-        system=system_blocks,
-        messages=[{"role": "user", "content": user_content}],
-        max_tokens=3000,
-        temperature=0.4,
-    )
+    if user_id:
+        try:
+            from ..llm import call_via_router
+
+            msg, meta = call_via_router(
+                user_id=user_id,
+                task="style_extract",
+                system=system_blocks,
+                messages=user_messages,
+                max_tokens=3000,
+                temperature=0.4,
+            )
+        except Exception:
+            msg, meta = call_messages(
+                model=settings.sonnet_model,
+                system=system_blocks,
+                messages=user_messages,
+                max_tokens=3000,
+                temperature=0.4,
+            )
+    else:
+        msg, meta = call_messages(
+            model=settings.sonnet_model,
+            system=system_blocks,
+            messages=user_messages,
+            max_tokens=3000,
+            temperature=0.4,
+        )
 
     text = extract_text(msg).strip()
     text = _strip_code_fence(text)

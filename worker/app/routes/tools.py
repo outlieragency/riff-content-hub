@@ -55,6 +55,7 @@ def post_tool_run(
             body.tool,  # type: ignore[arg-type]
             body.input,
             voice_profile=body.voice_profile,
+            user_id=body.user_id,
         )
     except ToolError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc

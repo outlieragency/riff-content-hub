@@ -46,7 +46,7 @@ def post_extract_voice(
     ]
 
     try:
-        result = extract_voice_profile(samples)
+        result = extract_voice_profile(samples, user_id=body.user_id)
     except VoiceExtractError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except Exception as exc:  # noqa: BLE001

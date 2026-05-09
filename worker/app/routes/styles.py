@@ -49,7 +49,7 @@ def post_extract_style(
     ]
 
     try:
-        result = extract_creative_style(refs)
+        result = extract_creative_style(refs, user_id=body.user_id)
     except StyleExtractError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except Exception as exc:  # noqa: BLE001

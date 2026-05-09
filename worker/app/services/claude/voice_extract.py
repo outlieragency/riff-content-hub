@@ -143,34 +143,61 @@ def _coerce_voice_profile(raw: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def extract_voice_profile(samples: list[VoiceSample]) -> ExtractedVoice:
-    """Extract VoiceProfile from samples ผ่าน Claude Haiku."""
+def extract_voice_profile(
+    samples: list[VoiceSample],
+    user_id: str | None = None,
+) -> ExtractedVoice:
+    """Extract VoiceProfile from samples ผ่าน Claude Haiku.
+
+    `user_id` enables per-user model routing (Settings).
+    Falls back to env-based Anthropic Haiku if not provided.
+    """
     settings = get_settings()
     prompt_template = load_prompt("extract-voice-profile.md")
     samples_block = _format_samples_block(samples)
     rendered = prompt_template.replace("{{ samples_block }}", samples_block)
 
-    # Use system block to put extraction rules in cache
-    # (User then provides only bare instruction)
     system_blocks = [cached_text_block(rendered)]
+    user_messages = [
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Output the VoiceProfile JSON now. JSON only, no commentary, no markdown.",
+                }
+            ],
+        }
+    ]
 
-    msg, meta = call_messages(
-        model=settings.haiku_model,
-        system=system_blocks,
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": "Output the VoiceProfile JSON now. JSON only, no commentary, no markdown.",
-                    }
-                ],
-            }
-        ],
-        max_tokens=2000,
-        temperature=0.3,
-    )
+    if user_id:
+        try:
+            from ..llm import call_via_router
+
+            msg, meta = call_via_router(
+                user_id=user_id,
+                task="voice_extract",
+                system=system_blocks,
+                messages=user_messages,
+                max_tokens=2000,
+                temperature=0.3,
+            )
+        except Exception:
+            msg, meta = call_messages(
+                model=settings.haiku_model,
+                system=system_blocks,
+                messages=user_messages,
+                max_tokens=2000,
+                temperature=0.3,
+            )
+    else:
+        msg, meta = call_messages(
+            model=settings.haiku_model,
+            system=system_blocks,
+            messages=user_messages,
+            max_tokens=2000,
+            temperature=0.3,
+        )
 
     text = extract_text(msg).strip()
     text = _strip_code_fence(text)

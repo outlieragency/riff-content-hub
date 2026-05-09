@@ -19,7 +19,10 @@ class TranslateResult:
     meta: CallMeta
 
 
-def translate_to_thai(source_text: str) -> TranslateResult:
+def translate_to_thai(
+    source_text: str,
+    user_id: str | None = None,
+) -> TranslateResult:
     if not source_text.strip():
         raise ValueError("source_text ห้ามว่าง")
 
@@ -27,23 +30,45 @@ def translate_to_thai(source_text: str) -> TranslateResult:
     prompt_template = load_prompt("translate-th.md")
 
     system_blocks = [cached_text_block(prompt_template)]
+    user_messages = [
+        {
+            "role": "user",
+            "content": [
+                cached_text_block(source_text),
+                {
+                    "type": "text",
+                    "text": "Output the Thai translation now. Plain text only, no commentary.",
+                },
+            ],
+        }
+    ]
 
-    msg, meta = call_messages(
-        model=settings.haiku_model,
-        system=system_blocks,
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    cached_text_block(source_text),
-                    {
-                        "type": "text",
-                        "text": "Output the Thai translation now. Plain text only, no commentary.",
-                    },
-                ],
-            }
-        ],
-        max_tokens=8000,
-        temperature=0.3,
-    )
+    if user_id:
+        try:
+            from ..llm import call_via_router
+
+            msg, meta = call_via_router(
+                user_id=user_id,
+                task="transcript_translate",
+                system=system_blocks,
+                messages=user_messages,
+                max_tokens=8000,
+                temperature=0.3,
+            )
+        except Exception:
+            msg, meta = call_messages(
+                model=settings.haiku_model,
+                system=system_blocks,
+                messages=user_messages,
+                max_tokens=8000,
+                temperature=0.3,
+            )
+    else:
+        msg, meta = call_messages(
+            model=settings.haiku_model,
+            system=system_blocks,
+            messages=user_messages,
+            max_tokens=8000,
+            temperature=0.3,
+        )
     return TranslateResult(text=extract_text(msg).strip(), meta=meta)

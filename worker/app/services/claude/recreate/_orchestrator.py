@@ -230,21 +230,38 @@ def call_recreate(
         task_lines.append(f"Extra instruction from user: {ctx.instruction_extra.strip()}")
     task_text = "\n".join(task_lines)
 
-    msg, meta = call_messages(
-        model=settings.sonnet_model,
-        system=system_blocks,
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    cached_text_block(summary_text),
-                    plain_text_block(task_text),
-                ],
-            }
-        ],
-        max_tokens=max_tokens,
-        temperature=temperature,
-    )
+    user_messages = [
+        {
+            "role": "user",
+            "content": [
+                cached_text_block(summary_text),
+                plain_text_block(task_text),
+            ],
+        }
+    ]
+
+    # Route through user's per-task model preference (Settings → AI Providers).
+    # Falls back to env Anthropic if user not configured.
+    from ..llm import call_via_router
+
+    try:
+        msg, meta = call_via_router(
+            user_id=ctx.user_id,
+            task="recreate_content",
+            system=system_blocks,
+            messages=user_messages,
+            max_tokens=max_tokens,
+            temperature=temperature,
+        )
+    except Exception:
+        # Hard fallback to env-based Anthropic if router fails (e.g. DB issue)
+        msg, meta = call_messages(
+            model=settings.sonnet_model,
+            system=system_blocks,
+            messages=user_messages,
+            max_tokens=max_tokens,
+            temperature=temperature,
+        )
 
     return RecreateCallResult(raw_text=extract_text(msg).strip(), meta=meta)
 

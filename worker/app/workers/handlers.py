@@ -190,7 +190,9 @@ async def handle_process_transcript(sb, job: dict[str, Any]) -> dict[str, Any]:
     if not tr.is_thai and tr.plain_text.strip():
         update_progress(sb, job["id"], progress=35, step="translating")
         try:
-            tres = await asyncio.to_thread(translate_to_thai, tr.plain_text)
+            tres = await asyncio.to_thread(
+                translate_to_thai, tr.plain_text, user_id
+            )
             translated_text = tres.text
         except Exception as exc:  # noqa: BLE001
             if _retryable_anthropic(exc):
@@ -204,7 +206,9 @@ async def handle_process_transcript(sb, job: dict[str, Any]) -> dict[str, Any]:
     # 3. Summarize
     update_progress(sb, job["id"], progress=65, step="summarizing")
     try:
-        sres = await asyncio.to_thread(summarize_transcript, text_for_summary)
+        sres = await asyncio.to_thread(
+            summarize_transcript, text_for_summary, user_id
+        )
     except SummarizeError as exc:
         raise RuntimeError(f"summarize parse error: {exc}") from exc
     except Exception as exc:  # noqa: BLE001
@@ -307,7 +311,9 @@ async def handle_extract_voice(sb, job: dict[str, Any]) -> dict[str, Any]:
     update_progress(sb, job["id"], progress=20, step="analyzing")
 
     try:
-        result = await asyncio.to_thread(extract_voice_profile, samples)
+        result = await asyncio.to_thread(
+            extract_voice_profile, samples, user_id
+        )
     except VoiceExtractError as exc:
         raise RuntimeError(f"voice extract parse error: {exc}") from exc
     except Exception as exc:  # noqa: BLE001

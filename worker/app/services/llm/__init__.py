@@ -12,7 +12,11 @@ falls back to system default (Anthropic env-based) if not configured.
 """
 
 from .base import CallMeta, LLMClient, Message, MessageBlock, TaskKind
-from .router import get_client_for_task, resolve_model_for_task
+from .router import (
+    call_via_router,
+    get_client_for_task,
+    resolve_model_for_task,
+)
 
 __all__ = [
     "CallMeta",
@@ -20,6 +24,7 @@ __all__ = [
     "Message",
     "MessageBlock",
     "TaskKind",
+    "call_via_router",
     "get_client_for_task",
     "resolve_model_for_task",
 ]
