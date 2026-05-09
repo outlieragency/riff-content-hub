@@ -23,7 +23,7 @@ type NavItem = {
 }
 
 const WORKFLOW: NavItem[] = [
-  { href: '/', label: 'Today', icon: Home },
+  { href: '/today', label: 'Today', icon: Home },
   { href: '/discover', label: 'Discover', icon: Compass },
   { href: '/ideas', label: 'Ideas', icon: Lightbulb },
   { href: '/recreated', label: 'Recreated', icon: Pencil },
@@ -49,7 +49,7 @@ export function Sidebar() {
     <aside className="w-[220px] shrink-0 bg-card flex flex-col border-r border-border-soft">
       <QuickRecreateModal open={quickOpen} onClose={() => setQuickOpen(false)} />
       <div className="px-5 py-6">
-        <Link href="/" className="flex flex-col leading-none">
+        <Link href="/today" className="flex flex-col leading-none">
           <span className="font-serif-display text-xl text-foreground tracking-tight">
             Riff<span className="text-brand">.</span>
           </span>

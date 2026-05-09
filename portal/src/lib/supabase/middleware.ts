@@ -41,21 +41,30 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname
 
-  const publicRoutes = ['/login', '/forgot-password', '/reset-password']
-  const isPublicRoute = publicRoutes.some((r) => pathname.startsWith(r))
+  // Public routes (no auth required)
+  const publicRoutes = [
+    '/login',
+    '/forgot-password',
+    '/reset-password',
+  ]
+  // Marketing routes — accessible to anyone (with or without auth)
+  const marketingRoutes = ['/']
+  const isPublicRoute =
+    publicRoutes.some((r) => pathname.startsWith(r)) ||
+    marketingRoutes.includes(pathname)
   const isApiRoute = pathname.startsWith('/api/')
 
+  // Unauth user trying to access app routes → /login
   if (!user && !isPublicRoute && !isApiRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  // Logged-in user hitting /login → bounce to home (Today Dashboard).
-  // (Pre-Day 3 we also caught '/' here, but '/' is now the Dashboard route.)
+  // Logged-in user on /login → /today (Dashboard)
   if (user && pathname === '/login') {
     const url = request.nextUrl.clone()
-    url.pathname = '/'
+    url.pathname = '/today'
     return NextResponse.redirect(url)
   }
 

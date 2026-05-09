@@ -22,7 +22,7 @@ export function LoginForm() {
       setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง')
       return
     }
-    router.push('/')
+    router.push('/today')
     router.refresh()
   }
 
@@ -166,7 +166,7 @@ export function LoginForm() {
         </form>
 
         <p className="text-2xs text-[#7A8275] mt-8 tracking-[0.2em] uppercase">
-          A creator's instrument
+          A creator&apos;s instrument
         </p>
       </div>
     </main>

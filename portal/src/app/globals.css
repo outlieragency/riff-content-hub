@@ -240,3 +240,221 @@ body {
   background: var(--color-brand);
   color: white;
 }
+
+/* ============================================================
+ * Riff Marketing Landing — scoped tokens + utilities
+ * Only applied within .riff-marketing wrapper to avoid
+ * polluting the dark-green-orange palette into the app shell.
+ * ============================================================ */
+.riff-marketing {
+  --rm-bg: #0A0F0A;
+  --rm-surface: #131A13;
+  --rm-surface-2: #18221A;
+  --rm-border: #1F2A1F;
+  --rm-border-2: #283528;
+  --rm-text: #F5F5F0;
+  --rm-muted: #8A938A;
+  --rm-muted-2: #5C665C;
+  --rm-accent: #FF6B35;
+  --rm-accent-glow: rgba(255, 107, 53, 0.35);
+  --rm-success: #4ADE80;
+  --rm-warning: #F59E0B;
+  --rm-danger: #EF4444;
+  --rm-info: #60A5FA;
+
+  font-family: 'IBM Plex Sans', 'IBM Plex Sans Thai', system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1.55;
+  font-feature-settings: 'ss01', 'cv11';
+}
+
+.riff-marketing .font-display {
+  font-family: 'Inter Tight', 'IBM Plex Sans Thai Looped', sans-serif;
+  letter-spacing: -0.025em;
+}
+.riff-marketing .font-mono {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+.riff-marketing .font-thai {
+  font-family: 'IBM Plex Sans Thai', 'IBM Plex Sans', sans-serif;
+}
+
+/* Eyebrow caption */
+.riff-marketing .rm-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--rm-muted);
+}
+.riff-marketing .rm-eyebrow .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--rm-accent);
+  box-shadow: 0 0 12px var(--rm-accent-glow);
+  animation: rm-pulse 2.6s ease-in-out infinite;
+}
+@keyframes rm-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* CTA button base */
+.riff-marketing .rm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: 'Inter Tight', sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.riff-marketing .rm-btn-primary {
+  background: var(--rm-accent);
+  color: #1a0a04;
+  box-shadow:
+    0 0 0 1px rgba(255, 107, 53, 0.4) inset,
+    0 1px 0 rgba(255, 255, 255, 0.2) inset;
+}
+.riff-marketing .rm-btn-primary:hover {
+  box-shadow:
+    0 0 0 1px rgba(255, 107, 53, 0.6) inset,
+    0 1px 0 rgba(255, 255, 255, 0.25) inset,
+    0 0 32px var(--rm-accent-glow);
+  transform: translateY(-1px);
+}
+.riff-marketing .rm-btn-sm {
+  height: 36px;
+  padding: 0 14px;
+  font-size: 13.5px;
+  border-radius: 7px;
+}
+
+/* Field (email input pill) */
+.riff-marketing .rm-field {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  background: var(--rm-surface);
+  border: 1px solid var(--rm-border-2);
+  border-radius: 10px;
+  padding: 6px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.riff-marketing .rm-field:focus-within {
+  border-color: var(--rm-accent);
+  box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.12);
+}
+.riff-marketing .rm-field input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: var(--rm-text);
+  font: inherit;
+  padding: 0 10px;
+  font-size: 15px;
+}
+.riff-marketing .rm-field input::placeholder { color: var(--rm-muted-2); }
+
+/* Card */
+.riff-marketing .rm-card {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.015), transparent),
+    var(--rm-surface);
+  border: 1px solid var(--rm-border);
+  border-radius: 14px;
+  position: relative;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+.riff-marketing .rm-card:hover {
+  border-color: var(--rm-border-2);
+  transform: translateY(-2px);
+}
+.riff-marketing .rm-card-glow:hover {
+  box-shadow:
+    0 0 0 1px rgba(255, 107, 53, 0.18),
+    0 24px 60px -30px var(--rm-accent-glow);
+}
+
+/* Container + section padding */
+.riff-marketing .rm-section { padding: 96px 24px; position: relative; z-index: 1; }
+.riff-marketing .rm-container { max-width: 1280px; margin: 0 auto; position: relative; }
+.riff-marketing .rm-grid-bg {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 64px 64px;
+  background-position: -1px -1px;
+}
+.riff-marketing .rm-glow-accent {
+  box-shadow:
+    0 0 0 1px rgba(255, 107, 53, 0.25),
+    0 24px 80px -30px var(--rm-accent-glow);
+}
+
+/* Score chip */
+.riff-marketing .rm-score-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid;
+  font-weight: 500;
+}
+
+/* Step number */
+.riff-marketing .rm-step-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 56px;
+  line-height: 1;
+  color: var(--rm-accent);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+/* Shimmer */
+@keyframes rm-shimmer { 0% { background-position: -200px 0; } 100% { background-position: 200px 0; } }
+.riff-marketing .rm-shimmer-line {
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.10) 50%, rgba(255, 255, 255, 0.04) 100%);
+  background-size: 400px 100%;
+  animation: rm-shimmer 2.6s linear infinite;
+}
+
+/* Noise overlay */
+.noise-overlay {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/></svg>");
+  opacity: 0.7;
+  mix-blend-mode: screen;
+}
+
+/* Marketing-only smooth scroll */
+.riff-marketing { scroll-behavior: smooth; }
+
+/* Responsive helpers */
+@media (max-width: 900px) {
+  .riff-marketing .rm-section { padding: 72px 20px; }
+  .riff-marketing .rm-hide-md { display: none !important; }
+}
+@media (max-width: 640px) {
+  .riff-marketing .rm-section { padding: 56px 16px; }
+}

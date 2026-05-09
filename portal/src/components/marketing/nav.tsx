@@ -1,0 +1,73 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { RiffLogo } from './logo'
+
+const NAV_LINKS: [string, string][] = [
+  ['Features', '#features'],
+  ['How it works', '#how'],
+  ['Outlier Score', '#score'],
+  ['FAQ', '#faq'],
+]
+
+export function MarketingNav() {
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 80)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  return (
+    <nav
+      className="fixed top-0 left-0 right-0 z-50 transition-[background,backdrop-filter,border] duration-300"
+      style={{
+        background: scrolled ? 'rgba(10,15,10,0.78)' : 'transparent',
+        backdropFilter: scrolled ? 'saturate(140%) blur(14px)' : 'none',
+        WebkitBackdropFilter: scrolled ? 'saturate(140%) blur(14px)' : 'none',
+        borderBottom: scrolled
+          ? '1px solid var(--rm-border)'
+          : '1px solid transparent',
+      }}
+    >
+      <div className="rm-container flex items-center justify-between px-6 py-4">
+        <RiffLogo />
+
+        <div className="rm-hide-md flex gap-7">
+          {NAV_LINKS.map(([label, href]) => (
+            <a
+              key={href}
+              href={href}
+              className="text-[var(--rm-muted)] hover:text-[var(--rm-text)] no-underline transition-colors"
+              style={{ fontSize: 14, fontWeight: 500 }}
+            >
+              {label}
+            </a>
+          ))}
+        </div>
+
+        <div className="flex gap-2.5 items-center">
+          <span
+            className="font-mono rm-hide-md text-[var(--rm-muted-2)]"
+            style={{ fontSize: 11 }}
+          >
+            v0.4 · private beta
+          </span>
+          <a
+            href="#waitlist"
+            className="rm-btn rm-btn-primary rm-btn-sm"
+            style={{
+              opacity: scrolled ? 1 : 0,
+              pointerEvents: scrolled ? 'auto' : 'none',
+              transition: 'opacity .25s',
+            }}
+          >
+            Join waitlist →
+          </a>
+        </div>
+      </div>
+    </nav>
+  )
+}
