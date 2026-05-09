@@ -104,6 +104,7 @@ from .routes import notion as notion_routes  # noqa: E402
 from .routes import quick_recreate as quick_recreate_routes  # noqa: E402
 from .routes import recreate as recreate_routes  # noqa: E402
 from .routes import styles as styles_routes  # noqa: E402
+from .routes import tools as tools_routes  # noqa: E402
 from .routes import transcripts as transcripts_routes  # noqa: E402
 from .routes import voice as voice_routes  # noqa: E402
 
@@ -116,3 +117,4 @@ app.include_router(cover_routes.router)
 app.include_router(notion_routes.router)
 app.include_router(quick_recreate_routes.router)
 app.include_router(styles_routes.router)
+app.include_router(tools_routes.router)

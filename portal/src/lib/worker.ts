@@ -126,6 +126,24 @@ export const worker = {
     references: { image_url: string; label?: string }[]
     format_type?: string
   }) => call<ExtractStyleResponse>('POST', '/styles/extract', params),
+
+  runTool: (params: {
+    user_id: string
+    tool: 'hook_doctor' | 'grade_draft' | 'niche_playbook'
+    input: string
+  }) => call<ToolRunResponse>('POST', '/tools/run', params),
+}
+
+export type ToolRunResponse = {
+  output_markdown: string
+  meta: {
+    model: string
+    input_tokens: number
+    output_tokens: number
+    cache_read_input_tokens: number
+    latency_ms: number
+    cache_hit_ratio: number
+  }
 }
 
 export type ExtractStyleResponse = {
