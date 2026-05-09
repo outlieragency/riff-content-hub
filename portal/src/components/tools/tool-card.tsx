@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from 'react'
 import { Check, Copy, Loader2, Sparkles, type LucideIcon } from 'lucide-react'
-import { runAiTool, type ToolKind } from '@/lib/actions/tools'
+import { runAiTool } from '@/lib/actions/tools'
+import type { ToolKind } from '@/lib/types/tool'
 
 export function ToolCard({
   tool,

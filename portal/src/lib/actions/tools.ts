@@ -3,25 +3,8 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { normalizeVoice } from '@/lib/types/voice-profile'
+import type { RunToolResult, ToolKind } from '@/lib/types/tool'
 import { worker } from '@/lib/worker'
-
-export type ToolKind =
-  | 'hook_doctor'
-  | 'grade_draft'
-  | 'niche_playbook'
-  | 'voice_rewrite'
-
-export type RunToolResult =
-  | {
-      ok: true
-      output_markdown: string
-      meta: {
-        model: string
-        latency_ms: number
-        cache_hit_ratio: number
-      }
-    }
-  | { ok: false; error: string }
 
 export async function runAiTool(
   tool: ToolKind,
