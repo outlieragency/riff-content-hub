@@ -41,17 +41,6 @@ export default async function ChannelDetailPage({
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: channel } = await supabase
-    .from('channels')
-    .select(
-      'id, youtube_channel_id, handle, title, description, thumbnail_url, subscriber_count, total_video_count, channel_avg_views, last_synced_at',
-    )
-    .eq('id', id)
-    .eq('user_id', user.id)
-    .maybeSingle()
-
-  if (!channel) notFound()
-
   // Build videos query
   let videoQ = supabase
     .from('videos')
@@ -65,9 +54,6 @@ export default async function ChannelDetailPage({
 
   switch (sort) {
     case 'top_liked':
-      // No like data — fall back to view_count as proxy
-      videoQ = videoQ.order('view_count', { ascending: false, nullsFirst: false })
-      break
     case 'top_viewed':
       videoQ = videoQ.order('view_count', { ascending: false, nullsFirst: false })
       break
@@ -81,13 +67,33 @@ export default async function ChannelDetailPage({
 
   if (q) videoQ = videoQ.ilike('title', `%${q}%`)
 
-  const { data: videos } = await videoQ
+  // 4 independent queries fire in parallel — was sequential
+  const [
+    { data: channel },
+    { data: videos },
+    { data: ideaRows },
+    { count: outlierCount },
+  ] = await Promise.all([
+    supabase
+      .from('channels')
+      .select(
+        'id, youtube_channel_id, handle, title, description, thumbnail_url, subscriber_count, total_video_count, channel_avg_views, last_synced_at',
+      )
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .maybeSingle(),
+    videoQ,
+    supabase.from('ideas').select('video_id').eq('user_id', user.id),
+    supabase
+      .from('videos')
+      .select('id', { count: 'exact', head: true })
+      .eq('channel_id', id)
+      .eq('user_id', user.id)
+      .gte('outlier_score', 2),
+  ])
 
-  // Saved set
-  const { data: ideaRows } = await supabase
-    .from('ideas')
-    .select('video_id')
-    .eq('user_id', user.id)
+  if (!channel) notFound()
+
   const savedIds = new Set((ideaRows ?? []).map((r) => r.video_id).filter(Boolean))
 
   const rows: OutlierVideo[] = (videos ?? []).map((v) => ({
@@ -106,14 +112,6 @@ export default async function ChannelDetailPage({
     channel_subscriber_count: channel.subscriber_count ?? null,
     is_saved: savedIds.has(v.id),
   }))
-
-  // Outliers count for "summary" stat
-  const { count: outlierCount } = await supabase
-    .from('videos')
-    .select('id', { count: 'exact', head: true })
-    .eq('channel_id', id)
-    .eq('user_id', user.id)
-    .gte('outlier_score', 2)
 
   const ytChannelUrl = channel.handle
     ? `https://youtube.com/${channel.handle}`

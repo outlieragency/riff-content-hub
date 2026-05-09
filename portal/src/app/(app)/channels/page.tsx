@@ -28,30 +28,46 @@ export default async function ChannelsPage() {
     .order('created_at', { ascending: false })
 
   // 7-day outlier counts per channel (Eden-style watchlist)
+  // Single grouped query instead of N+1 — pulls just channel_id refs and tallies in JS
   const cutoff = sevenDaysAgoIso()
-  const rows: (ChannelRow & { outliers_7d: number })[] = []
-  for (const c of channels ?? []) {
-    const { count: videosCount } = await supabase
-      .from('videos')
-      .select('id', { count: 'exact', head: true })
-      .eq('channel_id', c.id)
-      .eq('user_id', user.id)
-    const { count: outliersCount } = await supabase
-      .from('videos')
-      .select('id', { count: 'exact', head: true })
-      .eq('channel_id', c.id)
-      .eq('user_id', user.id)
-      .gte('outlier_score', 2)
-      .gte('published_at', cutoff)
-    rows.push({
-      ...c,
-      videos_count: videosCount ?? 0,
-      outliers_7d: outliersCount ?? 0,
-    })
+  const channelList = channels ?? []
+  const channelIds = channelList.map((c) => c.id)
+
+  const [{ data: allVideoRefs }, { data: outlierVideoRefs }] = await Promise.all([
+    channelIds.length
+      ? supabase
+          .from('videos')
+          .select('channel_id')
+          .eq('user_id', user.id)
+          .in('channel_id', channelIds)
+      : Promise.resolve({ data: [] as { channel_id: string }[] }),
+    channelIds.length
+      ? supabase
+          .from('videos')
+          .select('channel_id')
+          .eq('user_id', user.id)
+          .in('channel_id', channelIds)
+          .gte('outlier_score', 2)
+          .gte('published_at', cutoff)
+      : Promise.resolve({ data: [] as { channel_id: string }[] }),
+  ])
+
+  const videoCounts = new Map<string, number>()
+  for (const v of allVideoRefs ?? []) {
+    videoCounts.set(v.channel_id, (videoCounts.get(v.channel_id) ?? 0) + 1)
+  }
+  const outlierCounts = new Map<string, number>()
+  for (const v of outlierVideoRefs ?? []) {
+    outlierCounts.set(v.channel_id, (outlierCounts.get(v.channel_id) ?? 0) + 1)
   }
 
-  // Sort: highest 7d outliers first (most active creators on top)
-  rows.sort((a, b) => b.outliers_7d - a.outliers_7d)
+  const rows: (ChannelRow & { outliers_7d: number })[] = channelList
+    .map((c) => ({
+      ...c,
+      videos_count: videoCounts.get(c.id) ?? 0,
+      outliers_7d: outlierCounts.get(c.id) ?? 0,
+    }))
+    .sort((a, b) => b.outliers_7d - a.outliers_7d)
 
   return (
     <div className="max-w-[1100px] mx-auto px-6 py-6 space-y-6">

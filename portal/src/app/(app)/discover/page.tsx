@@ -47,10 +47,49 @@ export default async function DiscoverPage({
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: channels } = await supabase
-    .from('channels')
-    .select('id, title, handle, subscriber_count')
-    .order('title')
+  // Build videos query
+  let videoQ = supabase
+    .from('videos')
+    .select(
+      'id, youtube_video_id, title, thumbnail_url, view_count, duration_seconds, is_short, published_at, outlier_score, channel_id',
+    )
+    .limit(120)
+
+  switch (mode) {
+    case 'outliers':
+      videoQ = videoQ
+        .gte('outlier_score', scoreFloor)
+        .order('outlier_score', { ascending: false, nullsFirst: false })
+      break
+    case 'latest':
+      videoQ = videoQ
+        .gte('published_at', daysAgoIso(14))
+        .order('published_at', { ascending: false, nullsFirst: false })
+      break
+    case 'channel':
+    case 'all':
+    default:
+      videoQ = videoQ.order('published_at', {
+        ascending: false,
+        nullsFirst: false,
+      })
+  }
+
+  if (channelFilter) videoQ = videoQ.eq('channel_id', channelFilter)
+  if (durationFilter === 'long') videoQ = videoQ.eq('is_short', false)
+  else if (durationFilter === 'short') videoQ = videoQ.eq('is_short', true)
+  if (q) videoQ = videoQ.ilike('title', `%${q}%`)
+
+  // 3 independent queries fire in parallel
+  const [{ data: channels }, { data: videos }, { data: ideaRows }] =
+    await Promise.all([
+      supabase
+        .from('channels')
+        .select('id, title, handle, subscriber_count')
+        .order('title'),
+      videoQ,
+      supabase.from('ideas').select('video_id').eq('user_id', user.id),
+    ])
 
   if (!channels || channels.length === 0) {
     return (
@@ -74,48 +113,6 @@ export default async function DiscoverPage({
     )
   }
 
-  // Build videos query — base
-  let videoQ = supabase
-    .from('videos')
-    .select(
-      'id, youtube_video_id, title, thumbnail_url, view_count, duration_seconds, is_short, published_at, outlier_score, channel_id',
-    )
-    .limit(120)
-
-  // Mode-specific
-  switch (mode) {
-    case 'outliers':
-      videoQ = videoQ
-        .gte('outlier_score', scoreFloor)
-        .order('outlier_score', { ascending: false, nullsFirst: false })
-      break
-    case 'latest':
-      videoQ = videoQ
-        .gte('published_at', daysAgoIso(14))
-        .order('published_at', { ascending: false, nullsFirst: false })
-      break
-    case 'channel':
-    case 'all':
-    default:
-      videoQ = videoQ.order('published_at', {
-        ascending: false,
-        nullsFirst: false,
-      })
-  }
-
-  // Common filters
-  if (channelFilter) videoQ = videoQ.eq('channel_id', channelFilter)
-  if (durationFilter === 'long') videoQ = videoQ.eq('is_short', false)
-  else if (durationFilter === 'short') videoQ = videoQ.eq('is_short', true)
-  if (q) videoQ = videoQ.ilike('title', `%${q}%`)
-
-  const { data: videos } = await videoQ
-
-  // Fetch saved ideas → mark which are saved
-  const { data: ideaRows } = await supabase
-    .from('ideas')
-    .select('video_id')
-    .eq('user_id', user.id)
   const savedIds = new Set((ideaRows ?? []).map((r) => r.video_id).filter(Boolean))
 
   const channelMap = new Map(channels.map((c) => [c.id, c]))

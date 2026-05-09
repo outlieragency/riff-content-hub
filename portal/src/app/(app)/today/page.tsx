@@ -59,53 +59,52 @@ export default async function DashboardPage() {
   const weekStart = startOfWeekIso()
   const todayStart = startOfTodayIso()
 
-  // Drafts pending review (status = ready or edited, NOT published)
-  const { data: pendingRaw } = await supabase
-    .from('recreated_drafts')
-    .select('id, format, status, title, output, updated_at')
-    .eq('user_id', user.id)
-    .in('status', ['ready', 'edited'])
-    .order('updated_at', { ascending: false })
-    .limit(6)
+  // 6 queries fire in parallel — was sequential, ~6x slower
+  const [
+    { data: pendingRaw },
+    { count: postedWeek },
+    { count: postedToday },
+    { data: ideasRaw },
+    { count: channelCount },
+    { count: totalDrafts },
+  ] = await Promise.all([
+    supabase
+      .from('recreated_drafts')
+      .select('id, format, status, title, output, updated_at')
+      .eq('user_id', user.id)
+      .in('status', ['ready', 'edited'])
+      .order('updated_at', { ascending: false })
+      .limit(6),
+    supabase
+      .from('recreated_drafts')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('status', 'published')
+      .gte('updated_at', weekStart),
+    supabase
+      .from('recreated_drafts')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('status', 'published')
+      .gte('updated_at', todayStart),
+    supabase
+      .from('ideas')
+      .select('id, title, thumbnail_url, saved_at, video_id')
+      .eq('user_id', user.id)
+      .eq('status', 'idea')
+      .order('saved_at', { ascending: false })
+      .limit(5),
+    supabase
+      .from('channels')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id),
+    supabase
+      .from('recreated_drafts')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id),
+  ])
   const pending = (pendingRaw ?? []) as DraftRow[]
-
-  // Posted this week
-  const { count: postedWeek } = await supabase
-    .from('recreated_drafts')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', user.id)
-    .eq('status', 'published')
-    .gte('updated_at', weekStart)
-
-  // Posted today
-  const { count: postedToday } = await supabase
-    .from('recreated_drafts')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', user.id)
-    .eq('status', 'published')
-    .gte('updated_at', todayStart)
-
-  // Recent ideas saved (last 5)
-  const { data: ideasRaw } = await supabase
-    .from('ideas')
-    .select('id, title, thumbnail_url, saved_at, video_id')
-    .eq('user_id', user.id)
-    .eq('status', 'idea')
-    .order('saved_at', { ascending: false })
-    .limit(5)
   const ideas = (ideasRaw ?? []) as IdeaRow[]
-
-  // Channel count (signal of how setup user is)
-  const { count: channelCount } = await supabase
-    .from('channels')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', user.id)
-
-  // Total drafts ever
-  const { count: totalDrafts } = await supabase
-    .from('recreated_drafts')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', user.id)
 
   return (
     <div className="max-w-[1200px] mx-auto px-6 py-8">

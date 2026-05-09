@@ -43,35 +43,36 @@ export default async function IdeasPage({
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  // Load boards (for sidebar)
-  const boards = await listBoards()
-  const totalCount = (
-    await supabase
+  // Stage 1 — independent fetches in parallel
+  const [boards, totalCountRes, selectedBoard, boardLinksRes] = await Promise.all([
+    listBoards(),
+    supabase
       .from('ideas')
       .select('id', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-  ).count ?? 0
+      .eq('user_id', user.id),
+    boardFilter ? getBoard(boardFilter) : Promise.resolve(null),
+    boardFilter
+      ? supabase
+          .from('board_ideas')
+          .select('idea_id')
+          .eq('user_id', user.id)
+          .eq('board_id', boardFilter)
+      : Promise.resolve({ data: null as { idea_id: string }[] | null }),
+  ])
+  const totalCount = totalCountRes.count ?? 0
+  const ideaIds: string[] | null = boardFilter
+    ? (boardLinksRes.data ?? []).map((l) => l.idea_id)
+    : null
 
-  // Selected board (if any)
-  const selectedBoard = boardFilter ? await getBoard(boardFilter) : null
-
-  // Status counts (scoped to selected board if any)
-  let scopedStatusRows: { status: string }[] | null = null
+  // Status counts: if board is selected, filter to board ideas; else all user ideas
+  let scopedStatusRows: { status: string }[] = []
   if (boardFilter) {
-    const { data: links } = await supabase
-      .from('board_ideas')
-      .select('idea_id')
-      .eq('user_id', user.id)
-      .eq('board_id', boardFilter)
-    const ids = (links ?? []).map((l) => l.idea_id)
-    if (ids.length === 0) {
-      scopedStatusRows = []
-    } else {
+    if (ideaIds && ideaIds.length > 0) {
       const { data } = await supabase
         .from('ideas')
         .select('status')
         .eq('user_id', user.id)
-        .in('id', ids)
+        .in('id', ideaIds)
       scopedStatusRows = (data ?? []) as { status: string }[]
     }
   } else {
@@ -93,17 +94,6 @@ export default async function IdeasPage({
     counts[i.status as IdeaStatus] = (counts[i.status as IdeaStatus] ?? 0) + 1
   }
 
-  // Build ideas query (scoped to board if selected)
-  let ideaIds: string[] | null = null
-  if (boardFilter) {
-    const { data: links } = await supabase
-      .from('board_ideas')
-      .select('idea_id')
-      .eq('user_id', user.id)
-      .eq('board_id', boardFilter)
-    ideaIds = (links ?? []).map((l) => l.idea_id)
-  }
-
   let ideaQ = supabase
     .from('ideas')
     .select(
@@ -123,23 +113,35 @@ export default async function IdeasPage({
   }
   const { data: ideas } = await ideaQ
 
-  // Hydrate video + channel info
+  // Stage 3 — videos query + board memberships in parallel
   const videoIds = (ideas ?? []).map((i) => i.video_id).filter(Boolean) as string[]
-  const videoMap = new Map<string, IdeaCard['video']>()
-  if (videoIds.length > 0) {
-    const { data: videos } = await supabase
-      .from('videos')
-      .select('id, outlier_score, view_count, channel_id')
-      .in('id', videoIds)
+  const visibleIdeaIds = (ideas ?? []).map((i) => i.id)
+  const [videosRes, boardLinksHydrateRes] = await Promise.all([
+    videoIds.length > 0
+      ? supabase
+          .from('videos')
+          .select('id, outlier_score, view_count, channel_id')
+          .in('id', videoIds)
+      : Promise.resolve({ data: [] as { id: string; outlier_score: number | null; view_count: number | null; channel_id: string }[] }),
+    visibleIdeaIds.length > 0 && boards.length > 0
+      ? supabase
+          .from('board_ideas')
+          .select('idea_id, board_id')
+          .eq('user_id', user.id)
+          .in('idea_id', visibleIdeaIds)
+      : Promise.resolve({ data: [] as { idea_id: string; board_id: string }[] }),
+  ])
 
-    const channelIds = Array.from(new Set((videos ?? []).map((v) => v.channel_id)))
+  const videoMap = new Map<string, IdeaCard['video']>()
+  if (videosRes.data && videosRes.data.length > 0) {
+    const channelIds = Array.from(new Set(videosRes.data.map((v) => v.channel_id)))
     const { data: channels } = await supabase
       .from('channels')
       .select('id, title, handle')
       .in('id', channelIds)
 
     const channelMap = new Map((channels ?? []).map((c) => [c.id, c]))
-    for (const v of videos ?? []) {
+    for (const v of videosRes.data) {
       const ch = channelMap.get(v.channel_id)
       videoMap.set(v.id, {
         id: v.id,
@@ -151,17 +153,11 @@ export default async function IdeasPage({
     }
   }
 
-  // Hydrate board memberships for visible ideas
-  const visibleIdeaIds = (ideas ?? []).map((i) => i.id)
+  // Hydrate board memberships
   const boardMembershipMap: Record<string, { id: string; name: string; color: string; icon: string | null }[]> = {}
-  if (visibleIdeaIds.length > 0 && boards.length > 0) {
-    const { data: links } = await supabase
-      .from('board_ideas')
-      .select('idea_id, board_id')
-      .eq('user_id', user.id)
-      .in('idea_id', visibleIdeaIds)
+  if (boardLinksHydrateRes.data && boardLinksHydrateRes.data.length > 0) {
     const boardLookup = new Map(boards.map((b) => [b.id, b]))
-    for (const l of links ?? []) {
+    for (const l of boardLinksHydrateRes.data) {
       const b = boardLookup.get(l.board_id)
       if (!b) continue
       const arr = boardMembershipMap[l.idea_id] ?? []

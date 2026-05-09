@@ -5,8 +5,6 @@ import { Sidebar } from '@/components/layout/sidebar'
 import { Topbar } from '@/components/layout/topbar'
 import { RouteProgress } from '@/components/layout/route-progress'
 import { ActiveJobsBanner } from '@/components/jobs/active-jobs-banner'
-import { listVoiceProfiles } from '@/lib/actions/voice'
-import { ensureHeadlinerDefault } from '@/lib/actions/creative-styles'
 
 export default async function AppLayout({
   children,
@@ -22,13 +20,19 @@ export default async function AppLayout({
     redirect('/login')
   }
 
-  // Fetched here so Topbar VoicePicker is always populated (no client-side
-  // loading flash + works on every route)
-  const voiceProfiles = await listVoiceProfiles()
-
-  // Auto-seed the Headliner default creative_style for fb_article covers
-  // (idempotent — does nothing after first visit). Backfills existing drafts.
-  await ensureHeadlinerDefault().catch(() => null)
+  // Inline voice query so layout = 2 round-trips (auth + voice) instead of 5.
+  // Topbar VoicePicker stays populated with no client flash.
+  const { data: voiceRows } = await supabase
+    .from('voice_profiles')
+    .select('id, name, is_active, updated_at')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: true })
+  const voiceProfiles = (voiceRows ?? []).map((p) => ({
+    id: p.id,
+    name: p.name,
+    is_active: p.is_active,
+    updated_at: p.updated_at,
+  }))
 
   return (
     <div className="flex h-screen bg-background">

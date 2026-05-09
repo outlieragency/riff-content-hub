@@ -94,10 +94,14 @@ export function ActiveJobsBanner() {
   const prevDoneCount = useRef(0)
   const autoExpandedOnce = useRef(false)
 
-  // Poll for active + recent-done jobs
+  // Poll for active + recent-done jobs.
+  // Adaptive cadence: 2s when active jobs exist (need progress updates), 15s
+  // when idle (just watching for newly-spawned jobs from elsewhere).
+  // This keeps Realtime feel during work without burning 30 queries/minute idle.
   useEffect(() => {
     const sb = createClient()
     let cancelled = false
+    let timer: ReturnType<typeof setTimeout> | null = null
 
     async function tick() {
       const {
@@ -107,51 +111,50 @@ export function ActiveJobsBanner() {
 
       const cutoff = new Date(Date.now() - DONE_LOOKBACK_MS).toISOString()
 
-      // Active (queued + running)
-      const { data: active } = await sb
-        .from('jobs')
-        .select(
-          'id, kind, status, progress, progress_step, payload, result, error, created_at, finished_at',
-        )
-        .eq('user_id', user.id)
-        .in('status', ['queued', 'running'])
-        .order('created_at', { ascending: false })
-        .limit(20)
-
-      // Recent done/error (last hour)
-      const { data: done } = await sb
-        .from('jobs')
-        .select(
-          'id, kind, status, progress, progress_step, payload, result, error, created_at, finished_at',
-        )
-        .eq('user_id', user.id)
-        .in('status', ['done', 'error'])
-        .gte('finished_at', cutoff)
-        .order('finished_at', { ascending: false })
-        .limit(20)
+      const [{ data: active }, { data: done }] = await Promise.all([
+        sb
+          .from('jobs')
+          .select(
+            'id, kind, status, progress, progress_step, payload, result, error, created_at, finished_at',
+          )
+          .eq('user_id', user.id)
+          .in('status', ['queued', 'running'])
+          .order('created_at', { ascending: false })
+          .limit(20),
+        sb
+          .from('jobs')
+          .select(
+            'id, kind, status, progress, progress_step, payload, result, error, created_at, finished_at',
+          )
+          .eq('user_id', user.id)
+          .in('status', ['done', 'error'])
+          .gte('finished_at', cutoff)
+          .order('finished_at', { ascending: false })
+          .limit(20),
+      ])
 
       if (cancelled) return
 
-      const merged = [
-        ...((active ?? []) as Job[]),
-        ...((done ?? []) as Job[]),
-      ]
-      // Dedup by id (active + done can't overlap, but safe-guard)
+      const activeArr = (active ?? []) as Job[]
+      const doneArr = (done ?? []) as Job[]
       const seenLocal = new Set<string>()
       const result: Job[] = []
-      for (const j of merged) {
+      for (const j of [...activeArr, ...doneArr]) {
         if (seenLocal.has(j.id)) continue
         seenLocal.add(j.id)
         result.push(j)
       }
       setJobs(result)
+
+      // Adaptive next-tick delay: 2s if work in progress, 15s if idle.
+      const nextDelay = activeArr.length > 0 ? 2000 : 15000
+      if (!cancelled) timer = setTimeout(tick, nextDelay)
     }
 
     tick()
-    const interval = setInterval(tick, 2000)
     return () => {
       cancelled = true
-      clearInterval(interval)
+      if (timer) clearTimeout(timer)
     }
   }, [])
 

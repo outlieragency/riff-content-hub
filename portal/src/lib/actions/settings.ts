@@ -220,7 +220,6 @@ export async function updateProfile(input: {
   if (error) return { ok: false, error: error.message }
 
   revalidatePath('/settings')
-  revalidatePath('/')
   return { ok: true }
 }
 
