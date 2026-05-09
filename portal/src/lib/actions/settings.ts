@@ -144,13 +144,22 @@ export async function getUserSettings(): Promise<UserSettingsView> {
   }
 }
 
+function getEncryptionKey(): string | null {
+  const key = process.env.APP_ENCRYPTION_KEY
+  if (!key || key.length < 16) return null
+  return key
+}
+
 async function decryptKey(
   service: Awaited<ReturnType<typeof createServiceClient>>,
   encrypted: string,
 ): Promise<string | null> {
+  const key = getEncryptionKey()
+  if (!key) return null
   try {
     const { data, error } = await service.rpc('decrypt_secret', {
       ciphertext: encrypted,
+      key,
     })
     if (error) return null
     return typeof data === 'string' ? data : null
@@ -163,9 +172,12 @@ async function encryptKey(
   service: Awaited<ReturnType<typeof createServiceClient>>,
   plaintext: string,
 ): Promise<string | null> {
+  const key = getEncryptionKey()
+  if (!key) return null
   try {
     const { data, error } = await service.rpc('encrypt_secret', {
       plaintext,
+      key,
     })
     if (error) return null
     return typeof data === 'string' ? data : null
@@ -242,7 +254,7 @@ export async function setProviderApiKey(
     return {
       ok: false,
       error:
-        'encryption ล้มเหลว — server config ขาด app.encryption_key (แจ้ง admin)',
+        'encryption ล้มเหลว — Vercel ยังไม่ได้ตั้ง env var APP_ENCRYPTION_KEY (ดู docs ใน Settings)',
     }
   }
 

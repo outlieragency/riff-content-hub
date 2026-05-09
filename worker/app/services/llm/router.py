@@ -68,11 +68,19 @@ def _load_user_settings(sb: Client, user_id: str) -> dict[str, Any]:
 
 
 def _decrypt_provider_key(sb: Client, encrypted: str | None) -> str | None:
-    """Decrypt a provider key via DB function. None if encrypted is empty/null."""
+    """Decrypt a provider key via DB function. None if encrypted is empty/null
+    or APP_ENCRYPTION_KEY env not set."""
     if not encrypted:
         return None
+    import os
+
+    key = os.environ.get("APP_ENCRYPTION_KEY")
+    if not key or len(key) < 16:
+        return None
     try:
-        res = sb.rpc("decrypt_secret", {"ciphertext": encrypted}).execute()
+        res = sb.rpc(
+            "decrypt_secret", {"ciphertext": encrypted, "key": key}
+        ).execute()
         return res.data if res.data else None
     except Exception:
         return None
