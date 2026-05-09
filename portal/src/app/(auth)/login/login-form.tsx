@@ -22,7 +22,7 @@ export function LoginForm() {
       setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง')
       return
     }
-    router.push('/outliers')
+    router.push('/')
     router.refresh()
   }
 
