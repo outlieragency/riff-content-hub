@@ -10,12 +10,12 @@ import {
   Mic,
   Pencil,
   Plus,
-  Settings,
   Sparkles,
   Tv,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { QuickRecreateModal } from '@/components/recreate/quick-recreate-modal'
+import { NavLink } from './nav-link'
 
 type NavItem = {
   href: string
@@ -32,6 +32,12 @@ const NAV: NavItem[] = [
   { href: '/recreated', label: 'Recreated', icon: Pencil },
   { href: '/voice', label: 'Voice', icon: Mic },
 ]
+
+const NAV_BASE =
+  'flex items-center gap-2.5 px-3 py-2 rounded-[10px] text-sm transition-colors'
+const NAV_ACTIVE = 'bg-secondary text-foreground font-medium'
+const NAV_INACTIVE =
+  'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'
 
 export function Sidebar() {
   const pathname = usePathname()
@@ -62,52 +68,36 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 px-3 space-y-0.5">
-        {NAV.map((item) => {
-          const active =
-            pathname === item.href || pathname.startsWith(item.href + '/')
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                'flex items-center gap-2.5 px-3 py-2 rounded-[10px] text-sm transition-colors',
-                active
-                  ? 'bg-secondary text-foreground font-medium'
-                  : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground',
-              )}
-            >
-              <item.icon size={15} strokeWidth={1.6} />
-              <span className="flex-1">{item.label}</span>
-              {item.badge != null && (
-                <span className="text-2xs px-1.5 py-0.5 rounded-full bg-brand text-white font-medium">
-                  {item.badge}
-                </span>
-              )}
-            </Link>
-          )
-        })}
+        {NAV.map((item) => (
+          <NavLink
+            key={item.href}
+            href={item.href}
+            className={NAV_BASE}
+            activeClassName={NAV_ACTIVE}
+            inactiveClassName={NAV_INACTIVE}
+          >
+            <item.icon size={15} strokeWidth={1.6} />
+            <span className="flex-1">{item.label}</span>
+            {item.badge != null && (
+              <span className="text-2xs px-1.5 py-0.5 rounded-full bg-brand text-white font-medium">
+                {item.badge}
+              </span>
+            )}
+          </NavLink>
+        ))}
       </nav>
 
       <div className="px-3 pb-4 space-y-0.5">
-        <Link
+        <NavLink
           href="/channels"
-          className="flex items-center gap-2.5 px-3 py-2 rounded-[10px] text-sm text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+          className={cn(
+            NAV_BASE,
+            pathname.startsWith('/channels') ? NAV_ACTIVE : NAV_INACTIVE,
+          )}
         >
           <Plus size={15} strokeWidth={1.6} />
           <span>Add channel</span>
-        </Link>
-        <Link
-          href="/settings"
-          className={cn(
-            'flex items-center gap-2.5 px-3 py-2 rounded-[10px] text-sm transition-colors',
-            pathname.startsWith('/settings')
-              ? 'bg-secondary text-foreground font-medium'
-              : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground',
-          )}
-        >
-          <Settings size={15} strokeWidth={1.6} />
-          <span>Settings</span>
-        </Link>
+        </NavLink>
       </div>
     </aside>
   )
