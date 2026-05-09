@@ -28,17 +28,17 @@ export function SpotTrend() {
               textWrap: 'balance' as const,
             }}
           >
-            อย่าเป็นคนสุดท้าย
+            ตอนคุณเห็น trend ใน feed.
             <br />
-            ที่{' '}
-            <span className="rm-serif-italic">เห็น trend</span>
+            <span className="rm-serif-italic">ก็สายไปแล้ว.</span>
           </h2>
           <p
             className="mt-5 mx-auto text-[var(--rm-muted)]"
-            style={{ fontSize: 'clamp(15px, 1.3vw, 18px)', lineHeight: 1.6, maxWidth: 580 }}
+            style={{ fontSize: 'clamp(15px, 1.3vw, 18px)', lineHeight: 1.7, maxWidth: 560 }}
           >
-            Riff scan video ใหม่ทุก 24 ชั่วโมง โชว์เทรนด์ที่กำลังขึ้นใน niche คุณ
-            ก่อนที่ feed คนอื่นจะเต็ม
+            Riff scan video ใหม่ทุก 24 ชม. ใน niche ของคุณ
+            <br />
+            แสดงสิ่งที่กำลังขึ้น ก่อน feed คนอื่นจะเต็มไปด้วยมัน
           </p>
         </div>
 

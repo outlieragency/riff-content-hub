@@ -14,43 +14,43 @@ const FEATURES: {
 }[] = [
   {
     key: 'discover',
-    title: 'เห็น content ที่ทำงาน',
-    body: 'แทนที่จะนั่งดู YouTube ทั้งวันเอง Riff scan video จาก channel ที่คุณ track แล้วโชว์ตัวที่ดังเกินค่าเฉลี่ย คุณเห็นชัดในแก้บเดียวว่าอะไรกำลัง work',
+    title: 'ผมไม่ดู YouTube เป็นชั่วโมงอีกแล้ว',
+    body: 'Riff scan ทุก channel ที่ผม track แล้วเอาเฉพาะตัวที่ดังเกินค่าเฉลี่ย channel มาให้ดู ที่เหลือไม่ต้องเสียเวลา',
     rotation: -2,
     mockup: <DiscoverMock />,
   },
   {
     key: 'creator-look',
-    title: 'มองเหมือนที่ creator ดัง ๆ มอง',
-    body: 'Outlier Score เปลี่ยน views ดิบเป็น signal Riff โชว์ทุก channel แยกกัน ไม่เปรียบเทียบ creator 1M sub กับ 10K sub',
+    title: 'ดูที่ outlier — ไม่ใช่ที่ followers',
+    body: 'channel 10K subs ที่มี video 1M views คือสิ่งน่าเรียน ไม่ใช่ channel 1M subs ที่ video ละ 50K Outlier Score แยกให้ในแก้บเดียว',
     rotation: 2,
     mockup: <CreatorLookMock />,
   },
   {
     key: 'save',
-    title: 'เก็บแต่ idea ที่คุ้ม',
-    body: 'เห็น video ที่ชอบ กด save ไปอยู่ Idea Library ของคุณ จัดเป็น board ตามนิช ตามชุด content ตามจังหวะปล่อย',
+    title: 'เห็นปุ๊บ save ปุ๊บ',
+    body: 'idea ดี ๆ ผ่านมาทุกวัน ถ้าไม่เก็บก็ลืม กด save ครั้งเดียวเข้า Idea Library จัดเป็น board ตามชุด content ที่จะปล่อย',
     rotation: -2,
     mockup: <SaveMock />,
   },
   {
     key: 'chat',
-    title: 'คุยกับสิ่งที่ทำงาน',
-    body: 'เปิด video ที่ save ไว้ ดู transcript เต็ม + summary ภาษาไทย ใช้ AI ถามว่า "hook คืออะไร", "structure ใช้ format ไหน" ก่อน recreate',
+    title: 'อ่าน transcript ก่อนเริ่มเขียน',
+    body: 'ก่อนจะ recreate ผมต้องเข้าใจก่อนว่า video นั้นใช้ hook แบบไหน structure อะไร Riff ถอดเสียง แปลไทย สรุปประเด็นไว้พร้อม ไม่ต้องเปิด ChatGPT แยก',
     rotation: 2,
     mockup: <ChatMock />,
   },
   {
     key: 'voice',
-    title: 'เขียนโดยมี voice ของคุณเปิดอยู่',
-    body: 'Riff อ่าน post เก่าของคุณ 20+ ชิ้น เรียนวิธีเขียน จังหวะประโยค คำที่คุณใช้บ่อย ทุก draft ออกมาในเสียงเดียวกัน คนอ่านแยกไม่ออก',
+    title: 'AI ที่ไม่ทำให้คุณกลายเป็น AI',
+    body: 'Riff อ่าน post เก่าของคุณ จับจังหวะประโยค คำที่ใช้ซ้ำ วิธี tail off ประโยค แล้วเขียนใหม่ในแบบเดียวกัน ไม่ใช่ ChatGPT generic ที่ทุกคนพูดเหมือนกัน',
     rotation: -2,
     mockup: <VoiceMock />,
   },
   {
     key: 'stack',
-    title: 'ลง content ทั้งสัปดาห์ในนั่งเดียว',
-    body: '1 video YouTube = 4 โพสต์พร้อมลง (FB · IG · Reels · YT script) generate ครั้งเดียว ใช้ได้ครบทุก platform วันที่เหลือเอาไปทำสิ่งสำคัญกว่า',
+    title: '1 video → 4 platform ในนั่งเดียว',
+    body: 'แทนที่จะเปิด tab 6 อันมาเขียนทีละ post, Riff generate FB · IG carousel · Reels · YT script ครบทั้ง 4 จาก video เดียว เวลาที่เหลือเอาไปทำของ',
     rotation: 2,
     mockup: <StackMock />,
   },
@@ -59,6 +59,7 @@ const FEATURES: {
 export function FeaturesGrid() {
   return (
     <section
+      id="features"
       className="rm-section"
       style={{ padding: '120px 24px' }}
     >
@@ -74,15 +75,17 @@ export function FeaturesGrid() {
               textWrap: 'balance' as const,
             }}
           >
-            เลิกเขียนจาก{' '}
-            <span className="rm-serif-italic">หน้ากระดาษว่าง</span> สักที.
+            ทุก step ที่ผมเคยทำเอง.
+            <br />
+            <span className="rm-serif-italic">รวมในเครื่องเดียว.</span>
           </h2>
           <p
             className="mt-5 mx-auto text-[var(--rm-muted)]"
-            style={{ fontSize: 'clamp(15px, 1.3vw, 18px)', lineHeight: 1.6, maxWidth: 580 }}
+            style={{ fontSize: 'clamp(15px, 1.3vw, 18px)', lineHeight: 1.7, maxWidth: 560 }}
           >
-            ทุกขั้นตอนของการทำ content รวมในเครื่องเดียว
-            ตั้งแต่หา idea ดัง ๆ จนถึงโพสต์พร้อมลง
+            ตั้งแต่หา idea จนถึงโพสต์พร้อมลง
+            <br />
+            ไม่ต้องสลับ tab ไม่ต้องเปิด ChatGPT แยก ไม่ต้อง copy-paste
           </p>
         </div>
 

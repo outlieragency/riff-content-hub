@@ -4,54 +4,54 @@
  */
 const TIERS = [
   {
-    key: 'starter',
-    name: 'Starter',
-    tagline: 'พอลงเริ่ม 1 platform',
+    key: 'solo',
+    name: 'Solo',
+    tagline: 'ลองก่อน ลงสัปดาห์ละ 2-3 ชิ้น',
     price: '฿990',
     cadence: '/ เดือน',
     features: [
-      '3 channel ใน watchlist',
-      '20 idea / เดือน',
-      '20 recreate / เดือน',
-      '1 voice profile',
-      '1 platform output',
-      'export ไป Notion',
+      'track 3 channel',
+      'save idea ได้ 20 ชิ้น/เดือน',
+      'recreate 20 ครั้ง/เดือน',
+      'voice profile 1 ตัว',
+      'output 1 platform',
+      'push เข้า Notion',
     ],
-    cta: 'เริ่มที่ Starter',
+    cta: 'เริ่มที่ Solo',
     highlight: false,
   },
   {
-    key: 'pro',
-    name: 'Pro',
-    tagline: 'สำหรับ creator คนเดียวที่ลงทุกวัน',
+    key: 'daily',
+    name: 'Daily',
+    tagline: 'สำหรับคนที่ลงทุกวัน',
     price: '฿2,990',
     cadence: '/ เดือน',
     features: [
-      '10 channel ใน watchlist',
-      'idea ไม่จำกัด',
-      '120 recreate / เดือน',
-      '3 voice profiles (ทดลองโทน)',
-      '4 platform output (FB · IG · Reels · YT)',
-      'AI voice extraction จาก post เก่า',
-      'priority queue · เร็วกว่า 3 เท่า',
+      'track 10 channel',
+      'save idea ไม่จำกัด',
+      'recreate 120 ครั้ง/เดือน',
+      'voice profile 3 ตัว (ทดลองโทน)',
+      'output 4 platform (FB · IG · Reels · YT)',
+      'AI เรียน voice จาก post เก่าให้',
+      'priority queue เร็วกว่า 3 เท่า',
     ],
-    cta: 'เลือก Pro',
+    cta: 'เลือก Daily',
     highlight: true,
   },
   {
     key: 'studio',
     name: 'Studio',
-    tagline: 'สำหรับ creator + ทีม content',
+    tagline: 'สำหรับ creator ที่มีทีม',
     price: '฿9,990',
     cadence: '/ เดือน',
     features: [
-      'channel ไม่จำกัด',
+      'track ไม่จำกัด',
       'recreate ไม่จำกัด',
-      'voice profiles ไม่จำกัด',
-      'multi-user (สูงสุด 5 ทีม)',
-      'creative templates (custom branded)',
+      'voice profile ไม่จำกัด',
+      'multi-user สูงสุด 5 คน',
+      'template ปกแบบ branded ของคุณเอง',
       'API access · webhook',
-      'รับเทรนกับ Earth 1 ชั่วโมง/เดือน',
+      'คุยกับ Earth 1 ชม./เดือน',
     ],
     cta: 'คุยกับเรา',
     highlight: false,
@@ -77,15 +77,18 @@ export function Pricing() {
               textWrap: 'balance' as const,
             }}
           >
-            หมดยุค{' '}
-            <span className="rm-serif-italic">post-and-pray.</span>
+            จ่ายเท่าที่ใช้.
+            <br />
+            ยกเลิก <span className="rm-serif-italic">เดือนไหนก็ได้.</span>
           </h2>
           <p
             className="mt-5 mx-auto text-[var(--rm-muted)]"
-            style={{ fontSize: 'clamp(15px, 1.3vw, 18px)', lineHeight: 1.6, maxWidth: 600 }}
+            style={{ fontSize: 'clamp(15px, 1.3vw, 18px)', lineHeight: 1.7, maxWidth: 580 }}
           >
-            จ่ายตามที่ใช้จริง ยกเลิกได้ทุกเดือน early-creator ล็อกราคานี้ตลอดปีแรก
-            ปกติ public เปิดราคาสูงกว่านี้ 50%
+            ไม่มี free tier เพราะ Riff สำหรับคนที่ลงจริง ไม่ใช่คนทดลอง
+            <br />
+            <br />
+            ราคา early lock ปีแรก ปกติเปิด public สูงกว่านี้ 50%
           </p>
         </div>
 
@@ -104,10 +107,11 @@ export function Pricing() {
 
         <p
           className="mt-10 text-center text-[var(--rm-muted-2)]"
-          style={{ fontSize: 13.5 }}
+          style={{ fontSize: 13.5, lineHeight: 1.6 }}
         >
-          ทุก plan ใช้ Anthropic Claude + custom voice model · ไม่มี data ของคุณ
-          ถูกใช้ train shared model
+          ทุก plan ใช้ Claude Sonnet 4.6 + voice model ของคุณเอง
+          <br />
+          data ไม่ถูกเอาไป train shared model
         </p>
       </div>
 

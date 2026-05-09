@@ -5,38 +5,38 @@
 const FEATURES_LEFT = [
   {
     title: 'Channel Watchlist',
-    body: 'ดู channel ใน niche คุณทุก channel ในที่เดียว Riff sync ทุก 24 ชั่วโมง',
+    body: 'ใส่ YouTube channel ที่อยาก track ระบบ sync ทุก 24 ชม. ไม่ต้องเปิดดูเอง',
   },
   {
     title: 'Outlier auto-detect',
-    body: 'ทุก video ที่ขึ้น score >= 2.0 จะปรากฏใน feed คุณภายใน 30 นาที',
+    body: 'video ไหน score ขึ้นถึง 2.0 ระบบจะ flag ขึ้นมาเอง ไม่ต้องไล่ดูทีละ channel',
   },
   {
-    title: 'Voice ที่เรียนจากคุณ',
-    body: 'Riff อ่าน post 20+ ชิ้น เรียนจังหวะ คำที่ใช้ สไตล์ การ tail off ประโยค',
+    title: 'Voice ของคุณเอง',
+    body: 'อ่าน post เก่าของคุณ จับจังหวะประโยค คำที่ใช้ซ้ำ วิธีปิดประโยค แล้วเขียนตามนั้น',
   },
   {
-    title: 'Cover ปกที่จัด format ให้',
-    body: 'Headliner template ใช้สีดำ ขาว แดง เหลือง ส้ม ทำปกแบบ scroll-stopping ให้อัตโนมัติ',
+    title: 'Cover ปกแบบ scroll-stopping',
+    body: 'template Headliner ที่ผมใช้ทำเองทุก post ดำ-ขาว-แดง-เหลือง-ส้ม สูตรเดียวจบ',
   },
 ]
 
 const FEATURES_RIGHT = [
   {
-    title: '4 formats พร้อมกัน',
-    body: 'FB post, IG carousel (4–10 slides), Reels script (hook · body · CTA), YT script + 5 titles',
+    title: '4 formats จาก video เดียว',
+    body: 'FB post · IG carousel 4-10 slides · Reels script · YT script + 5 titles ครบในนั่งเดียว',
   },
   {
-    title: 'Transcript ภาษาไทย',
-    body: 'video ภาษาอังกฤษถอดเสียง แปลไทย สรุปประเด็น พร้อมใช้ตอน recreate',
+    title: 'Transcript ไทย-อังกฤษ',
+    body: 'video EN ถอดเสียง แปลไทย สรุปประเด็น พร้อมใช้ ไม่ต้อง copy ไป ChatGPT เอง',
   },
   {
     title: 'Idea Library + boards',
-    body: 'จัด idea เป็น board ตาม theme ตาม series ตามรอบปล่อย ลากย้ายได้ฟรี',
+    body: 'idea ที่ save ไว้ จัดเป็น board ตาม series ตาม theme ตามรอบปล่อย ไม่ต้องใช้ Notion แยก',
   },
   {
-    title: 'Push to Notion',
-    body: 'export draft ตรงเข้า Notion DB ของคุณ พร้อม cover URL + tags + status',
+    title: 'Push to Notion ตรง',
+    body: 'export ตรงเข้า Notion DB ที่มีอยู่แล้ว พร้อม cover · tags · status ไม่ต้อง copy ทีละ field',
   },
 ]
 
@@ -58,14 +58,17 @@ export function FasterWithAI() {
               textWrap: 'balance' as const,
             }}
           >
-            เป็น top creator{' '}
-            <span className="rm-serif-italic">เร็วขึ้น</span> ด้วย AI.
+            ทุก tab ที่ผมเคยเปิดทำเอง
+            <br />
+            <span className="rm-serif-italic">ไม่ต้องเปิดอีกแล้ว.</span>
           </h2>
           <p
             className="mt-5 mx-auto text-[var(--rm-muted)]"
-            style={{ fontSize: 'clamp(15px, 1.3vw, 18px)', lineHeight: 1.6, maxWidth: 580 }}
+            style={{ fontSize: 'clamp(15px, 1.3vw, 18px)', lineHeight: 1.7, maxWidth: 540 }}
           >
-            ทุกฟีเจอร์ที่ creator คนเดียวต้องการ ในเครื่องเดียว
+            YouTube · Notion · ChatGPT · DeepL · Canva · Buffer
+            <br />
+            รวมในเครื่องเดียวที่ทำงานต่อกันเอง
           </p>
         </div>
 

@@ -33,7 +33,7 @@ export function FinalCTA({ count }: { count: number }) {
               display: 'inline-block',
             }}
           />
-          เปิดให้ creator 100 คนแรก · batch ถัดไปสัปดาห์หน้า
+          batch ถัดไปเปิดสัปดาห์หน้า · 100 คนแรก
         </div>
 
         <h2
@@ -47,19 +47,22 @@ export function FinalCTA({ count }: { count: number }) {
             textWrap: 'balance' as const,
           }}
         >
-          ที่ที่ทุก post ที่ดี{' '}
-          <span className="rm-serif-italic">เริ่มต้น</span>.
+          ลงต่อเนื่อง 90 วัน
+          <br />
+          <span className="rm-serif-italic">moat ของคุณก็เริ่ม.</span>
         </h2>
 
         <p
           className="mt-6 mx-auto text-[var(--rm-muted)]"
           style={{
             fontSize: 'clamp(16px, 1.4vw, 19px)',
-            lineHeight: 1.6,
-            maxWidth: 560,
+            lineHeight: 1.7,
+            maxWidth: 540,
           }}
         >
-          เข้า waitlist วันนี้ ล็อกราคา early-creator ถูกกว่าราคาเปิด 50% ตลอดปีแรก
+          เข้า waitlist ก่อน
+          <br />
+          ราคา early lock 1 ปี ปกติเปิด public สูงกว่านี้ 50%
         </p>
 
         <div
@@ -73,7 +76,7 @@ export function FinalCTA({ count }: { count: number }) {
           className="mt-4 text-[var(--rm-muted-2)]"
           style={{ fontSize: 13 }}
         >
-          {count} creator รออยู่ · ไม่มี spam · ยกเลิกได้ตลอด
+          {count} creator อยู่ในคิว · ไม่มี spam · ยกเลิกเดือนไหนก็ได้
         </p>
       </div>
     </section>

@@ -44,16 +44,19 @@ export function TopCreators() {
               textWrap: 'balance' as const,
             }}
           >
-            top creator แต่ละคน
+            creator ที่อยู่นาน
             <br />
             <span className="rm-serif-italic">เขียนคนละแบบ</span>
           </h2>
           <p
             className="mt-5 mx-auto text-[var(--rm-forest-muted)]"
-            style={{ fontSize: 'clamp(15px, 1.3vw, 18px)', lineHeight: 1.6, maxWidth: 600 }}
+            style={{ fontSize: 'clamp(15px, 1.3vw, 18px)', lineHeight: 1.7, maxWidth: 580 }}
           >
-            Riff ไม่ทำให้ทุกคนพูดเหมือนกัน อ่านเสียงของคุณจาก post เก่า แล้วเขียนใหม่
-            ในแบบเดียวกัน Match เฉลี่ย 91% คนอ่านแยกไม่ออก
+            AI generic ทำให้ทุกคนเขียนเหมือนกัน คนอ่านแยกออกใน 2 บรรทัด
+            <br />
+            <br />
+            Riff ทำตรงข้าม — เรียนเสียงคุณจาก post เก่า
+            แล้วเขียนใหม่ในแบบเดียวกัน
           </p>
         </div>
 

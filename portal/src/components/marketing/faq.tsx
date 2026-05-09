@@ -4,36 +4,36 @@ import { useState } from 'react'
 
 const ITEMS = [
   {
-    q: 'Riff ทำงานยังไง สั้นๆ',
-    a: 'คุณวาง URL channel YouTube ที่อยาก follow Riff scan ทุก video หา outlier ที่ดังเกินค่าเฉลี่ย คุณกด save video ที่ชอบ AI จะอ่าน transcript แปลไทย สรุป แล้วเขียนใหม่เป็น FB/IG/Reels/YT ในเสียงของคุณ ภายใน 90 วินาที',
+    q: 'แล้วมันทำงานยังไงสั้น ๆ',
+    a: 'ใส่ URL channel ที่อยาก follow ระบบไป scan ให้ ตัวที่ดังเกินค่าเฉลี่ย channel จะขึ้น feed ให้ดู กด save ตัวที่ชอบ AI จะอ่าน transcript แปลไทย สรุปประเด็น แล้วเขียนใหม่เป็น FB/IG/Reels/YT ในเสียงของคุณ',
   },
   {
-    q: 'AI จะเขียนเหมือนผมจริงๆ ไหม',
-    a: 'Riff อ่าน post เก่าของคุณ 20+ ชิ้น แล้วเรียนวิธีเขียน จังหวะประโยค คำที่คุณใช้บ่อย match เฉลี่ย 91%. ทุก draft แก้ได้ ออกแบบให้เป็น first draft ที่เกือบลงได้เลย ไม่ใช่ final draft',
+    q: 'AI เขียนเหมือนผมจริง ๆ เหรอ',
+    a: 'มันอ่าน post เก่าของคุณ จับจังหวะประโยค คำที่ใช้ซ้ำ วิธีปิดประโยค สไตล์เปิดเรื่อง แล้วเขียนใหม่ในแบบเดียวกัน ทุก draft แก้ได้ ผมออกแบบให้เป็น first draft ที่เกือบลงได้เลย ไม่ใช่ final draft',
   },
   {
-    q: 'รองรับภาษาอะไร',
-    a: 'ตอนนี้รองรับไทย กับ อังกฤษ เต็มรูปแบบ video EN ก็แปลเป็น TH ได้ video TH ก็เขียน EN ได้',
+    q: 'รองรับภาษาอะไรบ้าง',
+    a: 'ไทยกับอังกฤษเต็มรูปแบบ video EN แปลไทยได้ video TH เขียน EN ก็ได้ ภาษาอื่นยังไม่รองรับ',
   },
   {
-    q: 'ทำไมเริ่มจาก YouTube ก่อน',
-    a: 'YouTube มี data ครบ subscriber count, views, transcript ทำให้คำนวณ Outlier Score ได้แม่น TikTok กับ IG มาตามทีหลัง',
+    q: 'ทำไมเริ่มจาก YouTube',
+    a: 'YouTube มี data ครบ subscriber, views, transcript ทำให้คำนวณ Outlier Score ได้แม่นพอ TikTok กับ IG ผมยังไม่เริ่มเพราะ data ฝั่งนั้นยังขลุกขลัก',
   },
   {
     q: 'ราคาเท่าไหร่',
-    a: 'ยังไม่เปิด public pricing คนใน waitlist จะได้ early-creator rate ถูกกว่า public ~50% ตลอดปีแรก ไม่มี free tier เพราะออกแบบให้คนทำ content จริงๆ ใช้',
+    a: 'Solo 990 / Daily 2,990 / Studio 9,990 ต่อเดือน คนใน waitlist ล็อกราคานี้ปีแรก ปกติ public เปิดสูงกว่านี้ 50% ไม่มี free tier เพราะ Riff ทำมาให้คนลงจริง ๆ ใช้',
   },
   {
     q: 'ข้อมูลผมปลอดภัยไหม',
-    a: 'Voice profile กับ draft ของคุณ encrypt ไม่เอาไป train shared model ลบ account = ลบทุกอย่างภายใน 24 ชม',
+    a: 'voice profile กับ draft ทุกตัว encrypt ไว้ ไม่ถูกเอาไป train shared model ถ้าลบ account ลบหมดภายใน 24 ชม.',
   },
   {
     q: 'Outlier Score คำนวณยังไง',
-    a: 'เอา views หาร subscribers ปรับด้วยอายุ video score 1.0 = ดังตามค่าเฉลี่ย channel score 5.0 ขึ้นไป = video ที่ reach ออกนอกฐานแฟนชัดเจน',
+    a: 'views ÷ subscribers ปรับด้วยอายุของ video score 1.0 = ดังตามค่าเฉลี่ย channel ตัวเอง 5.0 ขึ้นไป = reach ออกนอกฐานแฟน 10+ คือ mega viral',
   },
   {
     q: 'ใช้กับทีมได้ไหม',
-    a: 'ตอนนี้ solo plan ก่อน Team workspace (share voice profile, แบ่ง role) มาช่วงกลางปี 2026 ใช้ waitlist เดียวกัน',
+    a: 'Studio plan รองรับสูงสุด 5 คน Team workspace แบบเต็ม (share voice, แบ่ง role) จะมาช่วงกลางปีนี้ ใช้ waitlist เดียวกัน',
   },
 ]
 
@@ -50,29 +50,29 @@ export function FAQ() {
           <h2
             className="mt-3.5"
             style={{
-              fontSize: 'clamp(26px, 3.6vw, 38px)',
-              fontWeight: 700,
+              fontSize: 'clamp(28px, 3.6vw, 40px)',
+              fontWeight: 600,
               lineHeight: 1.15,
               letterSpacing: '-0.025em',
               textWrap: 'balance' as const,
             }}
           >
-            ก่อนตัดสินใจ{' '}
-            <span style={{ color: 'var(--rm-accent)' }}>เช็คให้ชัวร์</span>
+            คำถามที่{' '}
+            <span className="rm-serif-italic">คนถามผมบ่อย.</span>
           </h2>
           <p
-            className="font-thai mt-3.5 text-[var(--rm-muted)]"
-            style={{ fontSize: 15.5, lineHeight: 1.55 }}
+            className="mt-3.5 text-[var(--rm-muted)]"
+            style={{ fontSize: 15.5, lineHeight: 1.6 }}
           >
-            ยังไม่เจอคำตอบที่ตรงใจ? ส่ง email มาที่{' '}
+            ยังไม่ตรงคำถาม? ส่ง email มาที่{' '}
             <a
               href="mailto:hi@outlieragency.co"
               className="no-underline"
-              style={{ color: 'var(--rm-accent)' }}
+              style={{ color: 'var(--rm-accent)', fontWeight: 500 }}
             >
               hi@outlieragency.co
             </a>{' '}
-            ตอบเองทุกฉบับ
+            ผมตอบเอง
           </p>
         </div>
 

@@ -5,9 +5,8 @@ import { useEffect, useState } from 'react'
 import { RiffLogo } from './logo'
 
 const NAV_LINKS: [string, string][] = [
-  ['Riff คืออะไร', '#what'],
-  ['ทำงานยังไง', '#how'],
-  ['ผลลัพธ์', '#outcomes'],
+  ['ทำงานยังไง', '#features'],
+  ['ราคา', '#pricing'],
   ['คำถามที่พบบ่อย', '#faq'],
 ]
 

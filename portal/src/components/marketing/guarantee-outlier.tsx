@@ -27,16 +27,19 @@ export function GuaranteeOutlier() {
               textWrap: 'balance' as const,
             }}
           >
-            หา <span className="rm-serif-italic">idea ที่ปังจริง</span>
+            ปัญหาของ creator คนเดียว
             <br />
-            ไม่ใช่ idea ที่คุณเดาเอง
+            ไม่ใช่ <span className="rm-serif-italic">ไม่มีไอเดีย</span>.
           </h2>
           <p
             className="mt-5 mx-auto text-[var(--rm-forest-muted)]"
-            style={{ fontSize: 'clamp(15px, 1.3vw, 18px)', lineHeight: 1.6, maxWidth: 600 }}
+            style={{ fontSize: 'clamp(15px, 1.3vw, 18px)', lineHeight: 1.7, maxWidth: 580 }}
           >
-            Outlier Score ของ Riff คือคะแนนที่บอกว่าวิดีโอตัวไหนดังเกินค่าเฉลี่ย channel
-            กี่เท่า สูตรเดียวกับที่ vidIQ และ creator agency ใช้กันจริง
+            แต่คือไม่รู้ว่าไอเดียไหน <em>ปังจริง</em> ก่อนจะลงมือเขียน
+            <br />
+            <br />
+            Outlier Score คือวิธีที่ผมกรอง — บอกว่า video
+            ตัวนี้ดังเกินค่าเฉลี่ย channel กี่เท่า
           </p>
         </div>
 
@@ -54,29 +57,14 @@ export function GuaranteeOutlier() {
             <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
               <div>
                 <div style={{ fontSize: 18, fontWeight: 600 }}>
-                  Outlier Score · 5 ระดับ
+                  5 ระดับที่ผมใช้กรอง
                 </div>
                 <div
                   className="text-[var(--rm-forest-muted)] mt-1"
                   style={{ fontSize: 13 }}
                 >
-                  views ÷ subscribers ปรับด้วยอายุวิดีโอ
+                  views ÷ subscribers · ปรับด้วยอายุวิดีโอ
                 </div>
-              </div>
-              <div
-                className="hidden sm:flex items-center gap-2"
-                style={{ fontSize: 12.5, color: 'var(--rm-forest-muted)' }}
-              >
-                <span
-                  style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: '50%',
-                    background: '#86efac',
-                    display: 'inline-block',
-                  }}
-                />
-                live · ปรับ tier ได้
               </div>
             </div>
 
@@ -127,13 +115,13 @@ export function GuaranteeOutlier() {
             <div
               className="mt-6 pt-5 text-[var(--rm-forest-muted)]"
               style={{
-                fontSize: 13,
+                fontSize: 13.5,
                 borderTop: '1px dashed rgba(241,236,223,0.14)',
-                lineHeight: 1.55,
+                lineHeight: 1.6,
               }}
             >
-              สูตรนี้ทดสอบมาแล้วกับ video 2.4 ล้านตัวจาก creator economy ทั้งไทยและ EN
-              ตัว tier ปรับให้เข้ากับ creator คนเดียวที่กำลังโต ไม่ใช่ channel ใหญ่
+              tier ตัวนี้ปรับให้เข้ากับ creator คนเดียวที่กำลังโต
+              ไม่ใช่ channel ใหญ่ที่ subscriber หลักล้านอยู่แล้ว
             </div>
           </div>
         </div>
@@ -148,7 +136,9 @@ export function GuaranteeOutlier() {
               fontStyle: 'italic',
             }}
           >
-            &ldquo;Viral ไม่ใช่ดวง มันคือ signal&rdquo;
+            Viral ไม่ใช่ดวง
+            <br />
+            มันคือ signal ที่อ่านได้
           </p>
         </div>
       </div>

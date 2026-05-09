@@ -18,23 +18,28 @@ export function Founder() {
               style={{
                 fontSize: 'clamp(32px, 4vw, 50px)',
                 fontWeight: 600,
-                lineHeight: 1.1,
+                lineHeight: 1.15,
                 letterSpacing: '-0.03em',
                 textWrap: 'balance' as const,
               }}
             >
-              ลง 1 ปี
+              ผมขาย Notion template ได้
               <br />
-              <span className="rm-serif-italic">หลักล้าน/เดือน.</span>
+              <span className="rm-serif-italic">หลักล้าน.</span>
             </h2>
             <p
               className="mt-5 text-[var(--rm-forest-muted)]"
-              style={{ fontSize: 'clamp(15px, 1.3vw, 18px)', lineHeight: 1.65, maxWidth: 480 }}
+              style={{ fontSize: 'clamp(15px, 1.3vw, 18px)', lineHeight: 1.7, maxWidth: 500 }}
             >
-              ผม Earth Rati เคยทำ content คนเดียวมา 3 ปี สร้างยอดขายหลักล้าน/เดือน
-              จาก digital products เพราะลง content ทุกวันได้
-              Riff คือเครื่องมือที่ผมสร้างเพื่อใช้เอง ให้ทำได้เร็วขึ้นโดยไม่เสีย voice ตัวเอง
-              วันนี้เปิดให้ creator ไทยคนอื่นใช้ด้วย
+              ตอนผมยังไม่มี personal brand จริงจัง
+              <br />
+              <br />
+              สิ่งเดียวที่ผมทำต่อเนื่อง คือลง content วันละชิ้น 90 วัน
+              เพราะรู้ว่าถ้าหยุดเมื่อไหร่ คนก็ลืมเมื่อนั้น
+              <br />
+              <br />
+              Riff คือเครื่องมือที่ผมสร้างให้ตัวเองตอนนั้น
+              ตอนที่อยากลงทุกวันแต่ไม่อยากเสียเวลา 4 ชม./โพสต์
             </p>
 
             <div
@@ -51,8 +56,8 @@ export function Founder() {
                   margin: 0,
                 }}
               >
-                &ldquo;ถ้า Riff ทำงานได้กับผม ที่ลง content ทุกวันมา 3 ปี
-                มันจะทำงานได้กับคุณ&rdquo;
+                &ldquo;ของจริงคือ ลง content ต่อเนื่อง
+                = moat ที่ AI ลอกไม่ได้&rdquo;
               </p>
               <div
                 className="mt-3 text-[var(--rm-forest-muted)]"

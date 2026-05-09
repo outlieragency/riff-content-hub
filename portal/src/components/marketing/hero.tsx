@@ -40,7 +40,7 @@ export function Hero({ count }: { count: number }) {
                 display: 'inline-block',
               }}
             />
-            สำหรับ creator ไทยที่ทำ content คนเดียว
+            เครื่องมือที่ผมสร้างขึ้นใช้เอง ตอนทำ content คนเดียว
           </div>
 
           {/* Headline — Eden style: serif italic for emphasis word */}
@@ -55,13 +55,12 @@ export function Hero({ count }: { count: number }) {
               color: 'var(--rm-text)',
             }}
           >
-            ลง content ทุกวัน
+            ลง content ทุกวันได้ คือ
             <br />
-            ใน{' '}
             <span className="rm-serif-italic" style={{ color: 'var(--rm-text)' }}>
-              เสียงของคุณ
+              moat
             </span>{' '}
-            ใน 5 นาที.
+            ของ creator ยุคนี้.
           </h1>
 
           <p
@@ -70,11 +69,16 @@ export function Hero({ count }: { count: number }) {
               fontSize: 'clamp(16px, 1.4vw, 19px)',
               color: 'var(--rm-muted)',
               maxWidth: 580,
-              lineHeight: 1.55,
+              lineHeight: 1.6,
             }}
           >
-            Riff หาวิดีโอที่ดังจริงในนิชของคุณ แล้วเขียนเป็น FB · IG carousel · Reels · YT
-            script ในเสียงคุณเอง ไม่ต้องคิด ไม่ต้องเขียน ไม่ต้องจ้าง agency
+            AI ทำ feature ใหม่ใน 1 คืน
+            <br />
+            แต่สร้าง audience ที่เชื่อใจคุณ ไม่ได้
+            <br />
+            <br />
+            Riff คือเครื่องมือที่ทำให้คุณลงต่อเนื่องไหว
+            โดยไม่เสียเสียงตัวเองไป
           </p>
 
           {/* Format tabs */}
@@ -112,8 +116,8 @@ export function Hero({ count }: { count: number }) {
             className="mt-4 text-[var(--rm-muted-2)]"
             style={{ fontSize: 13.5 }}
           >
-            <span style={{ color: 'var(--rm-accent)' }}>●</span> {count} creator รออยู่
-            · ล็อกราคา early-creator ถูกกว่า 50% · ยกเลิกได้ตลอด
+            <span style={{ color: 'var(--rm-accent)' }}>●</span> {count} creator
+            อยู่ในคิวก่อนหน้าคุณ · ราคา early lock ไว้ปีแรก · ยกเลิกเดือนไหนก็ได้
           </p>
         </div>
 
