@@ -4,12 +4,19 @@ API นี้ดึง captions/auto-captions ของวิดีโอโด�
 ~85-95% videos works ที่เหลือเป็น disabled-captions, age-restricted, region-locked
 ใน MVP ให้ graceful fallback Whisper เป็น Phase 2
 
+Cloud datacenter IPs (Railway, Vercel, AWS, etc.) get blocked by
+YouTube. When deploying the worker outside a residential network,
+set WEBSHARE_PROXY_USERNAME + WEBSHARE_PROXY_PASSWORD on the host —
+this routes the underlying HTTP calls through Webshare residential
+proxies and bypasses the block.
+
 Output:
   TranscriptResult ที่ include language detection + raw segments + plain text
 """
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from typing import Any
 
@@ -19,8 +26,36 @@ from youtube_transcript_api._errors import (
     TranscriptsDisabled,
     VideoUnavailable,
 )
+from youtube_transcript_api.proxies import (
+    GenericProxyConfig,
+    WebshareProxyConfig,
+)
 
 THAI_LANG_CODES = {"th", "th-TH"}
+
+
+def _build_proxy_config():
+    """Pick a proxy config based on env vars (None = no proxy = direct).
+
+    Webshare (preferred when deploying to cloud):
+        WEBSHARE_PROXY_USERNAME + WEBSHARE_PROXY_PASSWORD
+    Generic HTTP/HTTPS (fallback for any other provider):
+        TRANSCRIPT_HTTP_PROXY_URL + TRANSCRIPT_HTTPS_PROXY_URL
+    """
+    ws_user = os.getenv("WEBSHARE_PROXY_USERNAME", "").strip()
+    ws_pass = os.getenv("WEBSHARE_PROXY_PASSWORD", "").strip()
+    if ws_user and ws_pass:
+        return WebshareProxyConfig(
+            proxy_username=ws_user,
+            proxy_password=ws_pass,
+        )
+
+    http = os.getenv("TRANSCRIPT_HTTP_PROXY_URL", "").strip()
+    https = os.getenv("TRANSCRIPT_HTTPS_PROXY_URL", "").strip() or http
+    if http or https:
+        return GenericProxyConfig(http_url=http or None, https_url=https or None)
+
+    return None
 
 
 @dataclass
@@ -75,7 +110,7 @@ def _select_best_transcript(transcript_list) -> tuple[Any, str]:
 
 def fetch_transcript(youtube_video_id: str) -> TranscriptResult:
     """Fetch transcript by YouTube videoId."""
-    api = YouTubeTranscriptApi()
+    api = YouTubeTranscriptApi(proxy_config=_build_proxy_config())
     try:
         transcript_list = api.list(youtube_video_id)
     except TranscriptsDisabled as e:
