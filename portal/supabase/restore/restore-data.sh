@@ -53,12 +53,28 @@ load_table() {
     return
   fi
   printf "  · %-20s %s rows..." "$table" "$rows"
+  # channels.videos_count is denormalized via trigger on videos insert.
+  # If we POST it here, the videos restore step doubles the count via the
+  # AFTER INSERT trigger. Strip the column so it reaches 0, then the
+  # video restore populates the correct count.
+  local payload
+  if [ "$table" = "channels" ]; then
+    payload=$(python3 -c "
+import json
+data = json.load(open('$file'))
+for row in data:
+    row.pop('videos_count', None)
+print(json.dumps(data))
+")
+  else
+    payload=$(cat "$file")
+  fi
   local resp=$(curl -s -X POST "$URL/rest/v1/$table" \
     -H "apikey: $KEY" \
     -H "Authorization: Bearer $KEY" \
     -H "Content-Type: application/json" \
     -H "Prefer: resolution=ignore-duplicates" \
-    --data-binary "@$file")
+    --data-binary "$payload")
   if [ -n "$resp" ] && echo "$resp" | python3 -c "import sys,json; d=json.load(sys.stdin); raise SystemExit(0 if not isinstance(d,dict) or 'message' not in d else 1)" 2>/dev/null; then
     echo " OK"
   else

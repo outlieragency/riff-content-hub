@@ -26,6 +26,34 @@ create table if not exists public.channels (
 );
 create index if not exists channels_user_idx on public.channels(user_id);
 
+-- 0006: denormalized videos_count on channels (idempotent for re-runs)
+alter table public.channels
+  add column if not exists videos_count int not null default 0;
+
+create or replace function public.channels_inc_videos_count()
+returns trigger language plpgsql as $$
+begin
+  update public.channels set videos_count = videos_count + 1 where id = new.channel_id;
+  return new;
+end $$;
+
+create or replace function public.channels_dec_videos_count()
+returns trigger language plpgsql as $$
+begin
+  update public.channels set videos_count = greatest(videos_count - 1, 0) where id = old.channel_id;
+  return old;
+end $$;
+
+drop trigger if exists videos_inc_count_trg on public.videos;
+create trigger videos_inc_count_trg
+  after insert on public.videos
+  for each row execute function public.channels_inc_videos_count();
+
+drop trigger if exists videos_dec_count_trg on public.videos;
+create trigger videos_dec_count_trg
+  after delete on public.videos
+  for each row execute function public.channels_dec_videos_count();
+
 -- videos --------------------------------------------------
 create table if not exists public.videos (
   id uuid primary key default uuid_generate_v4(),
