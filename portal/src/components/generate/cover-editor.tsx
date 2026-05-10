@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Loader2, Download } from 'lucide-react'
+import { Loader2, Download, Upload, X } from 'lucide-react'
 import type { CoverFieldsPayload, VideoMetaPayload } from '@/lib/worker'
 
 const ARROW_POSITIONS = [
@@ -15,26 +15,26 @@ type Props = {
   draftId: string
   initialCover: CoverFieldsPayload
   initialCoverUrl: string | null
-  videoMeta: VideoMetaPayload
+  initialVideoMeta: VideoMetaPayload
 }
 
 export function CoverEditor({
   draftId,
   initialCover,
   initialCoverUrl,
-  videoMeta,
+  initialVideoMeta,
 }: Props) {
   const [fields, setFields] = useState<CoverFieldsPayload>(initialCover)
-  // Either a data URI from latest /preview render, or the original
-  // cover_url returned by /generate. data URIs are most accurate
-  // (reflect current edits); falling back to the URL keeps something
-  // visible while the first preview is in flight.
+  const [meta, setMeta] = useState<VideoMetaPayload>(initialVideoMeta)
   const [previewSrc, setPreviewSrc] = useState<string | null>(initialCoverUrl)
   const [rendering, setRendering] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [hasOverride, setHasOverride] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
 
-  // Debounce-key that only updates when render-relevant fields change.
-  const fieldsKey = useMemo(
+  // Render-relevant fields → debounce key.
+  const previewKey = useMemo(
     () =>
       JSON.stringify({
         l1: fields.line1,
@@ -47,17 +47,22 @@ export function CoverEditor({
         at: fields.arrow_caption_top,
         ab: fields.arrow_caption_bottom,
         ap: fields.arrow_position,
+        cn: meta.channel_name,
+        sc: meta.subscriber_count,
+        ca: meta.channel_avatar_url,
+        tn: meta.thumbnail_url,
+        ov: hasOverride,
       }),
-    [fields],
+    [fields, meta, hasOverride],
   )
 
-  // Skip the very first effect tick — initial cover URL is already shown
-  // and there's no reason to spend a render call to redraw the same thing.
-  const skipFirstRender = useRef(true)
+  // Skip the very first effect — initialCoverUrl is already showing
+  // and the inputs match it exactly, so no need to repaint.
+  const skipFirst = useRef(true)
 
   useEffect(() => {
-    if (skipFirstRender.current) {
-      skipFirstRender.current = false
+    if (skipFirst.current) {
+      skipFirst.current = false
       return
     }
     const handle = setTimeout(() => {
@@ -65,7 +70,7 @@ export function CoverEditor({
     }, 500)
     return () => clearTimeout(handle)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fieldsKey])
+  }, [previewKey])
 
   async function renderPreview() {
     setRendering(true)
@@ -76,7 +81,7 @@ export function CoverEditor({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           cover: fields,
-          video_meta: videoMeta,
+          video_meta: meta,
           draft_id: draftId,
         }),
       })
@@ -100,6 +105,13 @@ export function CoverEditor({
     setFields((cur) => ({ ...cur, [key]: value }))
   }
 
+  function patchMeta<K extends keyof VideoMetaPayload>(
+    key: K,
+    value: VideoMetaPayload[K],
+  ) {
+    setMeta((cur) => ({ ...cur, [key]: value }))
+  }
+
   function downloadCover() {
     if (!previewSrc) return
     const a = document.createElement('a')
@@ -110,6 +122,51 @@ export function CoverEditor({
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
+  }
+
+  async function handleFileSelected(file: File) {
+    setUploading(true)
+    setError(null)
+    try {
+      const fd = new FormData()
+      fd.append('draft_id', draftId)
+      fd.append('file', file)
+      const res = await fetch('/api/cover/upload-source', {
+        method: 'POST',
+        body: fd,
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.detail ?? body.error ?? `HTTP ${res.status}`)
+      }
+      // Override now lives at fb-covers/{user}/{draft}/cover-photo.png — toggling
+      // hasOverride re-runs renderPreview which picks up the override.
+      setHasOverride(true)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'upload failed')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  async function clearOverride() {
+    setUploading(true)
+    setError(null)
+    try {
+      const res = await fetch(
+        `/api/cover/clear-source?draft_id=${draftId}`,
+        { method: 'DELETE' },
+      )
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.detail ?? body.error ?? `HTTP ${res.status}`)
+      }
+      setHasOverride(false)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'clear failed')
+    } finally {
+      setUploading(false)
+    }
   }
 
   return (
@@ -138,7 +195,7 @@ export function CoverEditor({
             Cover render failed
           </div>
         )}
-        {rendering && (
+        {(rendering || uploading) && (
           <div
             className="absolute inset-0 flex items-center justify-center"
             style={{ background: 'rgba(9,50,31,0.55)' }}
@@ -148,7 +205,7 @@ export function CoverEditor({
               style={{ background: '#FBF7EC', color: '#09321F' }}
             >
               <Loader2 size={14} className="animate-spin" />
-              Rendering
+              {uploading ? 'Uploading' : 'Rendering'}
             </div>
           </div>
         )}
@@ -162,6 +219,39 @@ export function CoverEditor({
           {error}
         </div>
       )}
+
+      {/* Image source row ────────────────────────────────────── */}
+      <div className="flex items-center gap-2">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0]
+            if (f) void handleFileSelected(f)
+            e.target.value = '' // allow same-file re-select
+          }}
+        />
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-[8px] bg-secondary hover:bg-secondary/80 disabled:opacity-50"
+        >
+          <Upload size={13} /> Replace photo
+        </button>
+        {hasOverride && (
+          <button
+            type="button"
+            onClick={clearOverride}
+            disabled={uploading}
+            className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-[8px] hover:bg-secondary disabled:opacity-50"
+          >
+            <X size={13} /> Use YouTube thumbnail
+          </button>
+        )}
+      </div>
 
       {/* Headline editor ─────────────────────────────────────── */}
       <details className="rounded-[10px] border border-border-soft" open>
@@ -193,6 +283,46 @@ export function CoverEditor({
             onText={(v) => patch('line3', v)}
             onHighlight={(v) => patch('line3_highlight', v || null)}
           />
+        </div>
+      </details>
+
+      {/* Creator badge editor ────────────────────────────────── */}
+      <details className="rounded-[10px] border border-border-soft">
+        <summary className="cursor-pointer select-none px-3 py-2 text-xs font-semibold uppercase tracking-wider text-text-muted">
+          Creator badge
+        </summary>
+        <div className="px-3 pb-3 space-y-2">
+          <Field label="Channel name">
+            <Input
+              value={meta.channel_name ?? ''}
+              onChange={(v) => patchMeta('channel_name', v || null)}
+              placeholder="@earthrati"
+            />
+          </Field>
+          <Field label="Subscribers (number)">
+            <Input
+              value={
+                meta.subscriber_count != null ? String(meta.subscriber_count) : ''
+              }
+              onChange={(v) => {
+                const trimmed = v.trim()
+                if (!trimmed) {
+                  patchMeta('subscriber_count', null)
+                  return
+                }
+                const n = Number(trimmed.replace(/[,_]/g, ''))
+                if (Number.isFinite(n)) patchMeta('subscriber_count', n)
+              }}
+              placeholder="55400"
+            />
+          </Field>
+          <Field label="Avatar URL">
+            <Input
+              value={meta.channel_avatar_url ?? ''}
+              onChange={(v) => patchMeta('channel_avatar_url', v || null)}
+              placeholder="https://yt3.googleusercontent.com/..."
+            />
+          </Field>
         </div>
       </details>
 

@@ -208,7 +208,7 @@ function ResultGrid({
           draftId={result.draft_id}
           initialCover={initialCover}
           initialCoverUrl={result.cover_url}
-          videoMeta={result.video_meta}
+          initialVideoMeta={result.video_meta}
         />
       </div>
     </div>
