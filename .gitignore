@@ -70,3 +70,4 @@ htmlcov/
 
 # ========== Local-only dev assets ==========
 worker/app/assets/_local/
+.backups/
