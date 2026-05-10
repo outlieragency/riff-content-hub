@@ -1,8 +1,8 @@
 /**
- * Typed HTTP client to talk to the FastAPI worker.
+ * Typed HTTP client to talk to the FastAPI worker (Riff v2).
  *
- * Server-side ใช้เท่านั้น (ใช้ WORKER_SECRET ใน Authorization header)
- * เรียกจาก server actions / route handlers
+ * Server-side only — uses WORKER_SECRET in Authorization. Call from
+ * server actions / Next.js route handlers, never from client components.
  */
 
 const WORKER_URL = process.env.WORKER_URL!
@@ -38,14 +38,9 @@ async function call<T>(
   return (await res.json()) as T
 }
 
-export type ChannelRefKind = 'handle' | 'channel_id' | 'custom'
-
-export type SyncChannelResponse = {
-  channel_uuid: string
-  youtube_channel_id: string
-  videos_synced: number
-  channel_avg_views: number | null
-}
+// =====================================================================
+// Voice profile (background extract — no UI in v2)
+// =====================================================================
 
 export type ExtractVoiceSample = {
   text: string
@@ -63,172 +58,48 @@ export type ExtractVoiceResponse = {
     donts: string[]
     samples: { text: string; type?: string; date?: string }[]
   }
-  meta: {
-    model: string
-    input_tokens: number
-    output_tokens: number
-    cache_read_input_tokens: number
-    cache_creation_input_tokens: number
-    latency_ms: number
-    cache_hit_ratio: number
-    stop_reason: string | null
+  meta: Record<string, unknown>
+}
+
+// =====================================================================
+// Generate (paste URL → FB post + cover)
+// =====================================================================
+
+export type VideoMetaPayload = {
+  youtube_video_id?: string | null
+  thumbnail_url?: string | null
+  channel_name?: string | null
+  channel_avatar_url?: string | null
+  subscriber_count?: number | null
+}
+
+export type GenerateResponse = {
+  draft_id: string
+  title: string
+  content: string
+  cover_url: string | null
+  cover_data: {
+    line1: string
+    line2: string
+    line3: string
+    line1_highlight?: string | null
+    line2_highlight?: string | null
+    line3_highlight?: string | null
+    subhead?: string | null
+    arrow_caption_top?: string | null
+    arrow_caption_bottom?: string | null
+    arrow_position?: string | null
+    cover_template?: string | null
   }
+  video_meta: VideoMetaPayload
+  style_warnings: string[]
+  cache_hit_ratio: number
+  latency_ms: number
 }
 
-export const worker = {
-  ping: () => call<{ ok: boolean; authenticated: boolean }>('GET', '/internal/ping'),
-
-  syncChannel: (params: {
-    user_id: string
-    ref_kind: ChannelRefKind
-    ref_value: string
-    video_limit?: number
-    mode?: 'top_viewed' | 'recent' | 'hybrid'
-  }) => call<SyncChannelResponse>('POST', '/scrape/channel', params),
-
-  previewChannel: (params: {
-    url: string
-  }) =>
-    call<{
-      youtube_channel_id: string
-      handle: string | null
-      title: string
-      description: string | null
-      thumbnail_url: string | null
-      subscriber_count: number | null
-      total_video_count: number | null
-    }>('POST', '/scrape/channel/preview', params),
-
-  searchChannels: (params: {
-    query: string
-    max_results?: number
-  }) =>
-    call<{
-      hits: {
-        youtube_channel_id: string
-        handle: string | null
-        title: string
-        thumbnail_url: string | null
-        subscriber_count: number | null
-      }[]
-    }>('POST', '/scrape/channel/search', params),
-
-  extractVoice: (params: {
-    user_id: string
-    samples: ExtractVoiceSample[]
-  }) => call<ExtractVoiceResponse>('POST', '/voice/extract', params),
-
-  enqueueTranscript: (params: {
-    user_id: string
-    video_id: string
-    force?: boolean
-  }) => call<EnqueueResponse>('POST', '/transcripts/enqueue', params),
-
-  enqueueRecreate: (params: {
-    user_id: string
-    idea_id: string
-    format: string
-    voice_profile_id?: string
-    creative_style_id?: string
-    instruction_extra?: string
-  }) => call<EnqueueResponse>('POST', '/recreate/enqueue', params),
-
-  previewCover: (params: {
-    cover: CoverFieldsPayload
-    video_meta?: VideoMetaPayload
-    user_id?: string
-    draft_id?: string
-    creative_style_id?: string
-  }) => call<CoverPreviewResponse>('POST', '/cover/preview', params),
-
-  saveCover: (params: {
-    user_id: string
-    draft_id: string
-    cover: CoverFieldsPayload
-    video_meta?: VideoMetaPayload
-  }) => call<CoverSaveResponse>('POST', '/cover/save', params),
-
-  pushNotion: (params: { user_id: string; draft_id: string }) =>
-    call<NotionPushResponse>('POST', '/notion/push', params),
-
-  extractStyle: (params: {
-    user_id: string
-    references: { image_url: string; label?: string }[]
-    format_type?: string
-  }) => call<ExtractStyleResponse>('POST', '/styles/extract', params),
-
-  runTool: (params: {
-    user_id: string
-    tool:
-      | 'hook_doctor'
-      | 'grade_draft'
-      | 'niche_playbook'
-      | 'voice_rewrite'
-    input: string
-    voice_profile?: Record<string, unknown>
-  }) => call<ToolRunResponse>('POST', '/tools/run', params),
-}
-
-export type ToolRunResponse = {
-  output_markdown: string
-  meta: {
-    model: string
-    input_tokens: number
-    output_tokens: number
-    cache_read_input_tokens: number
-    latency_ms: number
-    cache_hit_ratio: number
-  }
-}
-
-export type ExtractStyleResponse = {
-  creative_style: {
-    color_palette: {
-      background: string
-      foreground: string
-      accent_colors: string[]
-      highlight_colors: { primary: string; secondary: string; tertiary: string }
-    }
-    typography: {
-      heading_weight: string
-      heading_family: string
-      body_weight: string
-      is_thai_optimized: boolean
-    }
-    layout: {
-      photo_treatment: string
-      photo_position: string
-      headline_position: string
-      headline_lines: number
-      highlight_pattern: string
-      brand_mark_position: string
-      badge_position: string
-    }
-    visual_tone: {
-      primary_descriptor: string
-      energy_level: string
-      supporting_descriptors: string[]
-    }
-    suggested_base_template: string
-    style_guide_md: string
-    naming_suggestion: string
-  }
-  meta: {
-    model: string
-    input_tokens: number
-    output_tokens: number
-    cache_read_input_tokens: number
-    cache_creation_input_tokens: number
-    latency_ms: number
-    cache_hit_ratio: number
-    stop_reason: string | null
-  }
-}
-
-export type NotionPushResponse = {
-  notion_hub_url: string
-  notion_output_url: string
-}
+// =====================================================================
+// Cover edit (live preview + save)
+// =====================================================================
 
 export type LineStylePayload = {
   highlight_color?: string | null
@@ -254,14 +125,6 @@ export type CoverFieldsPayload = {
   cover_template?: string
 }
 
-export type VideoMetaPayload = {
-  youtube_video_id?: string | null
-  thumbnail_url?: string | null
-  channel_name?: string | null
-  channel_avatar_url?: string | null
-  subscriber_count?: number | null
-}
-
 export type CoverPreviewResponse = {
   cover_data_uri: string
   bytes_length: number
@@ -272,38 +135,36 @@ export type CoverSaveResponse = {
   warnings: string[]
 }
 
-export type EnqueueResponse = {
-  job_id: string
-  status: string
-  deduplicated: boolean
-}
+// =====================================================================
+// Worker client
+// =====================================================================
 
-export type RunRecreateResponse = {
-  draft_id: string
-  format: string
-  title: string | null
-  output: Record<string, unknown>
-  output_markdown: string | null
-  cache_hit_ratio: number
-  latency_ms: number
-}
+export const worker = {
+  ping: () =>
+    call<{ ok: boolean; authenticated: boolean }>('GET', '/internal/ping'),
 
-export type TranscriptSummary = {
-  main_thesis: string
-  hook: string
-  body_sections: { heading: string; key_points: string[] }[]
-  examples: string[]
-  cta: string | null
-  takeaways: string[]
-}
+  generate: (params: {
+    user_id: string
+    url: string
+    instruction_extra?: string | null
+  }) => call<GenerateResponse>('POST', '/generate', params),
 
-export type ProcessTranscriptResponse = {
-  transcript_id: string
-  language: string
-  is_thai: boolean
-  has_translation: boolean
-  summary: TranscriptSummary
-  cached: boolean
-  timings_ms: Record<string, number>
-  cost_meta: Record<string, unknown>
+  extractVoice: (params: {
+    user_id: string
+    samples: ExtractVoiceSample[]
+  }) => call<ExtractVoiceResponse>('POST', '/voice/extract', params),
+
+  previewCover: (params: {
+    cover: CoverFieldsPayload
+    video_meta?: VideoMetaPayload
+    user_id?: string
+    draft_id?: string
+  }) => call<CoverPreviewResponse>('POST', '/cover/preview', params),
+
+  saveCover: (params: {
+    user_id: string
+    draft_id: string
+    cover: CoverFieldsPayload
+    video_meta?: VideoMetaPayload
+  }) => call<CoverSaveResponse>('POST', '/cover/save', params),
 }

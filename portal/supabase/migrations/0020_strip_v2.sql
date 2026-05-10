@@ -38,3 +38,9 @@ DROP TABLE IF EXISTS public.videos         CASCADE;
 DROP TABLE IF EXISTS public.channels       CASCADE;
 DROP TABLE IF EXISTS public.creative_styles CASCADE;
 DROP TABLE IF EXISTS public.waitlist       CASCADE;
+
+-- recreated_drafts.idea_id was NOT NULL referencing ideas. After CASCADE
+-- the FK is gone but the NOT NULL stays — relax it so the v2 /generate
+-- flow can insert rows without an idea record.
+ALTER TABLE public.recreated_drafts
+  ALTER COLUMN idea_id DROP NOT NULL;
