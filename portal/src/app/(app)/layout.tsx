@@ -6,6 +6,7 @@ import { Topbar } from '@/components/layout/topbar'
 import { RouteProgress } from '@/components/layout/route-progress'
 import { ActiveJobsBanner } from '@/components/jobs/active-jobs-banner'
 import { isFounderEmail } from '@/lib/auth/founder'
+import { getOnboardingStatus } from '@/lib/actions/onboarding'
 
 export default async function AppLayout({
   children,
@@ -19,6 +20,13 @@ export default async function AppLayout({
 
   if (!user) {
     redirect('/login')
+  }
+
+  // Force first-time users into onboarding before they land on Dashboard.
+  // Returning users with onboarded_at skip past this check.
+  const onboarding = await getOnboardingStatus()
+  if (!onboarding.onboardedAt) {
+    redirect('/onboarding')
   }
 
   // Inline voice query so layout = 2 round-trips (auth + voice) instead of 5.

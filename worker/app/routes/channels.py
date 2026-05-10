@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import re
+
 from fastapi import APIRouter, Header, HTTPException
 from googleapiclient.errors import HttpError
 from pydantic import BaseModel, Field
 
 from ..deps import get_supabase
 from ..main import require_worker_secret
+from ..services.youtube.api import resolve_channel
 from ..services.youtube.channel_sync import sync_channel
 
 router = APIRouter(prefix="/scrape", tags=["channels"])
@@ -69,3 +72,98 @@ def post_sync_channel(
         raise HTTPException(status_code=502, detail=f"youtube api error: {exc}") from exc
 
     return SyncChannelResponse(**out)
+
+
+# =====================================================================
+# /channels/preview — resolve channel metadata only (no DB write, no video fetch)
+# Used in onboarding to show "is this your channel?" confirmation card
+# =====================================================================
+
+class ChannelPreviewRequest(BaseModel):
+    url: str = Field(..., description="YouTube channel URL or handle")
+
+
+class ChannelPreviewResponse(BaseModel):
+    youtube_channel_id: str
+    handle: str | None
+    title: str
+    description: str | None
+    thumbnail_url: str | None
+    subscriber_count: int | None
+    total_video_count: int | None
+
+
+_HANDLE_RE = re.compile(r"youtube\.com/@([A-Za-z0-9_.-]+)")
+_CHANNEL_RE = re.compile(r"youtube\.com/channel/(UC[A-Za-z0-9_-]{22})")
+_CUSTOM_RE = re.compile(r"youtube\.com/c/([A-Za-z0-9_.-]+)")
+
+
+def _parse_channel_url(url: str) -> tuple[str, str] | None:
+    s = url.strip()
+    # Bare @handle
+    if s.startswith("@"):
+        return ("handle", s[1:])
+    m = _HANDLE_RE.search(s)
+    if m:
+        return ("handle", m.group(1))
+    m = _CHANNEL_RE.search(s)
+    if m:
+        return ("channel_id", m.group(1))
+    m = _CUSTOM_RE.search(s)
+    if m:
+        return ("custom", m.group(1))
+    return None
+
+
+@router.post("/channel/preview", response_model=ChannelPreviewResponse)
+def post_channel_preview(
+    body: ChannelPreviewRequest,
+    authorization: str | None = Header(default=None),
+) -> ChannelPreviewResponse:
+    """Resolve YouTube channel metadata for onboarding confirmation card.
+
+    No DB write, no video fetch — just one YouTube API call to verify the
+    URL parses + channel exists.
+    """
+    require_worker_secret(authorization)
+
+    parsed = _parse_channel_url(body.url)
+    if not parsed:
+        raise HTTPException(
+            status_code=400,
+            detail="วิเคราะห์ URL ไม่ได้ ลองวาง youtube.com/@handle หรือ /channel/UC...",
+        )
+
+    ref_kind, ref_value = parsed
+    try:
+        ch = resolve_channel(ref_kind, ref_value)
+    except HttpError as exc:
+        raise HTTPException(status_code=502, detail=f"youtube api error: {exc}") from exc
+
+    if not ch:
+        raise HTTPException(status_code=404, detail="ไม่พบ channel นี้บน YouTube")
+
+    snippet = ch.get("snippet", {}) or {}
+    stats = ch.get("statistics", {}) or {}
+    thumbs = snippet.get("thumbnails", {}) or {}
+
+    # Pick best thumb available
+    thumb_url = (
+        (thumbs.get("high") or {}).get("url")
+        or (thumbs.get("medium") or {}).get("url")
+        or (thumbs.get("default") or {}).get("url")
+    )
+
+    handle = snippet.get("customUrl")
+    if handle and handle.startswith("@"):
+        handle = handle[1:]
+
+    return ChannelPreviewResponse(
+        youtube_channel_id=ch.get("id", ""),
+        handle=handle,
+        title=snippet.get("title", "Unknown"),
+        description=(snippet.get("description") or None),
+        thumbnail_url=thumb_url,
+        subscriber_count=int(stats["subscriberCount"]) if stats.get("subscriberCount") else None,
+        total_video_count=int(stats["videoCount"]) if stats.get("videoCount") else None,
+    )

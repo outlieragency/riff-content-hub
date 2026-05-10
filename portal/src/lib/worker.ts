@@ -86,6 +86,19 @@ export const worker = {
     mode?: 'top_viewed' | 'recent' | 'hybrid'
   }) => call<SyncChannelResponse>('POST', '/scrape/channel', params),
 
+  previewChannel: (params: {
+    url: string
+  }) =>
+    call<{
+      youtube_channel_id: string
+      handle: string | null
+      title: string
+      description: string | null
+      thumbnail_url: string | null
+      subscriber_count: number | null
+      total_video_count: number | null
+    }>('POST', '/scrape/channel/preview', params),
+
   extractVoice: (params: {
     user_id: string
     samples: ExtractVoiceSample[]
