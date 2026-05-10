@@ -167,7 +167,10 @@ alter table public.board_ideas      enable row level security;
 alter table public.waitlist         enable row level security;
 
 -- per-user owner policies
-do $$ begin
+do $$
+declare
+  tbl text;
+begin
   for tbl in select unnest(array['channels','videos','ideas','transcripts','creative_styles','boards','board_ideas']) loop
     execute format('drop policy if exists "%s owner all" on public.%I', tbl, tbl);
     execute format(
