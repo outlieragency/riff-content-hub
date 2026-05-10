@@ -4,8 +4,10 @@ import { useEffect, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Crop as CropIcon,
+  Image as ImageLucide,
   ImagePlus,
   Loader2,
+  MousePointerClick,
   RefreshCw,
   RotateCcw,
   Save,
@@ -17,6 +19,7 @@ import type {
   LineStyle,
 } from '@/lib/types/recreate-formats'
 import { CoverPhotoCropper } from './cover-photo-cropper'
+import { CoverLivePreview } from './cover-live-preview'
 import { getDraftSourcePhotoUrl } from '@/lib/actions/recreate'
 
 type Props = {
@@ -320,6 +323,11 @@ export function FbCoverEditor({
   const [cover, setCover] = useState<FbArticleCover>(initial)
   const [previewUri, setPreviewUri] = useState<string | null>(null)
   const [previewing, setPreviewing] = useState(false)
+  // Live mode = React-rendered preview with click-to-edit
+  // PNG mode = Playwright screenshot (canonical output)
+  const [previewMode, setPreviewMode] = useState<'live' | 'png'>('live')
+  // Source photo for live preview — fetched once. Override > YouTube thumb.
+  const [livePhotoUrl, setLivePhotoUrl] = useState<string | null>(null)
   const [saving, startSaving] = useTransition()
   const [uploading, setUploading] = useState(false)
   const [coverPhotoUrl, setCoverPhotoUrl] = useState<string | null>(
@@ -350,6 +358,19 @@ export function FbCoverEditor({
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setCoverCacheBuster(String(Date.now()))
   }, [initialCoverUrl])
+
+  // Fetch source photo URL once (override > YT thumbnail) for live preview
+  useEffect(() => {
+    let cancelled = false
+    getDraftSourcePhotoUrl(draftId).then((res) => {
+      if (cancelled) return
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (res.ok) setLivePhotoUrl(res.url)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [draftId, coverPhotoUrl])
 
   const openCropper = async () => {
     setError(null)
@@ -531,8 +552,42 @@ export function FbCoverEditor({
       <div className="grid grid-cols-1 md:grid-cols-[440px_1fr] gap-4">
         {/* Preview pane */}
         <div className="space-y-3">
+          {/* Mode toggle: Live edit (React, click-to-edit) vs PNG (canonical render) */}
+          <div className="inline-flex items-center gap-0.5 p-0.5 bg-secondary rounded-[8px] text-2xs">
+            <button
+              type="button"
+              onClick={() => setPreviewMode('live')}
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[6px] font-medium transition-colors ${
+                previewMode === 'live'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <MousePointerClick size={12} strokeWidth={2} />
+              Live edit
+            </button>
+            <button
+              type="button"
+              onClick={() => setPreviewMode('png')}
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[6px] font-medium transition-colors ${
+                previewMode === 'png'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <ImageLucide size={12} strokeWidth={2} />
+              PNG render
+            </button>
+          </div>
+
           <div className="rounded-lg overflow-hidden bg-muted aspect-[4/5] relative">
-            {previewUri ? (
+            {previewMode === 'live' ? (
+              <CoverLivePreview
+                cover={cover}
+                onChange={setCover}
+                photoUrl={livePhotoUrl}
+              />
+            ) : previewUri ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={previewUri} alt="preview" className="w-full h-full object-cover" />
             ) : coverUrl ? (
@@ -548,8 +603,8 @@ export function FbCoverEditor({
               </div>
             )}
 
-            {/* Inline syncing indicator (top-right of preview) */}
-            {previewing && (
+            {/* Inline syncing indicator — only relevant in PNG mode */}
+            {previewMode === 'png' && previewing && (
               <div className="absolute top-2 right-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-black/70 text-white text-[10px] backdrop-blur-sm">
                 <Loader2 className="animate-spin" size={10} />
                 กำลัง render...
