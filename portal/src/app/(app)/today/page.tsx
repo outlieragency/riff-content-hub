@@ -12,7 +12,12 @@ import {
 import { createClient } from '@/lib/supabase/server'
 import { FORMAT_META, type RecreateFormat } from '@/lib/types/recreate-formats'
 import { getTutorialVideo } from '@/lib/actions/app-settings'
+import {
+  getDailyBrief,
+  getWeeklyPostingStats,
+} from '@/lib/actions/daily-brief'
 import { TutorialCard } from '@/components/dashboard/tutorial-card'
+import { DailyBrief } from '@/components/dashboard/daily-brief'
 import { timeAgo } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
@@ -61,7 +66,7 @@ export default async function DashboardPage() {
   const weekStart = startOfWeekIso()
   const todayStart = startOfTodayIso()
 
-  // 7 queries fire in parallel — was sequential, ~7x slower
+  // 9 queries fire in parallel
   const [
     { data: pendingRaw },
     { count: postedWeek },
@@ -70,6 +75,8 @@ export default async function DashboardPage() {
     { count: channelCount },
     { count: totalDrafts },
     tutorial,
+    briefVideos,
+    weeklyStats,
   ] = await Promise.all([
     supabase
       .from('recreated_drafts')
@@ -106,6 +113,8 @@ export default async function DashboardPage() {
       .select('*', { count: 'exact', head: true })
       .eq('user_id', user.id),
     getTutorialVideo(),
+    getDailyBrief({ limit: 6 }),
+    getWeeklyPostingStats(),
   ])
   const pending = (pendingRaw ?? []) as DraftRow[]
   const ideas = (ideasRaw ?? []) as IdeaRow[]
@@ -113,23 +122,28 @@ export default async function DashboardPage() {
   return (
     <div className="max-w-[1200px] mx-auto px-6 py-8">
       {/* Hero */}
-      <div className="mb-6">
-        <h1 className="font-serif-display text-3xl text-foreground leading-tight">
-          สวัสดี <span className="font-serif-italic">{userName}</span>
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1.5">
-          {pending.length === 0
-            ? totalDrafts === 0
-              ? 'พร้อมสร้าง FB post แรก? ลอง Quick from URL ด้านซ้าย'
-              : 'ไม่มี draft ค้าง — ลุย idea ใหม่ได้เลย'
-            : `มี ${pending.length} draft รอ review${
-                postedToday ? ` · วันนี้ post ไปแล้ว ${postedToday}` : ''
-              }`}
-        </p>
+      <div className="mb-6 flex items-end justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="font-serif-display text-3xl text-foreground leading-tight">
+            สวัสดี <span className="font-serif-italic">{userName}</span>
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1.5">
+            {weeklyStats.postedToday
+              ? `วันนี้ลงไปแล้ว — ลุยวันพรุ่งนี้ต่อ`
+              : pending.length === 0
+                ? totalDrafts === 0
+                  ? 'พร้อมเริ่ม content แรก? เลือก outlier ด้านล่างเลย'
+                  : 'วันนี้ยังไม่ได้ลง — เลือก idea แล้ว recreate'
+                : `มี ${pending.length} draft รอ review`}
+          </p>
+        </div>
+        <WeeklyStreakBadge stats={weeklyStats} />
       </div>
 
-      <TutorialCard url={tutorial.url} title={tutorial.title} />
+      {/* Daily Brief — the morning ritual */}
+      <DailyBrief videos={briefVideos} />
 
+      <TutorialCard url={tutorial.url} title={tutorial.title} />
 
       {/* Stats strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
@@ -403,5 +417,48 @@ function QuickLink({
       </div>
       <p className="text-xs text-muted-foreground">{description}</p>
     </Link>
+  )
+}
+
+function WeeklyStreakBadge({
+  stats,
+}: {
+  stats: { posted: number; target: number; postedToday: boolean }
+}) {
+  const dots = Array.from({ length: stats.target }).map((_, i) => i < stats.posted)
+  return (
+    <div className="surface-1 rounded-[12px] px-3.5 py-2.5">
+      <div className="flex items-center gap-2">
+        <div>
+          <div className="text-2xs uppercase tracking-wider text-muted-foreground font-medium">
+            อาทิตย์นี้
+          </div>
+          <div
+            className="font-semibold text-foreground tabular-nums"
+            style={{ fontSize: 18, lineHeight: 1.1, marginTop: 2 }}
+          >
+            {stats.posted}
+            <span className="text-muted-foreground font-normal"> / {stats.target}</span>
+          </div>
+        </div>
+        <div className="flex flex-col gap-0.5 ml-1.5">
+          {[0, 1].map((row) => (
+            <div key={row} className="flex gap-0.5">
+              {dots.slice(row * 4, row * 4 + (row === 0 ? 4 : 3)).map((on, i) => (
+                <span
+                  key={i}
+                  style={{
+                    width: 7,
+                    height: 7,
+                    borderRadius: 2,
+                    background: on ? '#09321F' : 'rgba(26,36,24,0.12)',
+                  }}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   )
 }
