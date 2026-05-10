@@ -11,7 +11,7 @@ export default async function LoginPage() {
   } = await supabase.auth.getUser()
 
   if (user) {
-    redirect('/generate')
+    redirect('/outliers')
   }
 
   return <LoginForm />

@@ -29,14 +29,12 @@ from ..client import CallMeta, call_messages, extract_text
 @dataclass
 class RecreateContext:
     user_id: str
+    idea_id: str
     voice_profile_id: str | None
     voice_profile: dict[str, Any]
     summary: dict[str, Any]
     video: dict[str, Any] | None  # title, channel, etc.
-    # idea_id and transcripts_id are legacy — v2 /generate flow runs without
-    # the ideas/transcripts tables, so both are optional.
-    idea_id: str | None = None
-    transcripts_id: str | None = None
+    transcripts_id: str
     instruction_extra: str | None = None  # extra ตามที่ user request
     # Creative style for visual rendering (cover, carousel, etc.)
     # None ก็ใช้ default จาก template hardcoded (Headliner)
@@ -310,13 +308,11 @@ def insert_draft(
     rows = res.data or []
     if not rows:
         raise RuntimeError("failed to insert recreated_draft")
-    # Legacy: update idea status when this draft came from an idea row.
-    # The v2 paste-URL flow has no idea record, so skip silently.
-    if ctx.idea_id:
-        try:
-            sb.table("ideas").update({"status": "recreated"}).eq(
-                "id", ctx.idea_id
-            ).eq("user_id", ctx.user_id).execute()
-        except Exception:  # noqa: BLE001
-            pass
+    # Update idea status → 'recreated' (best-effort, ignore failure)
+    try:
+        sb.table("ideas").update({"status": "recreated"}).eq("id", ctx.idea_id).eq(
+            "user_id", ctx.user_id
+        ).execute()
+    except Exception:  # noqa: BLE001
+        pass
     return rows[0]["id"]

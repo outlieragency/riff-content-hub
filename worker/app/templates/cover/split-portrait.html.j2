@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>fb-content cover — split-portrait</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;700;800;900&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@500;700;800&family=Anuphan:wght@400;500;700&family=Bai+Jamjuree:wght@400;500;700&family=Krub:wght@400;500;700&family=Mitr:wght@400;500;700&family=Prompt:wght@400;500;700;800&family=Pridi:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: {{ theme.bg if theme and theme.bg else "#FBF7EC" }};
+    --fg: {{ theme.fg if theme and theme.fg else "#1A2418" }};
+    --hl-red: {{ theme.hl_red if theme and theme.hl_red else "#E53935" }};
+    --hl-yellow: {{ theme.hl_yellow if theme and theme.hl_yellow else "#FFD400" }};
+    --hl-orange: {{ theme.hl_orange if theme and theme.hl_orange else "#FF6B1A" }};
+    --font-heading: '{{ fonts.heading if fonts and fonts.heading else "Noto Sans Thai" }}';
+    --font-body: '{{ fonts.body if fonts and fonts.body else "Noto Sans Thai" }}';
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1080px; height: 1350px;
+    background: var(--bg);
+    font-family: var(--font-body), 'Noto Sans Thai', 'IBM Plex Sans Thai', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow: hidden;
+    color: var(--fg);
+  }
+  .canvas {
+    width: 1080px; height: 1350px;
+    position: relative;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  /* Top half — photo */
+  .top {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 720px;
+    overflow: hidden;
+    background: #1a1a1a;
+  }
+  .top .photo {
+    position: absolute;
+    inset: 0;
+    background-position: center 35%;
+    background-size: cover;
+    background-repeat: no-repeat;
+  }
+  .top::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0) 35%, rgba(0,0,0,0.20) 100%);
+  }
+
+  /* Brand mark — top-right of photo, circle */
+  .brand-mark {
+    position: absolute;
+    top: 36px; right: 36px;
+    width: 96px; height: 96px;
+    z-index: 5;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid #FFFFFF;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.40);
+    background: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .brand-mark img { width: 100%; height: 100%; object-fit: contain; }
+
+  /* Channel pill on photo bottom-left */
+  .channel-pill {
+    position: absolute;
+    z-index: 4;
+    left: 50px;
+    bottom: 36px;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 22px 10px 10px;
+    background: rgba(255,255,255,0.95);
+    border-radius: 100px;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.30);
+  }
+  .channel-pill .avatar {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: rgba(0,0,0,0.06);
+  }
+  .channel-pill .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .channel-pill .meta { display: flex; flex-direction: column; }
+  .channel-pill .name {
+    color: #111;
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 1.1;
+  }
+  .channel-pill .subs {
+    color: #555;
+    font-weight: 500;
+    font-size: 14px;
+    margin-top: 3px;
+  }
+
+  /* Bottom half — headline panel */
+  .bottom {
+    position: absolute;
+    top: 720px; left: 0; right: 0; bottom: 0;
+    padding: 60px 70px 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--hl-orange);
+    font-family: var(--font-body), sans-serif;
+    margin-bottom: 22px;
+  }
+
+  .headline {
+    font-family: var(--font-heading), 'Noto Sans Thai', sans-serif;
+    color: var(--fg);
+    flex: 1;
+  }
+  .line {
+    font-weight: 800;
+    font-size: 70px;
+    line-height: 1.15;
+    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+  }
+  .line .hl-red    { color: var(--hl-red); }
+  .line .hl-yellow { color: var(--hl-yellow); }
+  .line .hl-orange { color: var(--hl-orange); }
+  .line .hl-bg-red    { background: var(--hl-red); padding: 0 10px; border-radius: 6px; color: #FFF; }
+  .line .hl-bg-yellow { background: var(--hl-yellow); padding: 0 10px; border-radius: 6px; color: #000; }
+  .line .hl-bg-orange { background: var(--hl-orange); padding: 0 10px; border-radius: 6px; color: #000; }
+
+  .subhead {
+    margin-top: 16px;
+    font-family: var(--font-body), sans-serif;
+    font-weight: 400;
+    font-style: italic;
+    font-size: 26px;
+    color: rgba(26,36,24,0.65);
+    line-height: 1.35;
+    max-width: 880px;
+  }
+
+  /* Footer attribution bar */
+  .footer-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 16px;
+    color: rgba(26,36,24,0.45);
+    font-weight: 600;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    padding-top: 18px;
+    border-top: 1px solid rgba(26,36,24,0.12);
+  }
+</style>
+</head>
+<body>
+<div class="canvas">
+  <div class="top">
+    {% if screenshot_data_uri %}
+    <div class="photo" style="background-image:url('{{ screenshot_data_uri }}');"></div>
+    {% endif %}
+
+    {% if brand_mark_data_uri %}
+    <div class="brand-mark"><img src="{{ brand_mark_data_uri }}" alt=""></div>
+    {% endif %}
+
+    <div class="channel-pill">
+      {% if channel_avatar_data_uri %}
+      <span class="avatar"><img src="{{ channel_avatar_data_uri }}" alt=""></span>
+      {% endif %}
+      <span class="meta">
+        <span class="name">{{ channel_name }}</span>
+        {% if subscriber_text_en %}
+        <span class="subs">{{ subscriber_text_en }}</span>
+        {% endif %}
+      </span>
+    </div>
+  </div>
+
+  <div class="bottom">
+    <div>
+      {% if subhead %}
+      <div class="eyebrow">{{ subhead }}</div>
+      {% endif %}
+      <div class="headline">
+        <div class="line" {{ line1_style_attr|default('', true)|safe }}>{{ line1_html|safe }}</div>
+        <div class="line" {{ line2_style_attr|default('', true)|safe }}>{{ line2_html|safe }}</div>
+        <div class="line" {{ line3_style_attr|default('', true)|safe }}>{{ line3_html|safe }}</div>
+      </div>
+    </div>
+
+    <div class="footer-bar">
+      <span>Riff · by Outlier Agency</span>
+      <span>{{ video_id or "" }}</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>
