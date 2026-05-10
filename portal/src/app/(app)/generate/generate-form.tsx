@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Loader2, Sparkles, Copy, Check, Download, AlertCircle } from 'lucide-react'
-import type { GenerateResponse } from '@/lib/worker'
+import { Loader2, Sparkles, Copy, Check, AlertCircle } from 'lucide-react'
+import type { CoverFieldsPayload, GenerateResponse } from '@/lib/worker'
+import { CoverEditor } from '@/components/generate/cover-editor'
 
 type Phase = 'idle' | 'generating' | 'ready' | 'error'
 
@@ -48,18 +49,6 @@ export function GenerateForm() {
     setTimeout(() => setCopied(false), 1800)
   }
 
-  function downloadCover() {
-    if (!result?.cover_url) return
-    const a = document.createElement('a')
-    a.href = result.cover_url
-    a.download = `riff-cover-${result.draft_id}.png`
-    a.target = '_blank'
-    a.rel = 'noopener'
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-  }
-
   return (
     <div className="space-y-6">
       <UrlInputBar
@@ -86,7 +75,6 @@ export function GenerateForm() {
           result={result}
           copied={copied}
           onCopy={copyContent}
-          onDownload={downloadCover}
         />
       )}
     </div>
@@ -157,13 +145,25 @@ function ResultGrid({
   result,
   copied,
   onCopy,
-  onDownload,
 }: {
   result: GenerateResponse
   copied: boolean
   onCopy: () => void
-  onDownload: () => void
 }) {
+  const initialCover: CoverFieldsPayload = {
+    line1: result.cover_data.line1 ?? '',
+    line2: result.cover_data.line2 ?? '',
+    line3: result.cover_data.line3 ?? '',
+    line1_highlight: result.cover_data.line1_highlight ?? null,
+    line2_highlight: result.cover_data.line2_highlight ?? null,
+    line3_highlight: result.cover_data.line3_highlight ?? null,
+    subhead: result.cover_data.subhead ?? null,
+    arrow_caption_top: result.cover_data.arrow_caption_top ?? null,
+    arrow_caption_bottom: result.cover_data.arrow_caption_bottom ?? null,
+    arrow_position: result.cover_data.arrow_position ?? 'bottom-left',
+    cover_template: result.cover_data.cover_template ?? 'trendtech-portrait',
+  }
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
       {/* Left: post copy */}
@@ -202,74 +202,15 @@ function ResultGrid({
         )}
       </div>
 
-      {/* Right: cover preview + actions */}
+      {/* Right: live cover editor */}
       <div className="bg-card border border-border-soft rounded-[14px] p-5">
-        <div className="flex justify-between items-center mb-3">
-          <h2 className="text-sm font-semibold tracking-wide uppercase text-text-muted">
-            Cover
-          </h2>
-          <button
-            type="button"
-            onClick={onDownload}
-            disabled={!result.cover_url}
-            className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-[8px] hover:bg-secondary transition-colors disabled:opacity-40"
-          >
-            <Download size={13} /> Download PNG
-          </button>
-        </div>
-
-        <div className="rounded-[10px] overflow-hidden bg-background border border-border-soft">
-          {result.cover_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={result.cover_url}
-              alt="Cover"
-              className="w-full h-auto block"
-            />
-          ) : (
-            <div className="aspect-[4/5] flex items-center justify-center text-text-muted text-sm">
-              Cover render failed
-            </div>
-          )}
-        </div>
-
-        <dl className="mt-4 grid grid-cols-2 gap-2 text-xs">
-          <Field
-            label="Headline"
-            value={[
-              result.cover_data.line1,
-              result.cover_data.line2,
-              result.cover_data.line3,
-            ]
-              .filter(Boolean)
-              .join(' / ')}
-          />
-          <Field label="Subhead" value={result.cover_data.subhead ?? '—'} />
-          <Field
-            label="Channel"
-            value={result.video_meta.channel_name ?? '—'}
-          />
-          <Field
-            label="Subscribers"
-            value={
-              result.video_meta.subscriber_count
-                ? `${result.video_meta.subscriber_count.toLocaleString()}`
-                : '—'
-            }
-          />
-        </dl>
+        <CoverEditor
+          draftId={result.draft_id}
+          initialCover={initialCover}
+          initialCoverUrl={result.cover_url}
+          videoMeta={result.video_meta}
+        />
       </div>
-    </div>
-  )
-}
-
-function Field({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <dt className="text-2xs uppercase tracking-wider text-text-muted">
-        {label}
-      </dt>
-      <dd className="mt-0.5 text-foreground/85 truncate">{value}</dd>
     </div>
   )
 }
