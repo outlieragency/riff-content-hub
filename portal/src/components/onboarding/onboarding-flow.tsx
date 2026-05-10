@@ -1,22 +1,22 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   ArrowLeft,
   ArrowRight,
-  Check,
   Loader2,
-  Plus,
+  Search,
   Sparkles,
-  Tv,
   X,
 } from 'lucide-react'
 import {
   addChannelFromOnboarding,
   completeOnboarding,
   previewChannelFromUrl,
+  searchChannelsByHandle,
   type ChannelPreview,
+  type ChannelSearchHit,
 } from '@/lib/actions/onboarding'
 
 type Step = 'channels' | 'interests' | 'syncing'
@@ -47,12 +47,10 @@ export function OnboardingFlow({ userEmail }: { userEmail: string }) {
   const [step, setStep] = useState<Step>('channels')
   const [pending, startPending] = useTransition()
 
-  // Step 1 — channels
-  const [url, setUrl] = useState('')
-  const [previewing, setPreviewing] = useState(false)
-  const [pendingPreview, setPendingPreview] = useState<ChannelPreview | null>(
-    null,
-  )
+  // Step 1 — channels (Eden-style search-as-you-type)
+  const [query, setQuery] = useState('')
+  const [searching, setSearching] = useState(false)
+  const [searchResults, setSearchResults] = useState<ChannelSearchHit[]>([])
   const [confirmedChannels, setConfirmedChannels] = useState<SavedChannel[]>([])
   const [error, setError] = useState<string | null>(null)
 
@@ -66,49 +64,82 @@ export function OnboardingFlow({ userEmail }: { userEmail: string }) {
     currentTitle: string | null
   }>({ total: 0, done: 0, currentTitle: null })
 
-  async function onLookupChannel() {
-    const trimmed = url.trim()
-    if (!trimmed) {
-      setError('ใส่ URL channel ก่อน')
+  // Debounced search — fires 350ms after last keystroke
+  const searchTokenRef = useRef(0)
+  useEffect(() => {
+    const trimmed = query.trim().replace(/^@/, '')
+    if (trimmed.length < 2) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSearchResults([])
+      setSearching(false)
       return
     }
-    setError(null)
-    setPreviewing(true)
-    try {
-      const res = await previewChannelFromUrl(trimmed)
-      if (!res.ok) {
-        setError(res.error)
-        return
-      }
-      // Already added?
-      if (
-        confirmedChannels.some(
-          (c) => c.youtube_channel_id === res.channel.youtube_channel_id,
-        )
-      ) {
-        setError('เพิ่มช่องนี้ไปแล้ว')
-        return
-      }
-      setPendingPreview(res.channel)
-    } finally {
-      setPreviewing(false)
+
+    // If user pasted a full URL, fall back to URL preview (single result)
+    if (trimmed.includes('youtube.com/') || trimmed.includes('youtu.be/')) {
+      const myToken = ++searchTokenRef.current
+      setSearching(true)
+      const timer = setTimeout(async () => {
+        const res = await previewChannelFromUrl(trimmed)
+        if (myToken !== searchTokenRef.current) return
+        setSearching(false)
+        if (res.ok) {
+          setSearchResults([
+            {
+              youtube_channel_id: res.channel.youtube_channel_id,
+              handle: res.channel.handle,
+              title: res.channel.title,
+              thumbnail_url: res.channel.thumbnail_url,
+              subscriber_count: res.channel.subscriber_count,
+            },
+          ])
+        } else {
+          setSearchResults([])
+          setError(res.error)
+        }
+      }, 350)
+      return () => clearTimeout(timer)
     }
-  }
 
-  function confirmChannel() {
-    if (!pendingPreview) return
-    setConfirmedChannels((prev) => [
-      ...prev,
-      { ...pendingPreview, _addedAt: Date.now() },
-    ])
-    setPendingPreview(null)
-    setUrl('')
+    const myToken = ++searchTokenRef.current
+    setSearching(true)
     setError(null)
-  }
+    const timer = setTimeout(async () => {
+      const res = await searchChannelsByHandle(trimmed)
+      if (myToken !== searchTokenRef.current) return
+      setSearching(false)
+      if (res.ok) {
+        setSearchResults(res.hits)
+      } else {
+        setSearchResults([])
+        setError(res.error)
+      }
+    }, 350)
+    return () => clearTimeout(timer)
+  }, [query])
 
-  function rejectChannel() {
-    setPendingPreview(null)
-    setUrl('')
+  function selectChannel(hit: ChannelSearchHit) {
+    if (
+      confirmedChannels.some(
+        (c) => c.youtube_channel_id === hit.youtube_channel_id,
+      )
+    ) {
+      setError('เพิ่มช่องนี้ไปแล้ว')
+      return
+    }
+    const channel: ChannelPreview = {
+      youtube_channel_id: hit.youtube_channel_id,
+      handle: hit.handle,
+      title: hit.title,
+      description: null,
+      thumbnail_url: hit.thumbnail_url,
+      subscriber_count: hit.subscriber_count,
+      total_video_count: null,
+    }
+    setConfirmedChannels((prev) => [...prev, { ...channel, _addedAt: Date.now() }])
+    setQuery('')
+    setSearchResults([])
+    setError(null)
   }
 
   function removeChannel(id: string) {
@@ -184,15 +215,13 @@ export function OnboardingFlow({ userEmail }: { userEmail: string }) {
 
       {step === 'channels' && (
         <ChannelsStep
-          url={url}
-          setUrl={setUrl}
-          previewing={previewing}
-          pendingPreview={pendingPreview}
+          query={query}
+          setQuery={setQuery}
+          searching={searching}
+          searchResults={searchResults}
           confirmedChannels={confirmedChannels}
           error={error}
-          onLookup={onLookupChannel}
-          onConfirm={confirmChannel}
-          onReject={rejectChannel}
+          onSelect={selectChannel}
           onRemove={removeChannel}
           onNext={goToInterests}
         />
@@ -254,78 +283,99 @@ function Header({ userEmail, step }: { userEmail: string; step: Step }) {
 }
 
 function ChannelsStep({
-  url,
-  setUrl,
-  previewing,
-  pendingPreview,
+  query,
+  setQuery,
+  searching,
+  searchResults,
   confirmedChannels,
   error,
-  onLookup,
-  onConfirm,
-  onReject,
+  onSelect,
   onRemove,
   onNext,
 }: {
-  url: string
-  setUrl: (v: string) => void
-  previewing: boolean
-  pendingPreview: ChannelPreview | null
+  query: string
+  setQuery: (v: string) => void
+  searching: boolean
+  searchResults: ChannelSearchHit[]
   confirmedChannels: SavedChannel[]
   error: string | null
-  onLookup: () => void
-  onConfirm: () => void
-  onReject: () => void
+  onSelect: (hit: ChannelSearchHit) => void
   onRemove: (id: string) => void
   onNext: () => void
 }) {
+  const showDropdown =
+    query.trim().length >= 2 && (searching || searchResults.length > 0)
+
   return (
     <>
       <p
         className="text-text-secondary"
         style={{ fontSize: 16, lineHeight: 1.6 }}
       >
-        วาง URL channel YouTube ที่อยากให้ Riff ตามดู Riff จะ scan content
-        ทุกวันแล้วเอา outliers มาให้เลือก
+        พิมพ์ <strong className="text-text-primary">@handle</strong> หรือชื่อ channel
+        ที่อยากให้ Riff ตามดู Riff จะ scan content ทุกวันแล้วเอา outliers
+        มาให้เลือก
       </p>
 
-      <div className="mt-7">
+      <div className="mt-7 relative">
         <div
           className="flex items-center gap-2"
           style={{
-            background: '#FBF7EC',
+            background: '#FFFFFF',
             border: '1px solid rgba(26,36,24,0.14)',
             borderRadius: 999,
             padding: '6px 6px 6px 16px',
+            boxShadow: showDropdown
+              ? '0 1px 2px rgba(9,50,31,0.04), 0 28px 72px -22px rgba(9,50,31,0.26)'
+              : '0 1px 2px rgba(9,50,31,0.04)',
+            transition: 'box-shadow .2s',
           }}
         >
+          <span
+            aria-hidden
+            style={{
+              fontFamily: 'Lora, Georgia, serif',
+              fontStyle: 'italic',
+              fontSize: 22,
+              color: '#09321F',
+              lineHeight: 1,
+              userSelect: 'none',
+            }}
+          >
+            @
+          </span>
+          <span
+            aria-hidden
+            style={{
+              width: 1,
+              height: 18,
+              background: 'rgba(26,36,24,0.14)',
+            }}
+          />
           <input
             type="text"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                onLookup()
-              }
-            }}
-            placeholder="youtube.com/@handle หรือ /channel/UC..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="earthrati"
+            spellCheck={false}
+            autoComplete="off"
             className="flex-1 bg-transparent border-0 outline-none text-text-primary"
-            style={{ fontSize: 15, height: 40 }}
-            disabled={previewing || !!pendingPreview}
+            style={{ fontSize: 16, height: 40 }}
           />
           <button
             type="button"
-            onClick={onLookup}
-            disabled={previewing || !url.trim() || !!pendingPreview}
-            className="inline-flex items-center justify-center rounded-full transition-colors disabled:opacity-50"
+            onClick={() => searchResults[0] && onSelect(searchResults[0])}
+            disabled={searching || searchResults.length === 0}
+            className="inline-flex items-center justify-center rounded-full transition-colors disabled:opacity-40"
             style={{
               background: '#09321F',
               color: '#F1ECDF',
               height: 36,
               width: 36,
             }}
+            aria-label="เพิ่ม"
           >
-            {previewing ? (
+            {searching ? (
               <Loader2 className="animate-spin" size={16} />
             ) : (
               <ArrowRight size={16} />
@@ -333,7 +383,87 @@ function ChannelsStep({
           </button>
         </div>
 
-        {error && (
+        {/* Dropdown results — Eden-style */}
+        {showDropdown && (
+          <div
+            className="absolute left-0 right-0 mt-2 rounded-[14px] overflow-hidden z-10"
+            style={{
+              background: '#FFFFFF',
+              border: '1px solid rgba(26,36,24,0.10)',
+              boxShadow:
+                '0 24px 60px -16px rgba(26,36,24,0.22), 0 4px 12px rgba(26,36,24,0.06)',
+              maxHeight: 380,
+              overflowY: 'auto',
+            }}
+          >
+            {searching && searchResults.length === 0 && (
+              <div className="px-4 py-6 text-center text-sm text-text-muted">
+                <Loader2 className="animate-spin inline mr-2" size={14} />
+                กำลังค้นหา...
+              </div>
+            )}
+            {!searching && searchResults.length === 0 && (
+              <div className="px-4 py-6 text-center text-sm text-text-muted">
+                ไม่พบ channel ลองเปลี่ยนคำค้นหา
+              </div>
+            )}
+            {searchResults.map((hit) => (
+              <button
+                key={hit.youtube_channel_id}
+                type="button"
+                onClick={() => onSelect(hit)}
+                className="w-full text-left transition-colors hover:bg-secondary/40"
+                style={{
+                  padding: '12px 16px',
+                  borderBottom: '1px solid rgba(26,36,24,0.05)',
+                  background: 'transparent',
+                  border: 0,
+                  cursor: 'pointer',
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  {hit.thumbnail_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={hit.thumbnail_url}
+                      alt=""
+                      className="w-12 h-12 rounded-full object-cover shrink-0"
+                      style={{ background: 'rgba(26,36,24,0.06)' }}
+                    />
+                  ) : (
+                    <div
+                      className="w-12 h-12 rounded-full shrink-0"
+                      style={{ background: 'rgba(26,36,24,0.10)' }}
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div
+                      className="font-semibold text-text-primary truncate"
+                      style={{ fontSize: 15 }}
+                    >
+                      {hit.title}
+                    </div>
+                    <div
+                      className="text-text-muted truncate"
+                      style={{ fontSize: 13, marginTop: 1 }}
+                    >
+                      {hit.handle && `@${hit.handle}`}
+                      {hit.subscriber_count != null && (
+                        <>
+                          {hit.handle && ' · '}
+                          {formatCount(hit.subscriber_count)} followers
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <YouTubePlatformBadge />
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {error && !showDropdown && (
           <div
             className="mt-3 px-3 py-2 rounded-[8px] text-sm"
             style={{
@@ -346,79 +476,13 @@ function ChannelsStep({
         )}
       </div>
 
-      {/* Pending preview confirmation card */}
-      {pendingPreview && (
-        <div
-          className="mt-5 rounded-[14px] overflow-hidden"
-          style={{
-            background: '#FFFFFF',
-            border: '1px solid rgba(26,36,24,0.10)',
-            boxShadow: '0 12px 32px -12px rgba(26,36,24,0.18)',
-          }}
-        >
-          <div className="p-4 flex items-center gap-3">
-            {pendingPreview.thumbnail_url && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={pendingPreview.thumbnail_url}
-                alt=""
-                className="w-14 h-14 rounded-full object-cover"
-                style={{ background: 'rgba(26,36,24,0.06)' }}
-              />
-            )}
-            <div className="flex-1 min-w-0">
-              <div
-                className="font-semibold text-text-primary truncate"
-                style={{ fontSize: 16 }}
-              >
-                {pendingPreview.title}
-              </div>
-              <div
-                className="text-text-muted truncate"
-                style={{ fontSize: 13, marginTop: 2 }}
-              >
-                {pendingPreview.handle && `@${pendingPreview.handle}`}
-                {pendingPreview.subscriber_count != null && (
-                  <>
-                    {pendingPreview.handle && ' · '}
-                    {formatCount(pendingPreview.subscriber_count)} subscribers
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-          <div className="px-4 pb-4 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={onConfirm}
-              className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-[10px] font-medium transition-colors"
-              style={{
-                background: '#09321F',
-                color: '#F1ECDF',
-                height: 40,
-                fontSize: 14.5,
-              }}
-            >
-              <Check size={14} strokeWidth={2.2} />
-              ใช่ ช่องนี้แหละ
-            </button>
-            <button
-              type="button"
-              onClick={onReject}
-              className="inline-flex items-center justify-center rounded-[10px] transition-colors"
-              style={{
-                border: '1px solid rgba(26,36,24,0.14)',
-                color: 'var(--color-text-secondary)',
-                height: 40,
-                width: 40,
-              }}
-              aria-label="ไม่ใช่"
-            >
-              <X size={14} strokeWidth={2} />
-            </button>
-          </div>
-        </div>
-      )}
+      {/* "Other platforms coming soon" hint */}
+      <div
+        className="mt-4 inline-flex items-center gap-2 text-xs text-text-muted"
+        style={{ fontSize: 12 }}
+      >
+        <span>ตอนนี้รองรับ YouTube · Instagram / TikTok / X เร็ว ๆ นี้</span>
+      </div>
 
       {/* Confirmed channels list */}
       {confirmedChannels.length > 0 && (
@@ -656,6 +720,32 @@ function SyncingStep({
         </div>
       </div>
     </div>
+  )
+}
+
+function YouTubePlatformBadge() {
+  return (
+    <span
+      className="inline-flex items-center justify-center rounded-md shrink-0"
+      style={{
+        width: 28,
+        height: 28,
+        background: 'rgba(255,71,71,0.10)',
+      }}
+      aria-label="YouTube"
+    >
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          fill="#FF0000"
+          d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"
+        />
+      </svg>
+    </span>
   )
 }
 

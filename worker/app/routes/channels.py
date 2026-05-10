@@ -115,6 +115,119 @@ def _parse_channel_url(url: str) -> tuple[str, str] | None:
     return None
 
 
+class ChannelSearchRequest(BaseModel):
+    query: str = Field(..., min_length=1, max_length=80)
+    max_results: int = Field(8, ge=1, le=15)
+
+
+class ChannelSearchHit(BaseModel):
+    youtube_channel_id: str
+    handle: str | None
+    title: str
+    thumbnail_url: str | None
+    subscriber_count: int | None
+
+
+class ChannelSearchResponse(BaseModel):
+    hits: list[ChannelSearchHit]
+
+
+@router.post("/channel/search", response_model=ChannelSearchResponse)
+def post_channel_search(
+    body: ChannelSearchRequest,
+    authorization: str | None = Header(default=None),
+) -> ChannelSearchResponse:
+    """Search YouTube for channels matching a handle/name query.
+
+    Used in onboarding for Eden-style search-as-you-type dropdown.
+    Quota: 100 units per call (search.list) + 1 per channel detail
+    Strategy: lean on search.list which already returns thumb + title.
+    Caller can hit /preview later for sub_count if needed.
+    """
+    require_worker_secret(authorization)
+
+    from ..services.youtube.api import _client
+
+    yt = _client()
+    q = body.query.strip().lstrip("@")
+
+    try:
+        # Search for channels by name/handle
+        search_resp = (
+            yt.search()
+            .list(
+                part="snippet",
+                q=q,
+                type="channel",
+                maxResults=body.max_results,
+            )
+            .execute()
+        )
+    except HttpError as exc:
+        raise HTTPException(status_code=502, detail=f"youtube api error: {exc}") from exc
+
+    items = search_resp.get("items", [])
+    if not items:
+        return ChannelSearchResponse(hits=[])
+
+    # Hydrate sub_count via channels.list batch (1 quota unit)
+    channel_ids = [
+        it.get("snippet", {}).get("channelId") or it.get("id", {}).get("channelId")
+        for it in items
+    ]
+    channel_ids = [cid for cid in channel_ids if cid]
+
+    sub_counts: dict[str, int] = {}
+    handles: dict[str, str | None] = {}
+    if channel_ids:
+        try:
+            ch_resp = (
+                yt.channels()
+                .list(part="snippet,statistics", id=",".join(channel_ids), maxResults=50)
+                .execute()
+            )
+            for ch in ch_resp.get("items", []):
+                cid = ch.get("id")
+                if not cid:
+                    continue
+                stats = ch.get("statistics", {}) or {}
+                sub_counts[cid] = (
+                    int(stats["subscriberCount"]) if stats.get("subscriberCount") else 0
+                )
+                snip = ch.get("snippet", {}) or {}
+                custom = snip.get("customUrl")
+                if custom and custom.startswith("@"):
+                    custom = custom[1:]
+                handles[cid] = custom or None
+        except HttpError:
+            # Best-effort — continue without sub counts if details fail
+            pass
+
+    hits: list[ChannelSearchHit] = []
+    for it in items:
+        snip = it.get("snippet", {}) or {}
+        cid = snip.get("channelId") or it.get("id", {}).get("channelId")
+        if not cid:
+            continue
+        thumbs = snip.get("thumbnails", {}) or {}
+        thumb_url = (
+            (thumbs.get("high") or {}).get("url")
+            or (thumbs.get("medium") or {}).get("url")
+            or (thumbs.get("default") or {}).get("url")
+        )
+        hits.append(
+            ChannelSearchHit(
+                youtube_channel_id=cid,
+                handle=handles.get(cid),
+                title=snip.get("channelTitle") or snip.get("title") or "Unknown",
+                thumbnail_url=thumb_url,
+                subscriber_count=sub_counts.get(cid),
+            )
+        )
+
+    return ChannelSearchResponse(hits=hits)
+
+
 @router.post("/channel/preview", response_model=ChannelPreviewResponse)
 def post_channel_preview(
     body: ChannelPreviewRequest,

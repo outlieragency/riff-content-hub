@@ -33,6 +33,36 @@ export async function previewChannelFromUrl(
   }
 }
 
+export type ChannelSearchHit = {
+  youtube_channel_id: string
+  handle: string | null
+  title: string
+  thumbnail_url: string | null
+  subscriber_count: number | null
+}
+
+/** Search YouTube for channels matching a handle/name (Eden-style dropdown). */
+export async function searchChannelsByHandle(
+  query: string,
+): Promise<{ ok: true; hits: ChannelSearchHit[] } | { ok: false; error: string }> {
+  const trimmed = query.trim().replace(/^@/, '')
+  if (!trimmed) return { ok: true, hits: [] }
+  if (trimmed.length < 2) return { ok: true, hits: [] }
+
+  try {
+    const res = await worker.searchChannels({
+      query: trimmed,
+      max_results: 6,
+    })
+    return { ok: true, hits: res.hits as ChannelSearchHit[] }
+  } catch (e) {
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : 'search channels failed',
+    }
+  }
+}
+
 /** Mark user as onboarded + save interests. Channels are added via existing
  * addChannel action in the onboarding flow before this is called. */
 export async function completeOnboarding(input: {
