@@ -90,37 +90,37 @@
   --text-3xl: 38px;
 }
 
-/* ---- DARK — Eden forest, deep mossy green ------------------------- */
+/* ---- DARK — Eden palette, deep blue-green forest ------------------- */
 .dark {
-  --color-background: #1A2418;       /* deep forest, not black */
+  --color-background: #09321F;       /* Eden primary deep forest */
   --color-foreground: #F1ECDF;       /* warm cream off-white */
-  --color-card: #243024;             /* slightly raised forest surface */
+  --color-card: #224735;             /* Eden primary-soft raised surface */
   --color-card-foreground: #F1ECDF;
-  --color-border: #344038;           /* soft mossy border */
-  --color-border-soft: #2A3528;
+  --color-border: #39624D;           /* Eden accent green for soft border */
+  --color-border-soft: #1A4030;
 
   --color-text-primary: #F1ECDF;
-  --color-text-secondary: #B0AC9C;
-  --color-text-muted: #7A8275;
+  --color-text-secondary: #C8E0BF;   /* Eden sage on dark */
+  --color-text-muted: #8FAA92;
 
-  --color-secondary: #2A3528;
+  --color-secondary: #1A4030;
   --color-secondary-foreground: #F1ECDF;
-  --color-muted: #243024;
-  --color-muted-foreground: #B0AC9C;
+  --color-muted: #224735;
+  --color-muted-foreground: #C8E0BF;
   --color-accent: #2C1F0E;            /* deep brown-orange tint for accents */
   --color-accent-foreground: #FBA565;
-  --color-popover: #243024;
+  --color-popover: #224735;
   --color-popover-foreground: #F1ECDF;
-  --color-input: #2A3528;
+  --color-input: #1A4030;
   --color-ring: #F97316;
 
   --color-brand-soft: #2C1F0E;
   --color-brand-border: #5A3618;
 
-  /* Status pills — calmer hues on forest */
-  --color-status-green-bg: #1F2D1C;
-  --color-status-green-text: #A2C193;
-  --color-status-green-border: #2F4528;
+  /* Status pills — calmer hues on Eden forest */
+  --color-status-green-bg: #0E3A24;
+  --color-status-green-text: #C8E0BF;
+  --color-status-green-border: #2A5840;
   --color-status-orange-bg: #2C1F0E;
   --color-status-orange-text: #FBA565;
   --color-status-orange-border: #5A3618;
@@ -177,7 +177,7 @@ body {
   color: #F1ECDF;
 }
 .dark .scene-forest {
-  background: #0F1810;
+  background: #06190F;
 }
 
 /* Soft elevation — replace hard borders on key surfaces */
