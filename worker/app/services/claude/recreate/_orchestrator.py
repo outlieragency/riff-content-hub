@@ -19,7 +19,8 @@ from supabase import Client
 from ....settings import get_settings
 from ..caching import (
     cached_text_block,
-    load_prompt,
+    load_prompt,  # noqa: F401  (kept for back-compat exports)
+    load_prompt_for_user,
     plain_text_block,
     render_voice_profile,
 )
@@ -206,7 +207,7 @@ def call_recreate(
     settings = get_settings()
 
     # System: voice + global rules (cached, shared across formats)
-    voice_block = render_voice_profile(ctx.voice_profile)
+    voice_block = render_voice_profile(ctx.voice_profile, ctx.user_id)
     system_blocks: list[dict[str, Any]] = [cached_text_block(voice_block)]
 
     # User block 1: summary JSON (cached, shared across formats of same idea)
@@ -216,8 +217,9 @@ def call_recreate(
     }
     summary_text = json.dumps(summary_payload, ensure_ascii=False, indent=2)
 
-    # User block 2: format-specific prompt + task (uncached — varies per format)
-    format_prompt = load_prompt(format_prompt_filename)
+    # User block 2: format-specific prompt + task (uncached — varies per format).
+    # Use the user-aware loader so /settings/prompts overrides apply.
+    format_prompt = load_prompt_for_user(format_prompt_filename, ctx.user_id)
     task_lines = [
         format_prompt.strip(),
         "",

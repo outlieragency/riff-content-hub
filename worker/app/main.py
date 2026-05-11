@@ -122,6 +122,7 @@ from .routes import channels as channels_routes  # noqa: E402
 from .routes import cover as cover_routes  # noqa: E402
 from .routes import jobs as jobs_routes  # noqa: E402
 from .routes import notion as notion_routes  # noqa: E402
+from .routes import prompts as prompts_routes  # noqa: E402
 from .routes import quick_recreate as quick_recreate_routes  # noqa: E402
 from .routes import recreate as recreate_routes  # noqa: E402
 from .routes import styles as styles_routes  # noqa: E402
@@ -137,6 +138,7 @@ app.include_router(recreate_routes.router)
 app.include_router(jobs_routes.router)
 app.include_router(cover_routes.router)
 app.include_router(notion_routes.router)
+app.include_router(prompts_routes.router)
 app.include_router(quick_recreate_routes.router)
 app.include_router(styles_routes.router)
 app.include_router(tools_routes.router)

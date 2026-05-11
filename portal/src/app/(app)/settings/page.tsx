@@ -3,6 +3,7 @@ import { getUserSettings } from '@/lib/actions/settings'
 import { ProfileSection } from '@/components/settings/profile-section'
 import { AiProvidersSection } from '@/components/settings/ai-providers-section'
 import { IntegrationsSection } from '@/components/settings/integrations-section'
+import { PromptsSection } from '@/components/settings/prompts-section'
 import { AccountSection } from '@/components/settings/account-section'
 
 export const dynamic = 'force-dynamic'
@@ -30,6 +31,8 @@ export default async function SettingsPage() {
       />
 
       <IntegrationsSection notion={settings.notion} />
+
+      <PromptsSection />
 
       <AccountSection email={settings.email} />
     </div>

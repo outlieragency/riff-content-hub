@@ -197,6 +197,22 @@ export const worker = {
     input: string
     voice_profile?: Record<string, unknown>
   }) => call<ToolRunResponse>('POST', '/tools/run', params),
+
+  listPrompts: () =>
+    call<{ items: EditablePromptItem[] }>('GET', '/prompts/list'),
+
+  getPromptDefault: (key: string) =>
+    call<{ key: string; content: string }>(
+      'GET',
+      `/prompts/default/${encodeURIComponent(key)}`,
+    ),
+}
+
+export type EditablePromptItem = {
+  key: string
+  label: string
+  group: string
+  description: string
 }
 
 export type ToolRunResponse = {

@@ -24,10 +24,48 @@ PROMPTS_DIR = Path(__file__).resolve().parent.parent.parent / "prompts"
 
 
 def load_prompt(filename: str) -> str:
+    """Disk-only loader. Back-compat for callers without user context."""
     path = PROMPTS_DIR / filename
     if not path.exists():
         raise FileNotFoundError(f"prompt file not found: {path}")
     return path.read_text(encoding="utf-8")
+
+
+def load_prompt_for_user(filename: str, user_id: str | None = None) -> str:
+    """Like load_prompt() but checks public.user_prompts first.
+
+    Strips .md to derive the key. If an active row exists for
+    (user_id, key), returns its content. Otherwise falls back to the
+    on-disk file. user_id=None or DB error → disk fallback.
+
+    Used by call_recreate so Earth can edit format prompts via
+    /settings/prompts and have them apply on the next AI call without
+    a worker restart.
+    """
+    if user_id:
+        try:
+            from ...deps import get_supabase
+
+            sb = get_supabase()
+            key = filename[:-3] if filename.endswith(".md") else filename
+            res = (
+                sb.table("user_prompts")
+                .select("content")
+                .eq("user_id", user_id)
+                .eq("key", key)
+                .eq("is_active", True)
+                .limit(1)
+                .execute()
+            )
+            if res.data:
+                content = res.data[0].get("content")
+                if isinstance(content, str) and content.strip():
+                    return content
+        except Exception:
+            # DB hiccup should never break AI generation. Fall through
+            # to disk silently.
+            pass
+    return load_prompt(filename)
 
 
 def cached_text_block(text: str) -> dict[str, Any]:
@@ -61,9 +99,13 @@ def build_system_blocks(
     return blocks
 
 
-def render_voice_profile(profile: dict[str, Any]) -> str:
-    """Render voice profile JSON เข้า system prompt."""
-    wrapper = load_prompt("system_voice_wrapper.md")
+def render_voice_profile(profile: dict[str, Any], user_id: str | None = None) -> str:
+    """Render voice profile JSON เข้า system prompt.
+
+    Honors per-user prompt override (user_prompts table) for
+    `system_voice_wrapper` key when user_id is provided.
+    """
+    wrapper = load_prompt_for_user("system_voice_wrapper.md", user_id)
     import json
 
     return wrapper.replace("{{ voice_profile_json }}", json.dumps(profile, ensure_ascii=False, indent=2))
