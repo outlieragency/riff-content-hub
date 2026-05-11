@@ -43,6 +43,11 @@ def translate_to_thai(
         }
     ]
 
+    # 32k output tokens ≈ ~20k Thai chars ≈ ~1hr long-form video.
+    # Haiku 4.5 supports up to 64k output; 32k leaves headroom while
+    # still being a reasonable safety cap.
+    MAX_OUTPUT_TOKENS = 32000
+
     if user_id:
         try:
             from ..llm import call_via_router
@@ -52,7 +57,7 @@ def translate_to_thai(
                 task="transcript_translate",
                 system=system_blocks,
                 messages=user_messages,
-                max_tokens=8000,
+                max_tokens=MAX_OUTPUT_TOKENS,
                 temperature=0.3,
             )
         except Exception:
@@ -60,7 +65,7 @@ def translate_to_thai(
                 model=settings.haiku_model,
                 system=system_blocks,
                 messages=user_messages,
-                max_tokens=8000,
+                max_tokens=MAX_OUTPUT_TOKENS,
                 temperature=0.3,
             )
     else:
@@ -68,7 +73,7 @@ def translate_to_thai(
             model=settings.haiku_model,
             system=system_blocks,
             messages=user_messages,
-            max_tokens=8000,
+            max_tokens=MAX_OUTPUT_TOKENS,
             temperature=0.3,
         )
     return TranslateResult(text=extract_text(msg).strip(), meta=meta)
