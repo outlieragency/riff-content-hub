@@ -27,15 +27,31 @@ async function call<T>(
     body: body ? JSON.stringify(body) : undefined,
     cache: 'no-store',
   })
+  // Some upstreams (Railway proxy, Cloudflare) return plain text bodies
+  // like "Internal Server Error" instead of JSON. Reading as text first
+  // and only THEN trying JSON keeps the call helper from throwing an
+  // opaque SyntaxError up the chain.
+  const text = await res.text()
   if (!res.ok) {
     let detail = `worker ${res.status}`
     try {
-      const err = (await res.json()) as WorkerError
+      const err = JSON.parse(text) as WorkerError
       detail = err.detail ?? detail
-    } catch {}
+    } catch {
+      // Non-JSON body — surface the first 200 chars so callers can
+      // diagnose without digging into Railway logs.
+      const snippet = text.trim().slice(0, 200)
+      if (snippet) detail = `${detail}: ${snippet}`
+    }
     throw new Error(detail)
   }
-  return (await res.json()) as T
+  try {
+    return JSON.parse(text) as T
+  } catch {
+    throw new Error(
+      `worker returned non-JSON success body (${res.status}): ${text.slice(0, 200)}`,
+    )
+  }
 }
 
 export type ChannelRefKind = 'handle' | 'channel_id' | 'custom'
