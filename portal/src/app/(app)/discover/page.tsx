@@ -7,6 +7,8 @@ import { OutlierCard } from '@/components/outliers/outlier-card'
 import { DiscoverModeTabs, type DiscoverMode } from '@/components/discover/mode-tabs'
 import { DiscoverFilters } from '@/components/discover/filters'
 import { NicheFilter } from '@/components/discover/niche-filter'
+import { SuggestedCreators } from '@/components/discover/suggested-creators'
+import { getSuggestedCreators } from '@/lib/niche-creators'
 
 export const dynamic = 'force-dynamic'
 
@@ -196,6 +198,18 @@ export default async function DiscoverPage({
     <div className="max-w-[1200px] mx-auto px-6 py-8">
       <Header />
       <NicheFilter availableNicheIds={availableNicheIds} />
+      {selectedNiches.length > 0 && (() => {
+        const trackedHandles = new Set(
+          channels
+            .map((c) => (c as { handle?: string | null }).handle)
+            .filter((h): h is string => Boolean(h))
+            .map((h) => h.toLowerCase().replace(/^@/, '')),
+        )
+        const suggestions = getSuggestedCreators(selectedNiches).filter(
+          (c) => !trackedHandles.has(c.handle.toLowerCase()),
+        )
+        return <SuggestedCreators creators={suggestions} />
+      })()}
       <DiscoverModeTabs />
       <DiscoverFilters
         channels={channels.map((c) => ({ id: c.id, title: c.title }))}
