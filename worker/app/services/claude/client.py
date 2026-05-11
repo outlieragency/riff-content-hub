@@ -55,12 +55,27 @@ def call_messages(
     max_tokens: int,
     temperature: float = 0.7,
     extra_headers: dict[str, str] | None = None,
+    tools: list[dict[str, Any]] | None = None,
+    tool_choice: dict[str, Any] | None = None,
 ) -> tuple[Message, CallMeta]:
     """Call Anthropic messages API and return (message, meta).
 
     `system` รับเป็น list ของ content blocks เพื่อใส่ cache_control ได้
+
+    `tools` + `tool_choice`: force Claude to call a specific tool. When
+    used with `tool_choice={"type": "tool", "name": "<tool_name>"}`,
+    Anthropic guarantees the response contains a tool_use block whose
+    .input is a parsed dict matching the tool's JSON schema. This
+    eliminates the entire class of 'AI output ไม่ใช่ JSON' errors that
+    happen when Claude free-forms JSON in long Thai text.
     """
     client: Anthropic = get_anthropic()
+
+    extra: dict[str, Any] = {}
+    if tools is not None:
+        extra["tools"] = tools
+    if tool_choice is not None:
+        extra["tool_choice"] = tool_choice
 
     started = time.monotonic()
     msg = client.messages.create(
@@ -70,6 +85,7 @@ def call_messages(
         system=system,  # type: ignore[arg-type]
         messages=messages,  # type: ignore[arg-type]
         extra_headers=extra_headers or {},
+        **extra,  # type: ignore[arg-type]
     )
     elapsed_ms = int((time.monotonic() - started) * 1000)
 
@@ -93,3 +109,14 @@ def extract_text(msg: Message) -> str:
         if getattr(block, "type", None) == "text":
             parts.append(getattr(block, "text", ""))
     return "".join(parts)
+
+
+def extract_tool_input(msg: Message, tool_name: str) -> dict[str, Any] | None:
+    """Return the .input dict from a tool_use block matching the given
+    tool name. None if no such block (e.g. Claude returned plain text)."""
+    for block in msg.content:
+        if getattr(block, "type", None) == "tool_use" and getattr(block, "name", None) == tool_name:
+            raw = getattr(block, "input", None)
+            if isinstance(raw, dict):
+                return raw
+    return None

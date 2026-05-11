@@ -49,6 +49,54 @@ REQUIRED_HASHTAGS = (
 )
 REQUIRED_SIGNATURE = "หวังว่าโพสต์นี้จะมีประโยชน์กับทุกคนนะครับผม"
 
+# Tool schema that forces Claude to return structured JSON via tool_use.
+# Eliminates the 'AI output ไม่ใช่ JSON' class of failures — Anthropic
+# guarantees the tool input matches this schema, parsed for us.
+FB_ARTICLE_TOOL: dict[str, Any] = {
+    "name": "submit_fb_article",
+    "description": (
+        "Submit the generated FB long-form post + cover spec. Always call "
+        "this tool. Never write JSON in plain text — pass each field as a "
+        "structured argument."
+    ),
+    "input_schema": {
+        "type": "object",
+        "required": ["title", "post_body", "section_count", "thesis", "cover"],
+        "properties": {
+            "title": {"type": "string", "description": "Internal headline summary (≤300 chars)"},
+            "post_body": {
+                "type": "string",
+                "description": "Full Thai FB post following Earth's 7-zone skeleton",
+            },
+            "section_count": {"type": "integer", "minimum": 0},
+            "thesis": {"type": "string", "description": "1-2 sentence thesis (≤400 chars)"},
+            "cover": {
+                "type": "object",
+                "required": ["line1", "line2", "line3"],
+                "properties": {
+                    "hook_framework": {"type": "string"},
+                    "headline_pattern": {"type": "string"},
+                    "cover_template": {"type": "string"},
+                    "color_theme": {"type": "string"},
+                    "line1": {"type": "string", "maxLength": 80},
+                    "line1_highlight": {"type": "string"},
+                    "line2": {"type": "string", "maxLength": 80},
+                    "line2_highlight": {"type": "string"},
+                    "line3": {"type": "string", "maxLength": 80},
+                    "line3_highlight": {"type": "string"},
+                    "subhead": {"type": "string", "maxLength": 200},
+                    "arrow_caption_top": {"type": "string", "maxLength": 80},
+                    "arrow_caption_bottom": {"type": "string", "maxLength": 80},
+                    "arrow_position": {
+                        "type": "string",
+                        "enum": ["top-left", "left", "bottom-left", "right"],
+                    },
+                },
+            },
+        },
+    },
+}
+
 
 class FbArticleError(ValueError):
     pass
@@ -136,29 +184,35 @@ def generate(
         max_tokens=6000,
         temperature=0.7,
         inject_visual_style=True,
+        tool=FB_ARTICLE_TOOL,
     )
-    try:
-        raw = parse_json_strict(res.raw_text)
-    except json.JSONDecodeError as e:
-        # Log the raw payload so the next failure is debuggable.
-        # Slice WINDOW around the failure column so the relevant context
-        # is visible regardless of where in the output it broke.
-        import logging
-        log = logging.getLogger("riff.fb_article")
-        char_pos = getattr(e, "pos", 0) or 0
-        window_start = max(0, char_pos - 500)
-        window_end = min(len(res.raw_text), char_pos + 500)
-        log.error(
-            "fb_article JSON parse failed at line=%s col=%s pos=%s\n"
-            "----- WINDOW around failure -----\n%s\n"
-            "----- FULL output (first 16KB) -----\n%s",
-            getattr(e, "lineno", "?"),
-            getattr(e, "colno", "?"),
-            char_pos,
-            res.raw_text[window_start:window_end],
-            res.raw_text[:16000],
-        )
-        raise FbArticleError(f"AI output ไม่ใช่ JSON: {e}") from e
+
+    # tool_use path: Anthropic-validated dict, no parsing.
+    if res.tool_input is not None:
+        raw = res.tool_input
+    else:
+        # Defensive fallback — happens if the model returned plain text
+        # despite tool_choice='tool' (rare, but possible on very long
+        # outputs or weird stop conditions).
+        try:
+            raw = parse_json_strict(res.raw_text)
+        except json.JSONDecodeError as e:
+            import logging
+            log = logging.getLogger("riff.fb_article")
+            char_pos = getattr(e, "pos", 0) or 0
+            window_start = max(0, char_pos - 500)
+            window_end = min(len(res.raw_text), char_pos + 500)
+            log.error(
+                "fb_article tool_use missing AND JSON parse failed at line=%s col=%s pos=%s\n"
+                "----- WINDOW around failure -----\n%s\n"
+                "----- FULL output (first 16KB) -----\n%s",
+                getattr(e, "lineno", "?"),
+                getattr(e, "colno", "?"),
+                char_pos,
+                res.raw_text[window_start:window_end],
+                res.raw_text[:16000],
+            )
+            raise FbArticleError(f"AI output ไม่ใช่ JSON: {e}") from e
 
     output = _coerce(raw)
 

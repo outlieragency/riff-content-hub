@@ -23,7 +23,7 @@ from ..caching import (
     plain_text_block,
     render_voice_profile,
 )
-from ..client import CallMeta, call_messages, extract_text
+from ..client import CallMeta, call_messages, extract_text, extract_tool_input
 
 
 @dataclass
@@ -177,6 +177,10 @@ def load_recreate_context(
 class RecreateCallResult:
     raw_text: str
     meta: CallMeta
+    # When call_recreate is invoked with `tool=<schema>`, Claude is forced to
+    # call that tool and the input dict lands here pre-parsed. Use this in
+    # preference to raw_text — it can never be a parse error.
+    tool_input: dict[str, Any] | None = None
 
 
 def call_recreate(
@@ -186,6 +190,7 @@ def call_recreate(
     max_tokens: int = 4000,
     temperature: float = 0.7,
     inject_visual_style: bool = False,
+    tool: dict[str, Any] | None = None,
 ) -> RecreateCallResult:
     """Cached call ที่ทุก format ใน idea เดียวกัน share cache.
 
@@ -240,30 +245,55 @@ def call_recreate(
         }
     ]
 
-    # Route through user's per-task model preference (Settings → AI Providers).
-    # Falls back to env Anthropic if user not configured.
-    from ...llm import call_via_router
+    # When a tool schema is provided, force Claude to call it. This is
+    # the bulletproof path: Anthropic guarantees the response contains
+    # a tool_use block whose .input dict matches the schema. No JSON
+    # parsing on our side. Falls back to plain-text mode if no tool.
+    tools_kwarg: dict[str, Any] = {}
+    if tool is not None:
+        tools_kwarg["tools"] = [tool]
+        tools_kwarg["tool_choice"] = {"type": "tool", "name": tool["name"]}
 
-    try:
-        msg, meta = call_via_router(
-            user_id=ctx.user_id,
-            task="recreate_content",
-            system=system_blocks,
-            messages=user_messages,
-            max_tokens=max_tokens,
-            temperature=temperature,
-        )
-    except Exception:
-        # Hard fallback to env-based Anthropic if router fails (e.g. DB issue)
+    # Tool-use bypasses the router (which doesn't support tools) and
+    # goes direct to Anthropic. Plain-text path keeps the router so
+    # user model preferences still apply for non-tool formats.
+    if tool is not None:
         msg, meta = call_messages(
             model=settings.sonnet_model,
             system=system_blocks,
             messages=user_messages,
             max_tokens=max_tokens,
             temperature=temperature,
+            **tools_kwarg,
         )
+    else:
+        from ...llm import call_via_router
 
-    return RecreateCallResult(raw_text=extract_text(msg).strip(), meta=meta)
+        try:
+            msg, meta = call_via_router(
+                user_id=ctx.user_id,
+                task="recreate_content",
+                system=system_blocks,
+                messages=user_messages,
+                max_tokens=max_tokens,
+                temperature=temperature,
+            )
+        except Exception:
+            # Hard fallback to env-based Anthropic if router fails
+            msg, meta = call_messages(
+                model=settings.sonnet_model,
+                system=system_blocks,
+                messages=user_messages,
+                max_tokens=max_tokens,
+                temperature=temperature,
+            )
+
+    tool_input = extract_tool_input(msg, tool["name"]) if tool is not None else None
+    return RecreateCallResult(
+        raw_text=extract_text(msg).strip(),
+        meta=meta,
+        tool_input=tool_input,
+    )
 
 
 def parse_json_strict(raw: str) -> Any:
