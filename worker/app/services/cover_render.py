@@ -211,6 +211,8 @@ def render_cover_bytes(
     arrow_caption_top: str | None = None,
     arrow_caption_bottom: str | None = None,
     arrow_position: str = "bottom-left",
+    badge_position: str = "bottom-right",
+    brand_mark_position: str = "top-right",
     cover_photo_bytes: bytes | None = None,
     tool_icon_bytes: bytes | None = None,
     inset_image_bytes: bytes | None = None,
@@ -298,6 +300,8 @@ def render_cover_bytes(
         arrow_caption_top=arrow_caption_top or "",
         arrow_caption_bottom=arrow_caption_bottom or "",
         arrow_position=arrow_position,
+        badge_position=badge_position,
+        brand_mark_position=brand_mark_position,
         theme=merged_theme,
         fonts=merged_fonts,
     )

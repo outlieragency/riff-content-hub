@@ -250,6 +250,8 @@ def render_and_upload_cover_for_draft(
             arrow_caption_top=cover_data.get("arrow_caption_top"),
             arrow_caption_bottom=cover_data.get("arrow_caption_bottom"),
             arrow_position=cover_data.get("arrow_position", "bottom-left"),
+            badge_position=cover_data.get("badge_position", "bottom-right"),
+            brand_mark_position=cover_data.get("brand_mark_position", "top-right"),
             cover_template=cover_template,
             cover_photo_bytes=cover_photo_bytes,
             theme=theme,

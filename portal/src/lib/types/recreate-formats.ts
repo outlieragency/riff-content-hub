@@ -37,6 +37,10 @@ export type FbArticleCover = {
   arrow_caption_top?: string
   arrow_caption_bottom?: string
   arrow_position?: string
+  /** 4-corner placement of the YouTube creator badge. */
+  badge_position?: string
+  /** 4-corner placement of Earth's brand mark / avatar circle. */
+  brand_mark_position?: string
   /** Per-cover font override. Wins over creative_style.renderer_config.fonts.
    *  Only Google Fonts already loaded by the trendtech-portrait template
    *  render correctly: Noto Sans Thai, IBM Plex Sans Thai, Sarabun, Mitr,

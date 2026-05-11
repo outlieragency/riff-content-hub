@@ -776,6 +776,36 @@ export function FbCoverEditor({
             />
           </section>
 
+          {/* === Layout: 4-corner placement of badges === */}
+          <section>
+            <h4 className="text-sm font-semibold text-foreground mb-1">
+              Layout
+            </h4>
+            <p className="text-[11px] text-muted-foreground mb-2">
+              ตำแหน่ง avatar พี่ + creator badge บน cover
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                  Earth&apos;s avatar
+                </div>
+                <CornerPicker
+                  value={cover.brand_mark_position ?? 'top-right'}
+                  onChange={(v) => update('brand_mark_position', v)}
+                />
+              </div>
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                  Creator badge
+                </div>
+                <CornerPicker
+                  value={cover.badge_position ?? 'bottom-right'}
+                  onChange={(v) => update('badge_position', v)}
+                />
+              </div>
+            </div>
+          </section>
+
           {/* === Font family (whole cover) === */}
           <section>
             <h4 className="text-sm font-semibold text-foreground mb-1">
@@ -1011,3 +1041,41 @@ function ReferenceImagePanel({
     </div>
   )
 }
+
+function CornerPicker({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (v: string) => void
+}) {
+  const corners: { key: string; label: string }[] = [
+    { key: 'top-left', label: '↖' },
+    { key: 'top-right', label: '↗' },
+    { key: 'bottom-left', label: '↙' },
+    { key: 'bottom-right', label: '↘' },
+  ]
+  return (
+    <div className="grid grid-cols-2 gap-1 w-[88px]">
+      {corners.map((c) => {
+        const on = value === c.key
+        return (
+          <button
+            key={c.key}
+            type="button"
+            onClick={() => onChange(c.key)}
+            title={c.key}
+            className={`h-10 rounded-md border text-base transition-colors ${
+              on
+                ? 'bg-foreground text-background border-foreground'
+                : 'bg-background border-border text-muted-foreground hover:text-foreground hover:border-foreground'
+            }`}
+          >
+            {c.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+

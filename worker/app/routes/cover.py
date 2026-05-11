@@ -56,6 +56,10 @@ class CoverFields(BaseModel):
     arrow_caption_bottom: str | None = None
     arrow_position: str = "bottom-left"
     cover_template: str = "trendtech-portrait"
+    # 4-corner positions for the floating badges. Template applies CSS
+    # classes pos-{position} that map to the right CSS anchor.
+    badge_position: str = "bottom-right"
+    brand_mark_position: str = "top-right"
     # Per-cover font override. Wins over creative_style.renderer_config.fonts.
     # Shape: { heading: "Sarabun", body: "Sarabun" }. Only the Google Fonts
     # already loaded by the template are guaranteed to render.
@@ -179,6 +183,8 @@ def post_preview(
             arrow_caption_top=body.cover.arrow_caption_top,
             arrow_caption_bottom=body.cover.arrow_caption_bottom,
             arrow_position=body.cover.arrow_position,
+            badge_position=body.cover.badge_position,
+            brand_mark_position=body.cover.brand_mark_position,
             cover_template=cover_template,
             cover_photo_bytes=cover_photo_bytes,
             theme=theme,
