@@ -87,7 +87,6 @@ function LineEditor({
   onStyleChange: (next: LineStyle | undefined) => void
 }) {
   const highlightInBody = highlight && value.includes(highlight)
-  const [advanced, setAdvanced] = useState(false)
 
   const currentColor = style?.highlight_color ?? ''
   const currentHlStyle = style?.highlight_style ?? defaultHighlightStyle
@@ -247,63 +246,54 @@ function LineEditor({
               {opt.label}
             </button>
           ))}
-          <button
-            type="button"
-            onClick={() => setAdvanced((v) => !v)}
-            className="ml-auto text-[10px] text-blue-600 hover:underline"
-          >
-            {advanced ? 'ซ่อน font' : 'ปรับ font'}
-          </button>
         </div>
 
-        {advanced && (
-          <div className="space-y-2 pt-1.5 border-t border-border-soft">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0 w-14">
-                ขนาด
-              </span>
-              <input
-                type="range"
-                min={70}
-                max={130}
-                step={5}
-                value={currentSizePct}
-                onChange={(e) =>
-                  updateStyle({ font_size_pct: Number(e.target.value) })
-                }
-                className="flex-1 accent-brand"
-              />
-              <span className="text-[10px] tabular-nums text-foreground w-10 text-right">
-                {currentSizePct}%
-              </span>
-            </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0 w-14">
-                น้ำหนัก
-              </span>
-              {([
-                { v: 400 as const, label: 'R' },
-                { v: 600 as const, label: 'Semi' },
-                { v: 700 as const, label: 'Bold' },
-                { v: 800 as const, label: 'Extra' },
-                { v: 900 as const, label: 'Black' },
-              ]).map((opt) => (
-                <button
-                  key={opt.v}
-                  type="button"
-                  onClick={() => updateStyle({ font_weight: opt.v })}
-                  className={`text-[10px] px-2 py-1 rounded ${
-                    currentWeight === opt.v
-                      ? 'bg-foreground text-background'
-                      : 'bg-background border border-border text-muted-foreground'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
+        <div className="space-y-2 pt-1.5 border-t border-border-soft">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0 w-14">
+              ขนาด
+            </span>
+            <input
+              type="range"
+              min={70}
+              max={130}
+              step={5}
+              value={currentSizePct}
+              onChange={(e) =>
+                updateStyle({ font_size_pct: Number(e.target.value) })
+              }
+              className="flex-1 accent-brand"
+            />
+            <span className="text-[10px] tabular-nums text-foreground w-10 text-right">
+              {currentSizePct}%
+            </span>
           </div>
-        )}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0 w-14">
+              น้ำหนัก
+            </span>
+            {([
+              { v: 400 as const, label: 'R' },
+              { v: 600 as const, label: 'Semi' },
+              { v: 700 as const, label: 'Bold' },
+              { v: 800 as const, label: 'Extra' },
+              { v: 900 as const, label: 'Black' },
+            ]).map((opt) => (
+              <button
+                key={opt.v}
+                type="button"
+                onClick={() => updateStyle({ font_weight: opt.v })}
+                className={`text-[10px] px-2 py-1 rounded ${
+                  currentWeight === opt.v
+                    ? 'bg-foreground text-background'
+                    : 'bg-background border border-border text-muted-foreground'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -553,31 +543,38 @@ export function FbCoverEditor({
         {/* Preview pane */}
         <div className="space-y-3">
           {/* Mode toggle: Live edit (React, click-to-edit) vs PNG (canonical render) */}
-          <div className="inline-flex items-center gap-0.5 p-0.5 bg-secondary rounded-[8px] text-2xs">
-            <button
-              type="button"
-              onClick={() => setPreviewMode('live')}
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[6px] font-medium transition-colors ${
-                previewMode === 'live'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <MousePointerClick size={12} strokeWidth={2} />
-              Live edit
-            </button>
-            <button
-              type="button"
-              onClick={() => setPreviewMode('png')}
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[6px] font-medium transition-colors ${
-                previewMode === 'png'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <ImageLucide size={12} strokeWidth={2} />
-              PNG render
-            </button>
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-0.5 p-0.5 bg-secondary rounded-[8px] text-2xs">
+              <button
+                type="button"
+                onClick={() => setPreviewMode('live')}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[6px] font-medium transition-colors ${
+                  previewMode === 'live'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <MousePointerClick size={12} strokeWidth={2} />
+                Live edit (preview)
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewMode('png')}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[6px] font-medium transition-colors ${
+                  previewMode === 'png'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <ImageLucide size={12} strokeWidth={2} />
+                PNG (ของจริง)
+              </button>
+            </div>
+            <p className="text-[10px] text-muted-foreground leading-tight">
+              {previewMode === 'live'
+                ? 'แก้ตรงนี้เพื่อ preview เร็ว ๆ. ภาพที่จะใช้โพสต์ดูแท็บ PNG'
+                : 'ภาพ PNG นี้คือไฟล์จริงที่จะใช้โพสต์ FB'}
+            </p>
           </div>
 
           <div className="rounded-lg overflow-hidden bg-muted aspect-[4/5] relative">
@@ -840,11 +837,12 @@ export function FbCoverEditor({
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
                 ตำแหน่งลูกศรบนภาพ
               </div>
-              <div className="flex gap-1.5">
+              <div className="flex gap-1.5 flex-wrap">
                 {[
                   { v: 'top-left', label: 'มุมบนซ้าย' },
                   { v: 'left', label: 'กลางซ้าย' },
                   { v: 'bottom-left', label: 'มุมล่างซ้าย' },
+                  { v: 'right', label: 'กลางขวา' },
                 ].map((opt) => (
                   <button
                     key={opt.v}

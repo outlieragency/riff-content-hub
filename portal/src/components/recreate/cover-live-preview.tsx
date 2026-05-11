@@ -251,6 +251,12 @@ export function CoverLivePreview({
             )}
           </div>
 
+          {/* Snap zone hints — visible only while dragging the arrow.
+              Each box marks where the arrow will land if released over its
+              quadrant. Without this the arrow appeared to "rubber-band" back
+              to the same spot, since drag positions are quantized to 4 zones. */}
+          {draggingArrow && <SnapZoneHints currentPosition={cover.arrow_position} />}
+
           {/* Arrow block — draggable */}
           <ArrowBlock
             top={cover.arrow_caption_top ?? ''}
@@ -773,6 +779,55 @@ function ArrowBlock({
         />
       </svg>
     </div>
+  )
+}
+
+function SnapZoneHints({ currentPosition }: { currentPosition: string | undefined }) {
+  const zones: { key: string; label: string; x: number; y: number; w: number; h: number }[] = [
+    { key: 'top-left',    label: 'มุมบนซ้าย',  x: 0,            y: 0,                w: CANVAS_W / 2, h: TOP_H / 3 },
+    { key: 'left',        label: 'กลางซ้าย',   x: 0,            y: TOP_H / 3,        w: CANVAS_W / 2, h: TOP_H / 3 },
+    { key: 'bottom-left', label: 'มุมล่างซ้าย', x: 0,            y: (TOP_H * 2) / 3,  w: CANVAS_W / 2, h: TOP_H / 3 },
+    { key: 'right',       label: 'ฝั่งขวา',    x: CANVAS_W / 2, y: 0,                w: CANVAS_W / 2, h: TOP_H },
+  ]
+  return (
+    <>
+      {zones.map((z) => (
+        <div
+          key={z.key}
+          style={{
+            position: 'absolute',
+            left: z.x,
+            top: z.y,
+            width: z.w,
+            height: z.h,
+            border: '3px dashed rgba(255,255,255,0.55)',
+            background:
+              currentPosition === z.key
+                ? 'rgba(255,255,255,0.18)'
+                : 'rgba(255,255,255,0.06)',
+            pointerEvents: 'none',
+            zIndex: 3,
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'flex-end',
+            padding: 14,
+          }}
+        >
+          <span
+            style={{
+              background: 'rgba(0,0,0,0.7)',
+              color: '#fff',
+              fontSize: 22,
+              padding: '6px 14px',
+              borderRadius: 6,
+              fontWeight: 600,
+            }}
+          >
+            {z.label}
+          </span>
+        </div>
+      ))}
+    </>
   )
 }
 
