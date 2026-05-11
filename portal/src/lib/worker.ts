@@ -253,6 +253,8 @@ export type CoverFieldsPayload = {
   arrow_caption_bottom?: string | null
   arrow_position?: string
   cover_template?: string
+  /** Per-cover font override. Wins over creative_style.renderer_config.fonts. */
+  fonts?: { heading?: string; body?: string } | null
 }
 
 export type VideoMetaPayload = {

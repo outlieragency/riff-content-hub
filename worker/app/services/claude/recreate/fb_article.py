@@ -222,6 +222,14 @@ def render_and_upload_cover_for_draft(
             if isinstance(fonts_raw, dict):
                 fonts = {k: v for k, v in fonts_raw.items() if isinstance(v, str)}
 
+    # Per-cover fonts override (cover.fonts in the draft output). Lets
+    # Earth pick a font per cover without touching the shared creative_style.
+    cover_fonts_raw = cover_data.get("fonts")
+    if isinstance(cover_fonts_raw, dict):
+        cover_fonts = {k: v for k, v in cover_fonts_raw.items() if isinstance(v, str)}
+        if cover_fonts:
+            fonts = {**(fonts or {}), **cover_fonts}
+
     try:
         png_bytes = render_cover_bytes(
             video_id=video_meta.get("youtube_video_id") or "",

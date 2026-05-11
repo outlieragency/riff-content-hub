@@ -37,6 +37,12 @@ export type FbArticleCover = {
   arrow_caption_top?: string
   arrow_caption_bottom?: string
   arrow_position?: string
+  /** Per-cover font override. Wins over creative_style.renderer_config.fonts.
+   *  Only Google Fonts already loaded by the trendtech-portrait template
+   *  render correctly: Noto Sans Thai, IBM Plex Sans Thai, Sarabun, Mitr,
+   *  Prompt, Anuphan, Bai Jamjuree, Krub, Pridi.
+   */
+  fonts?: { heading?: string; body?: string }
 }
 
 export type FbArticleOutput = {

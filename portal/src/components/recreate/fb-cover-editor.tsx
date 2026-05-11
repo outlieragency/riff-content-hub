@@ -776,6 +776,35 @@ export function FbCoverEditor({
             />
           </section>
 
+          {/* === Font family (whole cover) === */}
+          <section>
+            <h4 className="text-sm font-semibold text-foreground mb-1">
+              Font
+            </h4>
+            <p className="text-[11px] text-muted-foreground mb-2">
+              ใช้กับทั้ง headline + body — Thai fonts ที่ Google Fonts โหลดให้แล้ว
+            </p>
+            <select
+              value={cover.fonts?.heading ?? 'Noto Sans Thai'}
+              onChange={(e) => {
+                const next = e.target.value
+                const cur = cover.fonts ?? {}
+                update('fonts', { ...cur, heading: next, body: next })
+              }}
+              className="w-full bg-background border border-border rounded-md px-2.5 py-1.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            >
+              <option value="Noto Sans Thai">Noto Sans Thai (default)</option>
+              <option value="IBM Plex Sans Thai">IBM Plex Sans Thai</option>
+              <option value="Sarabun">Sarabun</option>
+              <option value="Mitr">Mitr</option>
+              <option value="Prompt">Prompt</option>
+              <option value="Anuphan">Anuphan</option>
+              <option value="Bai Jamjuree">Bai Jamjuree</option>
+              <option value="Krub">Krub</option>
+              <option value="Pridi">Pridi</option>
+            </select>
+          </section>
+
           {/* === Subhead === */}
           <section>
             <h4 className="text-sm font-semibold text-foreground mb-1">

@@ -255,7 +255,12 @@ export function CoverLivePreview({
               Each box marks where the arrow will land if released over its
               quadrant. Without this the arrow appeared to "rubber-band" back
               to the same spot, since drag positions are quantized to 4 zones. */}
-          {draggingArrow && <SnapZoneHints currentPosition={cover.arrow_position} />}
+          {draggingArrow && arrowXY && (
+            <SnapZoneHints
+              currentPosition={cover.arrow_position}
+              previewPosition={snapArrow(arrowXY.x, arrowXY.y)}
+            />
+          )}
 
           {/* Arrow block — draggable */}
           <ArrowBlock
@@ -782,7 +787,15 @@ function ArrowBlock({
   )
 }
 
-function SnapZoneHints({ currentPosition }: { currentPosition: string | undefined }) {
+function SnapZoneHints({
+  currentPosition,
+  previewPosition,
+}: {
+  currentPosition: string | undefined
+  /** The snap target under the cursor RIGHT NOW — highlighted bright
+   *  so the user can see what zone will commit on mouse-up. */
+  previewPosition: string | undefined
+}) {
   const zones: { key: string; label: string; x: number; y: number; w: number; h: number }[] = [
     { key: 'top-left',    label: 'มุมบนซ้าย',  x: 0,            y: 0,                w: CANVAS_W / 2, h: TOP_H / 3 },
     { key: 'left',        label: 'กลางซ้าย',   x: 0,            y: TOP_H / 3,        w: CANVAS_W / 2, h: TOP_H / 3 },
@@ -791,42 +804,51 @@ function SnapZoneHints({ currentPosition }: { currentPosition: string | undefine
   ]
   return (
     <>
-      {zones.map((z) => (
-        <div
-          key={z.key}
-          style={{
-            position: 'absolute',
-            left: z.x,
-            top: z.y,
-            width: z.w,
-            height: z.h,
-            border: '3px dashed rgba(255,255,255,0.55)',
-            background:
-              currentPosition === z.key
-                ? 'rgba(255,255,255,0.18)'
-                : 'rgba(255,255,255,0.06)',
-            pointerEvents: 'none',
-            zIndex: 3,
-            display: 'flex',
-            alignItems: 'flex-start',
-            justifyContent: 'flex-end',
-            padding: 14,
-          }}
-        >
-          <span
+      {zones.map((z) => {
+        const isPreview = previewPosition === z.key
+        const isCurrent = currentPosition === z.key && !isPreview
+        return (
+          <div
+            key={z.key}
             style={{
-              background: 'rgba(0,0,0,0.7)',
-              color: '#fff',
-              fontSize: 22,
-              padding: '6px 14px',
-              borderRadius: 6,
-              fontWeight: 600,
+              position: 'absolute',
+              left: z.x,
+              top: z.y,
+              width: z.w,
+              height: z.h,
+              border: isPreview
+                ? '4px solid #22c55e'
+                : '3px dashed rgba(255,255,255,0.55)',
+              background: isPreview
+                ? 'rgba(34,197,94,0.22)'
+                : isCurrent
+                  ? 'rgba(255,255,255,0.18)'
+                  : 'rgba(255,255,255,0.06)',
+              pointerEvents: 'none',
+              zIndex: 3,
+              display: 'flex',
+              alignItems: 'flex-start',
+              justifyContent: 'flex-end',
+              padding: 14,
+              transition: 'background 60ms ease, border-color 60ms ease',
             }}
           >
-            {z.label}
-          </span>
-        </div>
-      ))}
+            <span
+              style={{
+                background: isPreview ? '#16a34a' : 'rgba(0,0,0,0.7)',
+                color: '#fff',
+                fontSize: 22,
+                padding: '6px 14px',
+                borderRadius: 6,
+                fontWeight: 700,
+              }}
+            >
+              {z.label}
+              {isPreview && ' ← จะวางตรงนี้'}
+            </span>
+          </div>
+        )
+      })}
     </>
   )
 }

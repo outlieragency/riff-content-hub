@@ -56,6 +56,10 @@ class CoverFields(BaseModel):
     arrow_caption_bottom: str | None = None
     arrow_position: str = "bottom-left"
     cover_template: str = "trendtech-portrait"
+    # Per-cover font override. Wins over creative_style.renderer_config.fonts.
+    # Shape: { heading: "Sarabun", body: "Sarabun" }. Only the Google Fonts
+    # already loaded by the template are guaranteed to render.
+    fonts: dict[str, str] | None = None
 
 
 class VideoMeta(BaseModel):
@@ -121,6 +125,13 @@ def post_preview(
                 fonts_raw = cfg.get("fonts")
                 if isinstance(fonts_raw, dict):
                     fonts = {k: v for k, v in fonts_raw.items() if isinstance(v, str)}
+
+    # Per-cover font override beats creative_style fonts. Lets Earth pick
+    # a font per cover without touching the shared visual style.
+    if body.cover.fonts:
+        cover_fonts = {k: v for k, v in body.cover.fonts.items() if isinstance(v, str)}
+        if cover_fonts:
+            fonts = {**(fonts or {}), **cover_fonts}
 
     # Fetch cover-photo.png override if draft_id + user_id provided.
     # This ensures preview shows what /save will render — same photo source.
