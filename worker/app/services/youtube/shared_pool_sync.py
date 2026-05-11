@@ -160,19 +160,22 @@ def sync_curated_channel(
     }
 
 
-# The curated map mirrors portal/src/lib/niche-creators.ts. Keep in sync —
-# both files are append-only.
+# The curated map mirrors portal/src/lib/niche-creators.ts. Keep in sync.
+# All handles verified via YouTube Data API on 2026-05-11. Each resolves
+# to a channel with at least 100K subs. Imposter resolutions (clean
+# handle squatted by a fan/parody account) were removed; verified
+# alternates added where they exist (e.g. hormozi → alexhormozi).
 CURATED_BY_NICHE: dict[str, list[str]] = {
-    "solopreneur": ["hormozi", "thedankoe", "thejustinwelsh", "codiesanchez", "gregisenberg"],
-    "ai-tech": ["mreflow", "aisearchio", "wesroth", "mattvidpro", "theaigrid"],
-    "marketing": ["imangadzhi", "hormozi", "andrewkirby", "thedankoe", "jaymezzy"],
-    "digital-product": ["noahkagan", "thejustinwelsh", "roblennon", "aliabdaal"],
-    "self-dev": ["thedankoe", "aliabdaal", "chriswillx", "hubermanlab"],
+    "solopreneur": ["alexhormozi", "thedankoe", "gregisenberg", "patflynn"],
+    "ai-tech": ["mreflow", "wesroth", "mattvidpro", "theaigrid"],
+    "marketing": ["imangadzhi", "alexhormozi", "andrewkirby_", "thedankoe", "garyvee"],
+    "digital-product": ["noahkagan", "aliabdaal", "patflynn"],
+    "self-dev": ["thedankoe", "aliabdaal", "chriswillx", "hubermanlab", "lewishowes"],
     "productivity": ["aliabdaal", "thomasfrank", "tiagoforte", "augustbradley"],
-    "business": ["hormozi", "codiesanchez", "gregisenberg", "mybenshapiro"],
-    "creator-economy": ["gregisenberg", "colinandsamir", "thedankoe", "thejustinwelsh"],
-    "finance": ["grahamstephan", "humphreytalks", "andreijikh", "thoughtsmoney"],
-    "coaching": ["hormozi", "codiesanchez", "mybenshapiro", "sambailey"],
+    "business": ["alexhormozi", "codiesanchezct", "gregisenberg", "shaanpuri", "leilahormozi"],
+    "creator-economy": ["gregisenberg", "colinandsamir", "thedankoe", "thefutur"],
+    "finance": ["grahamstephan", "humphreyyang", "andreijikh"],
+    "coaching": ["alexhormozi", "leilahormozi", "sambailey", "marieforleo"],
 }
 
 

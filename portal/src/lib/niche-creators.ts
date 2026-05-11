@@ -5,13 +5,16 @@
  * channels Earth doesn't track yet — so the feed stops recycling the
  * same creators and pulls in fresh outlier signal.
  *
- * Picked from creators that consistently produce high-outlier content
- * in EN. Append-only: never remove an entry unless a handle is
- * permanently dead (channel deleted, banned, etc).
+ * All handles below were verified on 2026-05-11 via YouTube Data API.
+ * Each resolves to a channel with at least 100K subscribers and the
+ * matching display name. When adding a new creator:
+ *   1. Resolve the handle via the API first (or `worker/services/youtube/api.py`)
+ *   2. Verify subs >= 100K and the title matches the real creator
+ *   3. Add to BOTH this file AND `worker/.../shared_pool_sync.py::CURATED_BY_NICHE`
  */
 
 export type NicheCreators = {
-  /** YouTube handle without the leading `@` */
+  /** YouTube handle without the leading `@`. Lower-case; YT resolution is case-insensitive. */
   handle: string
   /** Short hint shown on hover */
   hint?: string
@@ -19,37 +22,35 @@ export type NicheCreators = {
 
 export const NICHE_CREATORS: Record<string, NicheCreators[]> = {
   solopreneur: [
-    { handle: 'hormozi', hint: '$100M offer, 1-person scaling' },
+    { handle: 'alexhormozi', hint: '$100M offer + 1-person scaling' },
     { handle: 'thedankoe', hint: '1-person creator business' },
-    { handle: 'thejustinwelsh', hint: 'Solopreneur frameworks' },
-    { handle: 'codiesanchez', hint: 'Boring biz / contrarian thinking' },
     { handle: 'gregisenberg', hint: 'Startup ideas, indie hackers' },
+    { handle: 'patflynn', hint: 'Smart passive income, solo creator' },
   ],
   'ai-tech': [
-    { handle: 'mreflow', hint: 'AI tools for marketers' },
-    { handle: 'aisearchio', hint: 'AI news + tool reviews' },
+    { handle: 'mreflow', hint: 'AI tools for marketers (Matt Wolfe)' },
     { handle: 'wesroth', hint: 'AI research breakdowns' },
-    { handle: 'mattvidpro', hint: 'AI video / tools' },
+    { handle: 'mattvidpro', hint: 'AI video / tool reviews' },
     { handle: 'theaigrid', hint: 'AI updates + analysis' },
   ],
   marketing: [
     { handle: 'imangadzhi', hint: 'Agency growth' },
-    { handle: 'hormozi', hint: 'Offers, sales' },
-    { handle: 'andrewkirby', hint: 'Marketing breakdowns' },
+    { handle: 'alexhormozi', hint: 'Offers, sales' },
+    { handle: 'andrewkirby_', hint: 'Marketing breakdowns' },
     { handle: 'thedankoe', hint: 'Writing + audience' },
-    { handle: 'jaymezzy', hint: 'Funnels' },
+    { handle: 'garyvee', hint: 'Brand + marketing' },
   ],
   'digital-product': [
     { handle: 'noahkagan', hint: 'AppSumo, $1M challenges' },
-    { handle: 'thejustinwelsh', hint: 'Solo digital products' },
-    { handle: 'roblennon', hint: 'Writing → digital products' },
     { handle: 'aliabdaal', hint: 'Course / online education' },
+    { handle: 'patflynn', hint: 'Course + membership business' },
   ],
   'self-dev': [
     { handle: 'thedankoe', hint: 'Stoicism + entrepreneurship' },
     { handle: 'aliabdaal', hint: 'Productivity + learning' },
     { handle: 'chriswillx', hint: 'Long-form mindset' },
     { handle: 'hubermanlab', hint: 'Science-backed protocols' },
+    { handle: 'lewishowes', hint: 'School of Greatness' },
   ],
   productivity: [
     { handle: 'aliabdaal', hint: 'Notion, deep work' },
@@ -58,28 +59,28 @@ export const NICHE_CREATORS: Record<string, NicheCreators[]> = {
     { handle: 'augustbradley', hint: 'Notion advanced' },
   ],
   business: [
-    { handle: 'hormozi', hint: 'Scaling 1→100' },
-    { handle: 'codiesanchez', hint: 'Buying / boring biz' },
+    { handle: 'alexhormozi', hint: 'Scaling 1→100' },
+    { handle: 'codiesanchezct', hint: 'Buying / boring biz' },
     { handle: 'gregisenberg', hint: 'Startup ideas weekly' },
-    { handle: 'mybenshapiro', hint: 'Sales + biz tactical' },
+    { handle: 'shaanpuri', hint: 'My First Million — biz ideas' },
+    { handle: 'leilahormozi', hint: 'Acquisition Pro / scaling ops' },
   ],
   'creator-economy': [
     { handle: 'gregisenberg', hint: 'Creator businesses' },
     { handle: 'colinandsamir', hint: 'Creator interviews' },
     { handle: 'thedankoe', hint: '1-person brand' },
-    { handle: 'thejustinwelsh', hint: 'Solo creator income' },
+    { handle: 'thefutur', hint: 'Creative business + design' },
   ],
   finance: [
     { handle: 'grahamstephan', hint: 'Real estate + investing' },
-    { handle: 'humphreytalks', hint: 'Personal finance' },
+    { handle: 'humphreyyang', hint: 'Personal finance' },
     { handle: 'andreijikh', hint: 'Stock market deep dives' },
-    { handle: 'thoughtsmoney', hint: 'Money frameworks' },
   ],
   coaching: [
-    { handle: 'hormozi', hint: 'Coaching offer mechanics' },
-    { handle: 'codiesanchez', hint: 'Consulting → income' },
-    { handle: 'mybenshapiro', hint: 'Coaching sales' },
+    { handle: 'alexhormozi', hint: 'Coaching offer mechanics' },
+    { handle: 'leilahormozi', hint: 'Coaching → enterprise scaling' },
     { handle: 'sambailey', hint: 'Coaching scaling' },
+    { handle: 'marieforleo', hint: 'Coaching + content business' },
   ],
 }
 
