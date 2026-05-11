@@ -22,6 +22,10 @@ export type OutlierVideo = {
   channel_subscriber_count: number | null
   channel_niches?: string[]
   is_saved: boolean
+  /** True when this row came from shared_videos (curated pool, not yet
+   *  tracked by the user). Save/recreate are gated on tracking the
+   *  source channel first. */
+  is_shared?: boolean
 }
 
 export function OutlierRow({ video }: { video: OutlierVideo }) {

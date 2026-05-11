@@ -8,7 +8,9 @@ import { DiscoverModeTabs, type DiscoverMode } from '@/components/discover/mode-
 import { DiscoverFilters } from '@/components/discover/filters'
 import { NicheFilter } from '@/components/discover/niche-filter'
 import { SuggestedCreators } from '@/components/discover/suggested-creators'
+import { RefreshPoolButton } from '@/components/discover/refresh-pool-button'
 import { getSuggestedCreators } from '@/lib/niche-creators'
+import { isFounderEmail } from '@/lib/auth/founder'
 
 export const dynamic = 'force-dynamic'
 
@@ -88,16 +90,36 @@ export default async function DiscoverPage({
   else if (durationFilter === 'short') videoQ = videoQ.eq('is_short', true)
   if (q) videoQ = videoQ.ilike('title', `%${q}%`)
 
-  // 3 independent queries fire in parallel
-  const [{ data: channels }, { data: videos }, { data: ideaRows }] =
-    await Promise.all([
-      supabase
-        .from('channels')
-        .select('id, title, handle, subscriber_count, niches')
-        .order('title'),
-      videoQ,
-      supabase.from('ideas').select('video_id').eq('user_id', user.id),
-    ])
+  // Shared pool query only runs when at least one niche is selected —
+  // otherwise the feed sticks to the user's tracked channels (the
+  // existing v1 behavior).
+  const sharedQ = selectedNiches.length
+    ? supabase
+        .from('shared_videos')
+        .select(
+          'id, youtube_video_id, title, thumbnail_url, view_count, duration_seconds, is_short, published_at, outlier_score, shared_channel_id, shared_channels!inner(id, title, handle, subscriber_count, niches)',
+        )
+        .eq('is_short', false)
+        .overlaps('shared_channels.niches', selectedNiches)
+        .order('outlier_score', { ascending: false, nullsFirst: false })
+        .limit(60)
+    : null
+
+  // 4 independent queries fire in parallel
+  const [
+    { data: channels },
+    { data: videos },
+    { data: ideaRows },
+    sharedRes,
+  ] = await Promise.all([
+    supabase
+      .from('channels')
+      .select('id, title, handle, subscriber_count, niches')
+      .order('title'),
+    videoQ,
+    supabase.from('ideas').select('video_id').eq('user_id', user.id),
+    sharedQ ?? Promise.resolve({ data: [] as unknown[] }),
+  ])
 
   if (!channels || channels.length === 0) {
     return (
@@ -182,6 +204,70 @@ export default async function DiscoverPage({
     }
   })
 
+  // Mix in shared-pool videos when niches are selected. Dedupe against
+  // user's tracked youtube_video_ids — if Earth already has this video
+  // from his own channel sync, prefer that version (it has working
+  // save/recreate actions).
+  if (selectedNiches.length && sharedRes && Array.isArray(sharedRes.data)) {
+    const ownedYtIds = new Set(
+      (videos ?? []).map((v) => v.youtube_video_id).filter(Boolean),
+    )
+    type SharedRow = {
+      id: string
+      youtube_video_id: string
+      title: string
+      thumbnail_url: string | null
+      view_count: number | null
+      duration_seconds: number | null
+      is_short: boolean
+      published_at: string | null
+      outlier_score: number | null
+      shared_channel_id: string
+      shared_channels:
+        | {
+            id: string
+            title: string
+            handle: string | null
+            subscriber_count: number | null
+            niches?: string[] | null
+          }
+        | {
+            id: string
+            title: string
+            handle: string | null
+            subscriber_count: number | null
+            niches?: string[] | null
+          }[]
+        | null
+    }
+    const sharedRows = (sharedRes.data as SharedRow[])
+      .filter((v) => !ownedYtIds.has(v.youtube_video_id))
+      .map((v): OutlierVideo => {
+        const ch = Array.isArray(v.shared_channels)
+          ? v.shared_channels[0]
+          : v.shared_channels
+        return {
+          id: v.id,
+          youtube_video_id: v.youtube_video_id,
+          title: v.title,
+          thumbnail_url: v.thumbnail_url,
+          view_count: v.view_count,
+          duration_seconds: v.duration_seconds,
+          is_short: v.is_short,
+          published_at: v.published_at,
+          outlier_score: v.outlier_score,
+          channel_id: v.shared_channel_id,
+          channel_title: ch?.title ?? '',
+          channel_handle: ch?.handle ?? null,
+          channel_subscriber_count: ch?.subscriber_count ?? null,
+          channel_niches: ch?.niches ?? [],
+          is_saved: false,
+          is_shared: true,
+        }
+      })
+    rows = [...rows, ...sharedRows]
+  }
+
   // For "By Channel" mode, group + take top 5 per channel
   if (mode === 'channel') {
     const grouped = new Map<string, OutlierVideo[]>()
@@ -194,9 +280,16 @@ export default async function DiscoverPage({
     rows = Array.from(grouped.values()).flat()
   }
 
+  const isFounder = isFounderEmail(user.email)
+
   return (
     <div className="max-w-[1200px] mx-auto px-6 py-8">
       <Header />
+      {isFounder && (
+        <div className="flex justify-end mb-2">
+          <RefreshPoolButton />
+        </div>
+      )}
       <NicheFilter availableNicheIds={availableNicheIds} />
       {selectedNiches.length > 0 && (() => {
         const trackedHandles = new Set(

@@ -127,6 +127,7 @@ from .routes import recreate as recreate_routes  # noqa: E402
 from .routes import styles as styles_routes  # noqa: E402
 from .routes import tools as tools_routes  # noqa: E402
 from .routes import transcripts as transcripts_routes  # noqa: E402
+from .routes import shared_pool as shared_pool_routes  # noqa: E402
 from .routes import voice as voice_routes  # noqa: E402
 
 app.include_router(channels_routes.router)
@@ -139,3 +140,4 @@ app.include_router(notion_routes.router)
 app.include_router(quick_recreate_routes.router)
 app.include_router(styles_routes.router)
 app.include_router(tools_routes.router)
+app.include_router(shared_pool_routes.router)
