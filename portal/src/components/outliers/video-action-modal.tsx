@@ -7,13 +7,16 @@ import { useRouter } from 'next/navigation'
 import {
   Bookmark,
   BookmarkCheck,
+  Check,
   ExternalLink,
   Flame,
   Loader2,
+  Plus,
   Sparkles,
   X,
 } from 'lucide-react'
 import { toggleSaveIdea } from '@/lib/actions/save-idea'
+import { trackCreator } from '@/lib/actions/track-creator'
 import { createClient } from '@/lib/supabase/client'
 import { formatCount, formatDuration, timeAgo } from '@/lib/utils'
 import type { OutlierVideo } from './outlier-row'
@@ -40,10 +43,33 @@ export function VideoActionModal({
   const [saved, setSaved] = useState(video.is_saved)
   const [pending, start] = useTransition()
   const [navigating, setNavigating] = useState<'recreate' | null>(null)
+  const [trackState, setTrackState] = useState<'idle' | 'done' | 'error'>('idle')
+  const [trackError, setTrackError] = useState<string | null>(null)
 
   if (!open) return null
 
+  const shared = !!video.is_shared
   const ytUrl = `https://youtube.com/watch?v=${video.youtube_video_id}`
+
+  function handleTrackCreator() {
+    if (!video.channel_handle) {
+      setTrackState('error')
+      setTrackError('ไม่มี handle ของ channel')
+      return
+    }
+    setTrackError(null)
+    start(async () => {
+      const res = await trackCreator(video.channel_handle as string)
+      if (res.ok) {
+        setTrackState('done')
+        // Pull the new tracked-channel videos into the feed.
+        router.refresh()
+      } else {
+        setTrackState('error')
+        setTrackError(res.error)
+      }
+    })
+  }
 
   function handleSaveOnly() {
     if (saved) {
@@ -170,44 +196,78 @@ export function VideoActionModal({
             )}
           </div>
 
-          {/* Actions */}
+          {/* Actions — buttons depend on whether this is a tracked
+              video (save/recreate available) or a shared-pool video
+              (must track the creator first). */}
           <div className="mt-5 space-y-2">
-            <button
-              type="button"
-              onClick={handleRecreate}
-              disabled={pending || navigating !== null}
-              className="w-full inline-flex items-center justify-between gap-2 px-4 py-3 rounded-[10px] bg-brand hover:bg-brand-hover disabled:opacity-50 text-white text-sm font-semibold transition-colors"
-            >
-              <span className="inline-flex items-center gap-2">
-                {navigating === 'recreate' ? (
-                  <Loader2 size={14} className="animate-spin" />
-                ) : (
-                  <Sparkles size={14} />
+            {shared ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handleTrackCreator}
+                  disabled={pending || trackState === 'done'}
+                  className="w-full inline-flex items-center justify-between gap-2 px-4 py-3 rounded-[10px] bg-brand hover:bg-brand-hover disabled:opacity-60 text-white text-sm font-semibold transition-colors"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    {pending ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : trackState === 'done' ? (
+                      <Check size={14} />
+                    ) : (
+                      <Plus size={14} />
+                    )}
+                    {trackState === 'done'
+                      ? 'Tracked — open feed อีกครั้งเพื่อ recreate'
+                      : `Track @${(video.channel_handle ?? '').replace(/^@/, '')}`}
+                  </span>
+                  <span className="text-[11px] opacity-80 font-normal">
+                    sync videos → recreate ได้ทันที
+                  </span>
+                </button>
+                {trackError && (
+                  <div className="text-xs text-red-600 px-1">{trackError}</div>
                 )}
-                Recreate ตอนนี้
-              </span>
-              <span className="text-[11px] opacity-80 font-normal">
-                save + ไปหน้า idea + start AI
-              </span>
-            </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={handleRecreate}
+                  disabled={pending || navigating !== null}
+                  className="w-full inline-flex items-center justify-between gap-2 px-4 py-3 rounded-[10px] bg-brand hover:bg-brand-hover disabled:opacity-50 text-white text-sm font-semibold transition-colors"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    {navigating === 'recreate' ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <Sparkles size={14} />
+                    )}
+                    Recreate ตอนนี้
+                  </span>
+                  <span className="text-[11px] opacity-80 font-normal">
+                    save + ไปหน้า idea + start AI
+                  </span>
+                </button>
 
-            <button
-              type="button"
-              onClick={handleSaveOnly}
-              disabled={pending || navigating !== null}
-              className="w-full inline-flex items-center justify-between gap-2 px-4 py-2.5 rounded-[10px] bg-secondary hover:bg-secondary/70 disabled:opacity-50 text-foreground text-sm font-medium transition-colors"
-            >
-              <span className="inline-flex items-center gap-2">
-                {pending ? (
-                  <Loader2 size={14} className="animate-spin" />
-                ) : saved ? (
-                  <BookmarkCheck size={14} className="text-emerald-600" />
-                ) : (
-                  <Bookmark size={14} />
-                )}
-                {saved ? 'บันทึกแล้ว' : 'Save เป็น Idea (ไว้ทำทีหลัง)'}
-              </span>
-            </button>
+                <button
+                  type="button"
+                  onClick={handleSaveOnly}
+                  disabled={pending || navigating !== null}
+                  className="w-full inline-flex items-center justify-between gap-2 px-4 py-2.5 rounded-[10px] bg-secondary hover:bg-secondary/70 disabled:opacity-50 text-foreground text-sm font-medium transition-colors"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    {pending ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : saved ? (
+                      <BookmarkCheck size={14} className="text-emerald-600" />
+                    ) : (
+                      <Bookmark size={14} />
+                    )}
+                    {saved ? 'บันทึกแล้ว' : 'Save เป็น Idea (ไว้ทำทีหลัง)'}
+                  </span>
+                </button>
+              </>
+            )}
 
             <a
               href={ytUrl}
@@ -218,7 +278,7 @@ export function VideoActionModal({
             >
               <span className="inline-flex items-center gap-2">
                 <ExternalLink size={14} />
-                เปิดใน YouTube
+                ดูบน YouTube
               </span>
             </a>
           </div>

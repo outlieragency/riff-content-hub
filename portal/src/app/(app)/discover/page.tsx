@@ -5,7 +5,6 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { type OutlierVideo } from '@/components/outliers/outlier-row'
 import { OutlierCard } from '@/components/outliers/outlier-card'
 import { DiscoverModeTabs, type DiscoverMode } from '@/components/discover/mode-tabs'
-import { DiscoverFilters } from '@/components/discover/filters'
 import { NicheFilter } from '@/components/discover/niche-filter'
 import { SuggestedCreators } from '@/components/discover/suggested-creators'
 import { RefreshPoolButton } from '@/components/discover/refresh-pool-button'
@@ -92,18 +91,34 @@ export default async function DiscoverPage({
 
   // Shared pool query only runs when at least one niche is selected —
   // otherwise the feed sticks to the user's tracked channels (the
-  // existing v1 behavior).
-  const sharedQ = selectedNiches.length
-    ? supabase
-        .from('shared_videos')
-        .select(
-          'id, youtube_video_id, title, thumbnail_url, view_count, duration_seconds, is_short, published_at, outlier_score, shared_channel_id, shared_channels!inner(id, title, handle, subscriber_count, niches)',
-        )
-        .eq('is_short', false)
-        .overlaps('shared_channels.niches', selectedNiches)
-        .order('outlier_score', { ascending: false, nullsFirst: false })
-        .limit(60)
-    : null
+  // existing v1 behavior). Mode filter must mirror the user-videos
+  // query above; otherwise 'latest' shows old high-outlier rows
+  // because the shared query was hard-coded to outlier_score order.
+  const buildSharedQuery = () => {
+    let q = supabase
+      .from('shared_videos')
+      .select(
+        'id, youtube_video_id, title, thumbnail_url, view_count, duration_seconds, is_short, published_at, outlier_score, shared_channel_id, shared_channels!inner(id, title, handle, subscriber_count, niches)',
+      )
+      .eq('is_short', false)
+      .overlaps('shared_channels.niches', selectedNiches)
+      .limit(60)
+    switch (mode) {
+      case 'outliers':
+        q = q
+          .gte('outlier_score', scoreFloor)
+          .order('outlier_score', { ascending: false, nullsFirst: false })
+        break
+      case 'latest':
+        q = q
+          .gte('published_at', daysAgoIso(14))
+          .order('published_at', { ascending: false, nullsFirst: false })
+        break
+      default:
+        q = q.order('outlier_score', { ascending: false, nullsFirst: false })
+    }
+    return q
+  }
 
   // 4 independent queries fire in parallel
   const [
@@ -118,7 +133,9 @@ export default async function DiscoverPage({
       .order('title'),
     videoQ,
     supabase.from('ideas').select('video_id').eq('user_id', user.id),
-    sharedQ ?? Promise.resolve({ data: [] as unknown[] }),
+    selectedNiches.length
+      ? buildSharedQuery()
+      : Promise.resolve({ data: [] as unknown[] }),
   ])
 
   if (!channels || channels.length === 0) {
@@ -290,7 +307,13 @@ export default async function DiscoverPage({
           <RefreshPoolButton />
         </div>
       )}
-      <NicheFilter availableNicheIds={availableNicheIds} />
+      {/* Niche filter (compact dropdown) + mode tabs in one row. The
+          inline channel/duration/score filters that used to live here
+          are gone — Earth's 'feature เยอะแยะ' feedback. */}
+      <div className="flex items-center gap-3 flex-wrap mb-4">
+        <NicheFilter availableNicheIds={availableNicheIds} />
+        <DiscoverModeTabs />
+      </div>
       {selectedNiches.length > 0 && (() => {
         const trackedHandles = new Set(
           channels
@@ -303,11 +326,6 @@ export default async function DiscoverPage({
         )
         return <SuggestedCreators creators={suggestions} />
       })()}
-      <DiscoverModeTabs />
-      <DiscoverFilters
-        channels={channels.map((c) => ({ id: c.id, title: c.title }))}
-        mode={mode}
-      />
 
       {rows.length === 0 ? (
         <EmptyState

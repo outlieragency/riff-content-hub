@@ -51,14 +51,9 @@ export function OutlierCard({
   function openActions(e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
-    if (shared) {
-      // Save/recreate need a user-owned video row. Open the source video
-      // on YouTube; tracking the creator (button on the card) is the
-      // path to bring it into the tracked feed.
-      const yt = `https://youtube.com/watch?v=${video.youtube_video_id}`
-      window.open(yt, '_blank', 'noopener')
-      return
-    }
+    // Always open the action chooser, even for shared cards. The modal
+    // surfaces the right buttons for each case (tracked = save/recreate,
+    // shared = track + watch on YT).
     setActionOpen(true)
   }
 
