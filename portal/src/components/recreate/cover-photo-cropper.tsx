@@ -1,8 +1,8 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, useTransition } from 'react'
 import Cropper, { type Area } from 'react-easy-crop'
-import { Loader2, RotateCcw, Sparkles, Upload, X } from 'lucide-react'
+import { Loader2, RotateCcw, Sparkles, Upload, Wand2, X } from 'lucide-react'
 import {
   cropImageToBlob,
   detectBlackBars,
@@ -43,6 +43,11 @@ export function CoverPhotoCropper({
   const [autoTrimNote, setAutoTrimNote] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [cleaning, setCleaning] = useState(false)
+  const [, startCleanTransition] = useTransition()
+  // After a successful Clean text, the image_url changes — bust the
+  // cache so react-easy-crop re-fetches the new bytes.
+  const [imageUrlOverride, setImageUrlOverride] = useState<string | null>(null)
   const detectedRef = useRef(false)
 
   const onCropComplete = useCallback((_: Area, areaPx: Area) => {
@@ -100,6 +105,43 @@ export function CoverPhotoCropper({
     setAutoTrimNote('ตัดขอบดำให้แล้ว — ปรับเพิ่มได้ตามต้องการ')
   }, [autoTrim, bars])
 
+  const handleCleanText = () => {
+    setCleaning(true)
+    setError(null)
+    startCleanTransition(async () => {
+      try {
+        const res = await fetch('/api/cover/clean-source', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ draft_id: draftId }),
+        })
+        const data = await res.json()
+        if (!res.ok) {
+          if (res.status === 412) {
+            setError('FAL_API_KEY ไม่ได้ตั้งบน worker — set ที่ Railway env ก่อนใช้')
+          } else {
+            setError(data.error || `HTTP ${res.status}`)
+          }
+          return
+        }
+        // Force the cropper to re-fetch the (now cleaned) source.
+        if (data.cover_photo_url) {
+          setImageUrlOverride(`${data.cover_photo_url}?cb=${Date.now()}`)
+          // Reset crop frame since the underlying image may have shifted.
+          setCrop({ x: 0, y: 0 })
+          setZoom(1)
+          detectedRef.current = false
+        }
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'clean failed')
+      } finally {
+        setCleaning(false)
+      }
+    })
+  }
+
+  const effectiveImageUrl = imageUrlOverride ?? imageUrl
+
   const handleSave = async () => {
     if (!croppedAreaPixels) {
       setError('ยังไม่ได้ crop')
@@ -108,7 +150,7 @@ export function CoverPhotoCropper({
     setSaving(true)
     setError(null)
     try {
-      const blob = await cropImageToBlob(imageUrl, croppedAreaPixels)
+      const blob = await cropImageToBlob(effectiveImageUrl, croppedAreaPixels)
       const fd = new FormData()
       fd.append('file', new File([blob], 'cover-photo.png', { type: 'image/png' }))
       const res = await fetch(`/api/recreated/${draftId}/upload-cover-photo`, {
@@ -156,7 +198,7 @@ export function CoverPhotoCropper({
 
         <div className="relative w-full h-[420px] bg-secondary rounded-[10px] overflow-hidden">
           <Cropper
-            image={imageUrl}
+            image={effectiveImageUrl}
             crop={crop}
             zoom={zoom}
             aspect={COVER_PHOTO_ASPECT}
@@ -170,6 +212,34 @@ export function CoverPhotoCropper({
             objectFit="contain"
             showGrid
           />
+          {cleaning && (
+            <div
+              className="absolute inset-0 flex items-center justify-center"
+              style={{ background: 'rgba(9,50,31,0.65)' }}
+            >
+              <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#FBF7EC] text-[#09321F] text-sm font-medium">
+                <Loader2 size={14} className="animate-spin" />
+                AI กำลังลบ text จากภาพ — 10-30 วินาที
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-3 flex justify-end">
+          <button
+            type="button"
+            onClick={handleCleanText}
+            disabled={cleaning || saving}
+            title="ลบ text overlay / logo จากภาพต้นฉบับด้วย AI (fal.ai)"
+            className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-[8px] bg-secondary text-foreground hover:bg-foreground hover:text-background transition-colors disabled:opacity-60"
+          >
+            {cleaning ? (
+              <Loader2 size={12} className="animate-spin" />
+            ) : (
+              <Wand2 size={12} />
+            )}
+            Clean text (AI)
+          </button>
         </div>
 
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 items-center">

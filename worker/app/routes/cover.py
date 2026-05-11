@@ -587,3 +587,135 @@ def delete_clear_source(
     ).execute()
 
     return CoverSourceResponse(cover_photo_url="", cover_url=cover_url, warnings=warnings)
+
+
+# =====================================================================
+# /cover/clean-source — run fal.ai over the current cover-photo source
+# to remove text overlays, then re-render the final cover.
+# =====================================================================
+
+
+class CoverCleanRequest(BaseModel):
+    user_id: str
+    draft_id: str
+
+
+class CoverCleanResponse(BaseModel):
+    cover_photo_url: str | None
+    cover_url: str | None
+    warnings: list[str]
+
+
+@router.post("/clean-source", response_model=CoverCleanResponse)
+def post_clean_source(
+    body: CoverCleanRequest,
+    authorization: str | None = Header(default=None),
+) -> CoverCleanResponse:
+    """Remove text overlays from the current cover photo source via fal.ai.
+
+    Source is the existing override (if uploaded) or the YouTube
+    thumbnail. After cleaning, the result is written back to the same
+    override path and the final cover is re-rendered.
+    """
+    require_worker_secret(authorization)
+    sb = get_supabase()
+
+    # Verify draft ownership
+    draft_res = (
+        sb.table("recreated_drafts")
+        .select("output, idea_id")
+        .eq("id", body.draft_id)
+        .eq("user_id", body.user_id)
+        .limit(1)
+        .execute()
+    )
+    if not draft_res.data:
+        raise HTTPException(status_code=404, detail="draft not found")
+    draft = draft_res.data[0]
+    output = draft.get("output") or {}
+
+    # Resolve the current source image URL:
+    # 1) the override, if any
+    # 2) the YouTube thumbnail otherwise
+    override_path = f"{body.user_id}/{body.draft_id}/cover-photo.png"
+    has_override = False
+    try:
+        sb.storage.from_(STORAGE_BUCKET).download(override_path)
+        has_override = True
+    except Exception:
+        has_override = False
+
+    if has_override:
+        source_url = sb.storage.from_(STORAGE_BUCKET).get_public_url(override_path)
+    else:
+        source_url = (
+            (output.get("cover") or {}).get("source_image_url")
+            or output.get("source_thumbnail_url")
+        )
+        # Fall back to ideas→videos lookup if needed
+        if not source_url:
+            video_meta_dict = _resolve_video_meta(sb, body.user_id, body.draft_id, VideoMeta())
+            source_url = video_meta_dict.get("thumbnail_url")
+    if not source_url:
+        raise HTTPException(
+            status_code=400,
+            detail="no source image found — upload a thumbnail first",
+        )
+
+    # Call fal.ai inpainting
+    from ..services.fal.inpaint import (
+        FalError,
+        download_image_bytes,
+        remove_text_from_image_url,
+    )
+
+    try:
+        cleaned_url = remove_text_from_image_url(source_url)
+        cleaned_bytes = download_image_bytes(cleaned_url)
+    except FalError as exc:
+        # Surface as 412 so the UI can show "fal not configured" rather
+        # than a generic 500.
+        msg = str(exc)
+        status = 412 if "FAL_API_KEY" in msg else 502
+        raise HTTPException(status_code=status, detail=msg) from exc
+
+    # Persist cleaned bytes as the override
+    try:
+        sb.storage.from_(STORAGE_BUCKET).upload(
+            override_path,
+            cleaned_bytes,
+            file_options={"upsert": "true", "content-type": "image/png"},
+        )
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=502, detail=f"storage upload failed: {exc}") from exc
+
+    cover_photo_url = sb.storage.from_(STORAGE_BUCKET).get_public_url(override_path)
+
+    # Re-render the final cover so the change is visible without a manual
+    # /cover/save click.
+    creative_style = _resolve_creative_style(sb, body.user_id, body.draft_id)
+    video_meta_dict = _resolve_video_meta(sb, body.user_id, body.draft_id, VideoMeta())
+    cover_url, warnings = render_and_upload_cover_for_draft(
+        sb,
+        user_id=body.user_id,
+        draft_id=body.draft_id,
+        output=output,
+        video_meta=video_meta_dict,
+        creative_style=creative_style,
+    )
+
+    new_output = dict(output)
+    if cover_url:
+        new_output["cover_url"] = cover_url
+    new_output["cover_photo_url"] = cover_photo_url
+    if warnings:
+        new_output["cover_warnings"] = warnings
+    sb.table("recreated_drafts").update({"output": new_output}).eq(
+        "id", body.draft_id
+    ).eq("user_id", body.user_id).execute()
+
+    return CoverCleanResponse(
+        cover_photo_url=cover_photo_url,
+        cover_url=cover_url,
+        warnings=warnings,
+    )
