@@ -267,12 +267,22 @@ def call_recreate(
 
 
 def parse_json_strict(raw: str) -> Any:
-    """Parse JSON; strip markdown fence ถ้ามี."""
+    """Parse JSON; strip markdown fence ถ้ามี.
+
+    Uses `strict=False` so unescaped control characters (newlines,
+    tabs) inside string values don't reject the whole payload.
+    Claude routinely writes literal "\n" in Thai post_body content,
+    and the default json parser refuses those.
+    """
     text = raw.strip()
     fence = re.match(r"^```(?:json)?\s*\n(.*?)\n```\s*$", text, flags=re.DOTALL)
     if fence:
         text = fence.group(1).strip()
-    return json.loads(text)
+    # Strip a few common claude tell signs: stray BOM, smart quotes around keys.
+    if text.startswith("﻿"):
+        text = text.lstrip("﻿")
+    decoder = json.JSONDecoder(strict=False)
+    return decoder.decode(text)
 
 
 # === draft persistence ===

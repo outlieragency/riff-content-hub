@@ -140,6 +140,15 @@ def generate(
     try:
         raw = parse_json_strict(res.raw_text)
     except json.JSONDecodeError as e:
+        # Log the raw payload so the next failure is debuggable instead of opaque.
+        import logging
+        log = logging.getLogger("riff.fb_article")
+        log.error(
+            "fb_article JSON parse failed at line=%s col=%s — first 4kB:\n%s",
+            getattr(e, "lineno", "?"),
+            getattr(e, "colno", "?"),
+            res.raw_text[:4000],
+        )
         raise FbArticleError(f"AI output ไม่ใช่ JSON: {e}") from e
 
     output = _coerce(raw)
