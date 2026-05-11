@@ -59,11 +59,31 @@ export async function quickInitFromUrl(
       }),
       cache: 'no-store',
     })
-    const data = await res.json()
+    // Read as text first — Railway's proxy returns plain text
+    // 'Internal Server Error' on 5xx, which crashes res.json().
+    const text = await res.text()
     if (!res.ok) {
+      let detail = `worker ${res.status}`
+      try {
+        const err = JSON.parse(text) as { detail?: string; error?: string }
+        detail = err.detail || err.error || detail
+      } catch {
+        const snippet = text.trim().slice(0, 200)
+        if (snippet) detail = `${detail}: ${snippet}`
+      }
+      return { ok: false, error: detail }
+    }
+    let data: {
+      idea_id: string
+      transcript_job_id: string
+      deduplicated?: boolean
+    }
+    try {
+      data = JSON.parse(text)
+    } catch {
       return {
         ok: false,
-        error: data.detail || data.error || `worker ${res.status}`,
+        error: `worker returned non-JSON: ${text.slice(0, 200)}`,
       }
     }
     return {
