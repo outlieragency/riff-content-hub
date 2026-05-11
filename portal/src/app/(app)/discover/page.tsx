@@ -89,20 +89,28 @@ export default async function DiscoverPage({
   else if (durationFilter === 'short') videoQ = videoQ.eq('is_short', true)
   if (q) videoQ = videoQ.ilike('title', `%${q}%`)
 
-  // Shared pool query only runs when at least one niche is selected —
-  // otherwise the feed sticks to the user's tracked channels (the
-  // existing v1 behavior). Mode filter must mirror the user-videos
-  // query above; otherwise 'latest' shows old high-outlier rows
-  // because the shared query was hard-coded to outlier_score order.
+  // Shared pool feeds /discover on every load — Earth's note "ผมอยาก
+  // ให้หน้า discovery หลากหลาย". Niche filter narrows it when active,
+  // otherwise the whole curated catalog is fair game. Mode filter
+  // mirrors the user-videos query so Latest/Outliers/All behave the
+  // same on both sources.
   const buildSharedQuery = () => {
-    let q = supabase
-      .from('shared_videos')
-      .select(
-        'id, youtube_video_id, title, thumbnail_url, view_count, duration_seconds, is_short, published_at, outlier_score, shared_channel_id, shared_channels!inner(id, title, handle, subscriber_count, niches)',
-      )
-      .eq('is_short', false)
-      .overlaps('shared_channels.niches', selectedNiches)
-      .limit(60)
+    let q = selectedNiches.length
+      ? supabase
+          .from('shared_videos')
+          .select(
+            'id, youtube_video_id, title, thumbnail_url, view_count, duration_seconds, is_short, published_at, outlier_score, shared_channel_id, shared_channels!inner(id, title, handle, subscriber_count, niches)',
+          )
+          .eq('is_short', false)
+          .overlaps('shared_channels.niches', selectedNiches)
+          .limit(120)
+      : supabase
+          .from('shared_videos')
+          .select(
+            'id, youtube_video_id, title, thumbnail_url, view_count, duration_seconds, is_short, published_at, outlier_score, shared_channel_id, shared_channels!inner(id, title, handle, subscriber_count, niches)',
+          )
+          .eq('is_short', false)
+          .limit(120)
     switch (mode) {
       case 'outliers':
         q = q
@@ -115,17 +123,21 @@ export default async function DiscoverPage({
           .order('published_at', { ascending: false, nullsFirst: false })
         break
       default:
-        q = q.order('outlier_score', { ascending: false, nullsFirst: false })
+        // Default 'all' interleaves recency with signal — published_at desc
+        // so the feed has variety + freshness instead of one creator's
+        // greatest-hits dominating.
+        q = q.order('published_at', { ascending: false, nullsFirst: false })
     }
     return q
   }
 
-  // 4 independent queries fire in parallel
+  // 5 independent queries fire in parallel
   const [
     { data: channels },
     { data: videos },
     { data: ideaRows },
     sharedRes,
+    { count: sharedChannelCount },
   ] = await Promise.all([
     supabase
       .from('channels')
@@ -133,9 +145,12 @@ export default async function DiscoverPage({
       .order('title'),
     videoQ,
     supabase.from('ideas').select('video_id').eq('user_id', user.id),
-    selectedNiches.length
-      ? buildSharedQuery()
-      : Promise.resolve({ data: [] as unknown[] }),
+    mode === 'channel'
+      ? Promise.resolve({ data: [] as unknown[] })
+      : buildSharedQuery(),
+    supabase
+      .from('shared_channels')
+      .select('id', { count: 'exact', head: true }),
   ])
 
   if (!channels || channels.length === 0) {
@@ -221,11 +236,12 @@ export default async function DiscoverPage({
     }
   })
 
-  // Mix in shared-pool videos when niches are selected. Dedupe against
-  // user's tracked youtube_video_ids — if Earth already has this video
-  // from his own channel sync, prefer that version (it has working
-  // save/recreate actions).
-  if (selectedNiches.length && sharedRes && Array.isArray(sharedRes.data)) {
+  // Mix in shared-pool videos on every load (except 'By Channel' mode,
+  // which groups by user-tracked channel and doesn't fit the pool).
+  // Dedupe against user's tracked youtube_video_ids — if Earth already
+  // has this video from his own channel sync, prefer that version (it
+  // has working save/recreate actions).
+  if (mode !== 'channel' && sharedRes && Array.isArray(sharedRes.data)) {
     const ownedYtIds = new Set(
       (videos ?? []).map((v) => v.youtube_video_id).filter(Boolean),
     )
@@ -283,6 +299,23 @@ export default async function DiscoverPage({
         }
       })
     rows = [...rows, ...sharedRows]
+    // Re-sort the combined list so tracked + shared interleave by
+    // whatever metric the active mode picked. Without this, all tracked
+    // rows would render before any shared row regardless of date / score.
+    switch (mode) {
+      case 'latest':
+        rows.sort((a, b) =>
+          String(b.published_at ?? '').localeCompare(String(a.published_at ?? '')),
+        )
+        break
+      case 'outliers':
+        rows.sort((a, b) => (b.outlier_score ?? 0) - (a.outlier_score ?? 0))
+        break
+      default:
+        rows.sort((a, b) =>
+          String(b.published_at ?? '').localeCompare(String(a.published_at ?? '')),
+        )
+    }
   }
 
   // For "By Channel" mode, group + take top 5 per channel
@@ -298,10 +331,17 @@ export default async function DiscoverPage({
   }
 
   const isFounder = isFounderEmail(user.email)
+  const trackedCount = channels.length
+  const curatedCount = sharedChannelCount ?? 0
 
   return (
     <div className="max-w-[1200px] mx-auto px-6 py-8">
-      <Header />
+      <div className="flex items-end justify-between mb-4 flex-wrap gap-2">
+        <Header />
+        <div className="text-[11px] text-text-muted">
+          {trackedCount} tracked + {curatedCount} curated channels
+        </div>
+      </div>
       {isFounder && (
         <div className="flex justify-end mb-2">
           <RefreshPoolButton />
