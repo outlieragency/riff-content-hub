@@ -29,7 +29,11 @@ from ..services.claude.recreate.fb_article import (
     STORAGE_BUCKET,
     render_and_upload_cover_for_draft,
 )
-from ..services.cover_render import CoverRenderError, render_cover_bytes
+from ..services.cover_render import (
+    CoverRenderError,
+    render_cover_bytes,
+    render_cover_html,
+)
 
 router = APIRouter(prefix="/cover", tags=["cover"])
 
@@ -88,6 +92,113 @@ class CoverPreviewRequest(BaseModel):
 class CoverPreviewResponse(BaseModel):
     cover_data_uri: str  # data:image/png;base64,...
     bytes_length: int
+
+
+class CoverPreviewHtmlResponse(BaseModel):
+    html: str
+    width: int = 1080
+    height: int = 1350
+
+
+@router.post("/preview-html", response_model=CoverPreviewHtmlResponse)
+def post_preview_html(
+    body: CoverPreviewRequest,
+    authorization: str | None = Header(default=None),
+) -> CoverPreviewHtmlResponse:
+    """Render the Jinja2 cover template → HTML string. No Playwright,
+    no screenshot. Used by the portal iframe so live editing is the
+    EXACT same HTML/CSS Playwright would screenshot on save.
+
+    Same input shape as /cover/preview so the portal can call either
+    interchangeably.
+    """
+    require_worker_secret(authorization)
+    sb = get_supabase()
+
+    theme: dict[str, str] | None = None
+    fonts: dict[str, str] | None = None
+    cover_template = body.cover.cover_template
+    if body.creative_style_id and body.user_id:
+        cs_res = (
+            sb.table("creative_styles")
+            .select("renderer_config")
+            .eq("id", body.creative_style_id)
+            .eq("user_id", body.user_id)
+            .limit(1)
+            .execute()
+        )
+        if cs_res.data:
+            cfg = cs_res.data[0].get("renderer_config") or {}
+            if isinstance(cfg, dict):
+                base = cfg.get("base_template")
+                if isinstance(base, str) and base:
+                    cover_template = base
+                theme_raw = cfg.get("theme")
+                if isinstance(theme_raw, dict):
+                    theme = {k: v for k, v in theme_raw.items() if isinstance(v, str)}
+                fonts_raw = cfg.get("fonts")
+                if isinstance(fonts_raw, dict):
+                    fonts = {k: v for k, v in fonts_raw.items() if isinstance(v, str)}
+    if body.cover.fonts:
+        cover_fonts = {k: v for k, v in body.cover.fonts.items() if isinstance(v, str)}
+        if cover_fonts:
+            fonts = {**(fonts or {}), **cover_fonts}
+
+    cover_photo_bytes: bytes | None = None
+    if body.draft_id and body.user_id:
+        path = f"{body.user_id}/{body.draft_id}/cover-photo.png"
+        try:
+            cover_photo_bytes = sb.storage.from_("fb-covers").download(path)
+        except Exception:
+            cover_photo_bytes = None
+
+    video_meta_dict = body.video_meta.model_dump()
+    needs_lookup = body.draft_id and body.user_id and not all(
+        [
+            video_meta_dict.get("youtube_video_id"),
+            video_meta_dict.get("thumbnail_url"),
+            video_meta_dict.get("channel_name"),
+        ]
+    )
+    if needs_lookup:
+        hydrated = _resolve_video_meta(sb, body.user_id, body.draft_id, body.video_meta)
+        for key, value in hydrated.items():
+            if value and not video_meta_dict.get(key):
+                video_meta_dict[key] = value
+
+    try:
+        html = render_cover_html(
+            video_id=video_meta_dict.get("youtube_video_id") or "",
+            thumbnail_url=video_meta_dict.get("thumbnail_url"),
+            channel_name=video_meta_dict.get("channel_name") or "",
+            channel_avatar_url=video_meta_dict.get("channel_avatar_url"),
+            subscriber_count=video_meta_dict.get("subscriber_count"),
+            line1=body.cover.line1,
+            line2=body.cover.line2,
+            line3=body.cover.line3,
+            line1_highlight=body.cover.line1_highlight,
+            line2_highlight=body.cover.line2_highlight,
+            line3_highlight=body.cover.line3_highlight,
+            line1_style=body.cover.line1_style.model_dump() if body.cover.line1_style else None,
+            line2_style=body.cover.line2_style.model_dump() if body.cover.line2_style else None,
+            line3_style=body.cover.line3_style.model_dump() if body.cover.line3_style else None,
+            subhead=body.cover.subhead,
+            arrow_caption_top=body.cover.arrow_caption_top,
+            arrow_caption_bottom=body.cover.arrow_caption_bottom,
+            arrow_position=body.cover.arrow_position,
+            badge_position=body.cover.badge_position,
+            brand_mark_position=body.cover.brand_mark_position,
+            cover_template=cover_template,
+            cover_photo_bytes=cover_photo_bytes,
+            theme=theme,
+            fonts=fonts,
+        )
+    except CoverRenderError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=500, detail=f"render error: {exc}") from exc
+
+    return CoverPreviewHtmlResponse(html=html)
 
 
 @router.post("/preview", response_model=CoverPreviewResponse)

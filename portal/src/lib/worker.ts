@@ -158,6 +158,19 @@ export const worker = {
     creative_style_id?: string
   }) => call<CoverPreviewResponse>('POST', '/cover/preview', params),
 
+  previewCoverHtml: (params: {
+    cover: CoverFieldsPayload
+    video_meta?: VideoMetaPayload
+    user_id?: string
+    draft_id?: string
+    creative_style_id?: string
+  }) =>
+    call<{ html: string; width: number; height: number }>(
+      'POST',
+      '/cover/preview-html',
+      params,
+    ),
+
   saveCover: (params: {
     user_id: string
     draft_id: string

@@ -18,8 +18,9 @@ import type {
   FbArticleCover,
   LineStyle,
 } from '@/lib/types/recreate-formats'
+import type { CoverFieldsPayload } from '@/lib/worker'
 import { CoverPhotoCropper } from './cover-photo-cropper'
-import { CoverLivePreview } from './cover-live-preview'
+import { CoverIframePreview } from './cover-iframe-preview'
 import { getDraftSourcePhotoUrl } from '@/lib/actions/recreate'
 
 type Props = {
@@ -579,10 +580,9 @@ export function FbCoverEditor({
 
           <div className="rounded-lg overflow-hidden bg-muted aspect-[4/5] relative">
             {previewMode === 'live' ? (
-              <CoverLivePreview
-                cover={cover}
-                onChange={setCover}
-                photoUrl={livePhotoUrl}
+              <CoverIframePreview
+                draftId={draftId}
+                cover={cover as unknown as CoverFieldsPayload}
               />
             ) : previewUri ? (
               // eslint-disable-next-line @next/next/no-img-element

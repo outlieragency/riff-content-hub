@@ -190,6 +190,113 @@ def _format_subs_en(sub_count: int | None) -> str:
     return str(n)
 
 
+def render_cover_html(
+    *,
+    video_id: str,
+    thumbnail_url: str | None,
+    channel_name: str,
+    channel_avatar_url: str | None,
+    subscriber_count: int | None,
+    line1: str,
+    line2: str,
+    line3: str,
+    cover_template: str = DEFAULT_TEMPLATE,
+    line1_highlight: str | None = None,
+    line2_highlight: str | None = None,
+    line3_highlight: str | None = None,
+    line1_style: dict | None = None,
+    line2_style: dict | None = None,
+    line3_style: dict | None = None,
+    subhead: str | None = None,
+    arrow_caption_top: str | None = None,
+    arrow_caption_bottom: str | None = None,
+    arrow_position: str = "bottom-left",
+    badge_position: str = "bottom-right",
+    brand_mark_position: str = "top-right",
+    cover_photo_bytes: bytes | None = None,
+    tool_icon_bytes: bytes | None = None,
+    inset_image_bytes: bytes | None = None,
+    brand_mark_bytes: bytes | None = None,
+    theme: dict[str, str] | None = None,
+    fonts: dict[str, str] | None = None,
+) -> str:
+    """Render cover Jinja2 template → HTML string. No Playwright.
+
+    Used by /cover/preview-html so the portal iframe gets exactly the
+    same HTML/CSS that Playwright would screenshot. Single source of
+    truth — no React/CSS drift.
+    """
+    if cover_template not in KNOWN_TEMPLATES:
+        cover_template = DEFAULT_TEMPLATE
+    template_basename = TEMPLATE_FILE_ALIASES[cover_template]
+    template_file = f"{template_basename}.html.j2"
+    template_path = TEMPLATE_DIR / template_file
+    if not template_path.exists():
+        raise CoverRenderError(f"template missing: {template_path}")
+
+    merged_theme = {**DEFAULT_THEME, **(theme or {})}
+    merged_fonts = {**DEFAULT_FONTS, **(fonts or {})}
+
+    if cover_photo_bytes:
+        screenshot_uri = _bytes_to_data_uri(cover_photo_bytes)
+    else:
+        screenshot_uri = _fetch_thumbnail_with_fallback(video_id, thumbnail_url)
+    avatar_uri = _http_to_data_uri(channel_avatar_url) if channel_avatar_url else None
+    tool_icon_uri = _bytes_to_data_uri(tool_icon_bytes) if tool_icon_bytes else None
+    inset_uri = _bytes_to_data_uri(inset_image_bytes) if inset_image_bytes else None
+    if brand_mark_bytes:
+        brand_mark_uri = _bytes_to_data_uri(brand_mark_bytes)
+    else:
+        brand_mark_path = ASSETS_DIR / "brand-mark.png"
+        brand_mark_uri = _file_to_data_uri(brand_mark_path) if brand_mark_path.exists() else None
+
+    env = Environment(
+        loader=FileSystemLoader(str(TEMPLATE_DIR)),
+        autoescape=select_autoescape(["html"]),
+    )
+    template = env.get_template(template_file)
+    line1_html = _wrap_highlight(line1, line1_highlight, "hl-red", line1_style)
+    line2_html = _wrap_highlight(line2, line2_highlight, "hl-yellow", line2_style)
+    line3_html = _wrap_highlight(line3, line3_highlight, "hl-orange", line3_style)
+
+    def line_style_attr(style: dict | None) -> str:
+        if not style:
+            return ""
+        bits: list[str] = []
+        size_pct = style.get("font_size_pct")
+        if isinstance(size_pct, (int, float)) and 50 <= size_pct <= 150:
+            bits.append(f"font-size:{60 * (size_pct / 100):.1f}px")
+        weight = style.get("font_weight")
+        if isinstance(weight, int) and 100 <= weight <= 900:
+            bits.append(f"font-weight:{weight}")
+        return ";".join(bits)
+
+    return template.render(
+        screenshot_data_uri=screenshot_uri,
+        channel_avatar_data_uri=avatar_uri,
+        tool_icon_data_uri=tool_icon_uri,
+        inset_image_data_uri=inset_uri,
+        brand_mark_data_uri=brand_mark_uri,
+        channel_name=channel_name,
+        subscriber_text_en=_format_subs_en(subscriber_count),
+        subscriber_text=None,
+        line1_html=line1_html,
+        line2_html=line2_html,
+        line3_html=line3_html,
+        line1_style_attr=line_style_attr(line1_style),
+        line2_style_attr=line_style_attr(line2_style),
+        line3_style_attr=line_style_attr(line3_style),
+        subhead=subhead or "",
+        arrow_caption_top=arrow_caption_top or "",
+        arrow_caption_bottom=arrow_caption_bottom or "",
+        arrow_position=arrow_position,
+        badge_position=badge_position,
+        brand_mark_position=brand_mark_position,
+        theme=merged_theme,
+        fonts=merged_fonts,
+    )
+
+
 def render_cover_bytes(
     *,
     video_id: str,
@@ -226,86 +333,41 @@ def render_cover_bytes(
     hl_red, hl_yellow, hl_orange). Missing keys fall back to DEFAULT_THEME.
     `fonts` overrides heading/body font family (Google Fonts loaded by template).
     """
-    if cover_template not in KNOWN_TEMPLATES:
-        # Forgiving fallback: legacy or removed template names default to
-        # the standard headliner template so user-saved configs don't break.
-        cover_template = DEFAULT_TEMPLATE
-
-    template_basename = TEMPLATE_FILE_ALIASES[cover_template]
-    template_file = f"{template_basename}.html.j2"
-    template_path = TEMPLATE_DIR / template_file
-    if not template_path.exists():
-        raise CoverRenderError(f"template missing: {template_path}")
-
-    merged_theme = {**DEFAULT_THEME, **(theme or {})}
-    merged_fonts = {**DEFAULT_FONTS, **(fonts or {})}
-
-    # ----- Image sources -----
-    if cover_photo_bytes:
-        screenshot_uri = _bytes_to_data_uri(cover_photo_bytes)
-    else:
-        screenshot_uri = _fetch_thumbnail_with_fallback(video_id, thumbnail_url)
-
-    avatar_uri = _http_to_data_uri(channel_avatar_url) if channel_avatar_url else None
-    tool_icon_uri = _bytes_to_data_uri(tool_icon_bytes) if tool_icon_bytes else None
-    inset_uri = _bytes_to_data_uri(inset_image_bytes) if inset_image_bytes else None
-
-    # Brand mark: caller-supplied bytes override > local asset > SVG fallback in template
-    if brand_mark_bytes:
-        brand_mark_uri = _bytes_to_data_uri(brand_mark_bytes)
-    else:
-        brand_mark_path = ASSETS_DIR / "brand-mark.png"
-        brand_mark_uri = _file_to_data_uri(brand_mark_path) if brand_mark_path.exists() else None
-
-    # ----- Template render -----
-    env = Environment(
-        loader=FileSystemLoader(str(TEMPLATE_DIR)),
-        autoescape=select_autoescape(["html"]),
-    )
-    template = env.get_template(template_file)
-
-    line1_html = _wrap_highlight(line1, line1_highlight, "hl-red", line1_style)
-    line2_html = _wrap_highlight(line2, line2_highlight, "hl-yellow", line2_style)
-    line3_html = _wrap_highlight(line3, line3_highlight, "hl-orange", line3_style)
-
-    def line_style_attr(style: dict | None) -> str:
-        if not style:
-            return ""
-        bits: list[str] = []
-        size_pct = style.get("font_size_pct")
-        if isinstance(size_pct, (int, float)) and 50 <= size_pct <= 150:
-            # base 60px → scale
-            bits.append(f"font-size:{60 * (size_pct / 100):.1f}px")
-        weight = style.get("font_weight")
-        if isinstance(weight, int) and 100 <= weight <= 900:
-            bits.append(f"font-weight:{weight}")
-        return ";".join(bits)
-
-    html = template.render(
-        screenshot_data_uri=screenshot_uri,
-        channel_avatar_data_uri=avatar_uri,
-        tool_icon_data_uri=tool_icon_uri,
-        inset_image_data_uri=inset_uri,
-        brand_mark_data_uri=brand_mark_uri,
+    # Reuse the HTML render path so iframe preview and Playwright PNG
+    # are byte-identical at the HTML/CSS layer (the whole point of the
+    # /cover/preview-html surface).
+    html = render_cover_html(
+        video_id=video_id,
+        thumbnail_url=thumbnail_url,
         channel_name=channel_name,
-        subscriber_text_en=_format_subs_en(subscriber_count),
-        subscriber_text=None,  # legacy field, not used by headliner template
-        line1_html=line1_html,
-        line2_html=line2_html,
-        line3_html=line3_html,
-        line1_style_attr=line_style_attr(line1_style),
-        line2_style_attr=line_style_attr(line2_style),
-        line3_style_attr=line_style_attr(line3_style),
-        subhead=subhead or "",
-        arrow_caption_top=arrow_caption_top or "",
-        arrow_caption_bottom=arrow_caption_bottom or "",
+        channel_avatar_url=channel_avatar_url,
+        subscriber_count=subscriber_count,
+        line1=line1,
+        line2=line2,
+        line3=line3,
+        cover_template=cover_template,
+        line1_highlight=line1_highlight,
+        line2_highlight=line2_highlight,
+        line3_highlight=line3_highlight,
+        line1_style=line1_style,
+        line2_style=line2_style,
+        line3_style=line3_style,
+        subhead=subhead,
+        arrow_caption_top=arrow_caption_top,
+        arrow_caption_bottom=arrow_caption_bottom,
         arrow_position=arrow_position,
         badge_position=badge_position,
         brand_mark_position=brand_mark_position,
-        theme=merged_theme,
-        fonts=merged_fonts,
+        cover_photo_bytes=cover_photo_bytes,
+        tool_icon_bytes=tool_icon_bytes,
+        inset_image_bytes=inset_image_bytes,
+        brand_mark_bytes=brand_mark_bytes,
+        theme=theme,
+        fonts=fonts,
     )
 
+    if cover_template not in KNOWN_TEMPLATES:
+        cover_template = DEFAULT_TEMPLATE
     viewport = PORTRAIT_VIEWPORT if cover_template in PORTRAIT_TEMPLATES else SQUARE_VIEWPORT
 
     # ----- Playwright render -----
