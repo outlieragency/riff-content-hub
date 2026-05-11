@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { OutlierCard } from '@/components/outliers/outlier-card'
 import type { OutlierVideo } from '@/components/outliers/outlier-row'
 import { ChannelSortTabs, type ChannelSortMode } from '@/components/channels/sort-tabs'
+import { NicheEditor } from '@/components/channels/niche-editor'
 import { formatCount } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
@@ -77,7 +78,7 @@ export default async function ChannelDetailPage({
     supabase
       .from('channels')
       .select(
-        'id, youtube_channel_id, handle, title, description, thumbnail_url, subscriber_count, total_video_count, channel_avg_views, last_synced_at',
+        'id, youtube_channel_id, handle, title, description, thumbnail_url, subscriber_count, total_video_count, channel_avg_views, last_synced_at, niches',
       )
       .eq('id', id)
       .eq('user_id', user.id)
@@ -191,6 +192,11 @@ export default async function ChannelDetailPage({
           </div>
         </div>
       </div>
+
+      <NicheEditor
+        channelId={channel.id}
+        initialNiches={(channel.niches as string[] | null) ?? []}
+      />
 
       <ChannelSortTabs current={sort} />
 

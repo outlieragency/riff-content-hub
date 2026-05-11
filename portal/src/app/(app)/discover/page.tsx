@@ -6,6 +6,7 @@ import { type OutlierVideo } from '@/components/outliers/outlier-row'
 import { OutlierCard } from '@/components/outliers/outlier-card'
 import { DiscoverModeTabs, type DiscoverMode } from '@/components/discover/mode-tabs'
 import { DiscoverFilters } from '@/components/discover/filters'
+import { NicheFilter } from '@/components/discover/niche-filter'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,6 +16,7 @@ type SearchParams = Promise<{
   duration?: string
   score?: string
   q?: string
+  niche?: string
 }>
 
 const VALID_MODES: DiscoverMode[] = ['all', 'outliers', 'latest', 'channel']
@@ -40,6 +42,10 @@ export default async function DiscoverPage({
   const durationFilter = sp.duration ?? 'long'
   const scoreFloor = mode === 'outliers' ? Number(sp.score ?? '2') : 0
   const q = (sp.q ?? '').trim()
+  const selectedNiches = (sp.niche ?? '')
+    .split(',')
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean)
 
   const supabase = await createClient()
   const {
@@ -85,7 +91,7 @@ export default async function DiscoverPage({
     await Promise.all([
       supabase
         .from('channels')
-        .select('id, title, handle, subscriber_count')
+        .select('id, title, handle, subscriber_count, niches')
         .order('title'),
       videoQ,
       supabase.from('ideas').select('video_id').eq('user_id', user.id),
@@ -117,7 +123,35 @@ export default async function DiscoverPage({
 
   const channelMap = new Map(channels.map((c) => [c.id, c]))
 
-  let rows: OutlierVideo[] = (videos ?? []).map((v) => {
+  // Niches that have at least one tagged channel — used to dim chips with
+  // no data so the filter row reflects reality.
+  const availableNicheIds = Array.from(
+    new Set(
+      channels.flatMap((c) =>
+        ((c as { niches?: string[] | null }).niches ?? []).map((n) =>
+          n.toLowerCase(),
+        ),
+      ),
+    ),
+  )
+
+  const selectedNicheSet = new Set(selectedNiches)
+  // Channel-id allow-list when niches are selected (any-of semantics).
+  const allowedChannelIds = selectedNicheSet.size
+    ? new Set(
+        channels
+          .filter((c) =>
+            (((c as { niches?: string[] | null }).niches ?? []) as string[]).some(
+              (n) => selectedNicheSet.has(n.toLowerCase()),
+            ),
+          )
+          .map((c) => c.id),
+      )
+    : null
+
+  let rows: OutlierVideo[] = (videos ?? [])
+    .filter((v) => !allowedChannelIds || allowedChannelIds.has(v.channel_id))
+    .map((v) => {
     const ch = channelMap.get(v.channel_id)
     return {
       id: v.id,
@@ -152,6 +186,7 @@ export default async function DiscoverPage({
   return (
     <div className="max-w-[1200px] mx-auto px-6 py-8">
       <Header />
+      <NicheFilter availableNicheIds={availableNicheIds} />
       <DiscoverModeTabs />
       <DiscoverFilters
         channels={channels.map((c) => ({ id: c.id, title: c.title }))}
