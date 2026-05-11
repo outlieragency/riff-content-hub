@@ -21,6 +21,13 @@ from .parse import channel_row, video_row
 SHORT_PROBE_MAX_DURATION_S = 180
 PROBE_MAX_CONCURRENT = 10
 
+# YouTube's forHandle endpoint sometimes returns a wrong account
+# (e.g. @hormozi → some 12-sub fan page instead of Alex Hormozi with
+# 5M subs). Imposters always have tiny audiences — skip anything
+# below this floor and let Earth re-add via the curated map with the
+# verified handle/channel_id.
+MIN_SUBSCRIBER_FLOOR = 5000
+
 
 def sync_curated_channel(
     sb: Client,
@@ -38,6 +45,18 @@ def sync_curated_channel(
     yt_channel = api.resolve_channel("handle", handle)
     if not yt_channel:
         raise ValueError(f"curated channel not found: @{handle}")
+
+    stats = yt_channel.get("statistics") or {}
+    subs_raw = stats.get("subscriberCount")
+    try:
+        subs = int(subs_raw) if subs_raw is not None else None
+    except (TypeError, ValueError):
+        subs = None
+    if subs is not None and subs < MIN_SUBSCRIBER_FLOOR:
+        raise ValueError(
+            f"@{handle} resolved to '{yt_channel.get('snippet', {}).get('title')}' "
+            f"({subs} subs) — likely imposter, skipping"
+        )
 
     yt_channel_id = yt_channel["id"]
     ch_payload = channel_row(yt_channel)
