@@ -152,7 +152,15 @@ export default async function DiscoverPage({
   let rows: OutlierVideo[] = (videos ?? [])
     .filter((v) => !allowedChannelIds || allowedChannelIds.has(v.channel_id))
     .map((v) => {
-    const ch = channelMap.get(v.channel_id)
+    const ch = channelMap.get(v.channel_id) as
+      | {
+          id: string
+          title: string
+          handle: string | null
+          subscriber_count: number | null
+          niches?: string[] | null
+        }
+      | undefined
     return {
       id: v.id,
       youtube_video_id: v.youtube_video_id,
@@ -167,6 +175,7 @@ export default async function DiscoverPage({
       channel_title: ch?.title ?? '',
       channel_handle: ch?.handle ?? null,
       channel_subscriber_count: ch?.subscriber_count ?? null,
+      channel_niches: ch?.niches ?? [],
       is_saved: savedIds.has(v.id),
     }
   })

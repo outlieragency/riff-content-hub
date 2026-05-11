@@ -45,6 +45,7 @@ export type SyncChannelResponse = {
   youtube_channel_id: string
   videos_synced: number
   channel_avg_views: number | null
+  niches?: string[]
 }
 
 export type ExtractVoiceSample = {

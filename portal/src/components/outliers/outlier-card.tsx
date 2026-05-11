@@ -7,6 +7,7 @@ import { Bookmark, BookmarkCheck, Flame, Loader2, Play } from 'lucide-react'
 import { ScorePill } from './score-pill'
 import { toggleSaveIdea } from '@/lib/actions/save-idea'
 import { formatCount, formatDuration, timeAgo } from '@/lib/utils'
+import { nicheLabel } from '@/lib/niches'
 import type { OutlierVideo } from './outlier-row'
 import { VideoActionModal } from './video-action-modal'
 
@@ -115,23 +116,33 @@ export function OutlierCard({
           {video.title}
         </button>
 
-        {/* Channel link */}
-        {channelHref ? (
-          <Link
-            href={channelHref}
-            className="text-[11px] text-muted-foreground hover:text-foreground inline-flex items-center"
-          >
-            {video.channel_handle
-              ? `@${video.channel_handle.replace(/^@/, '')}`
-              : video.channel_title}
-          </Link>
-        ) : (
-          <span className="text-[11px] text-muted-foreground">
-            {video.channel_handle
-              ? `@${video.channel_handle.replace(/^@/, '')}`
-              : video.channel_title}
-          </span>
-        )}
+        {/* Channel link + niche chips inline */}
+        <div className="flex items-center gap-1.5 flex-wrap text-[11px] text-muted-foreground">
+          {channelHref ? (
+            <Link
+              href={channelHref}
+              className="hover:text-foreground inline-flex items-center"
+            >
+              {video.channel_handle
+                ? `@${video.channel_handle.replace(/^@/, '')}`
+                : video.channel_title}
+            </Link>
+          ) : (
+            <span>
+              {video.channel_handle
+                ? `@${video.channel_handle.replace(/^@/, '')}`
+                : video.channel_title}
+            </span>
+          )}
+          {(video.channel_niches ?? []).slice(0, 2).map((n) => (
+            <span
+              key={n}
+              className="px-1.5 py-0.5 rounded-full bg-secondary text-[10px] text-muted-foreground"
+            >
+              {nicheLabel(n)}
+            </span>
+          ))}
+        </div>
 
         {/* Meta row */}
         <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 flex-wrap mt-auto">

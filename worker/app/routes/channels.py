@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 
 from ..deps import get_supabase
 from ..main import require_worker_secret
+from ..services.claude.niche_classifier import classify_channel_row
 from ..services.youtube.api import resolve_channel
 from ..services.youtube.channel_sync import sync_channel
 
@@ -39,6 +40,7 @@ class SyncChannelResponse(BaseModel):
     videos_synced: int
     channel_avg_views: float | None
     mode: str | None = None
+    niches: list[str] = []
 
 
 @router.post("/channel", response_model=SyncChannelResponse)
@@ -71,7 +73,16 @@ def post_sync_channel(
         exc.resp.status if hasattr(exc, "resp") else 502
         raise HTTPException(status_code=502, detail=f"youtube api error: {exc}") from exc
 
-    return SyncChannelResponse(**out)
+    # Auto-classify niches via Claude Haiku — failures don't block the
+    # sync result, they just leave the channel untagged (Earth can hand-
+    # tag via /channels/[id] NicheEditor later).
+    niches: list[str] = []
+    try:
+        niches = classify_channel_row(sb, out["channel_uuid"], body.user_id)
+    except Exception:  # noqa: BLE001
+        pass
+
+    return SyncChannelResponse(**out, niches=niches)
 
 
 # =====================================================================

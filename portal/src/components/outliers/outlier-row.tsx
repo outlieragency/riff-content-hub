@@ -20,6 +20,7 @@ export type OutlierVideo = {
   channel_title: string
   channel_handle: string | null
   channel_subscriber_count: number | null
+  channel_niches?: string[]
   is_saved: boolean
 }
 
