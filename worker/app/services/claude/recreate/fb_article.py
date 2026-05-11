@@ -140,14 +140,23 @@ def generate(
     try:
         raw = parse_json_strict(res.raw_text)
     except json.JSONDecodeError as e:
-        # Log the raw payload so the next failure is debuggable instead of opaque.
+        # Log the raw payload so the next failure is debuggable.
+        # Slice WINDOW around the failure column so the relevant context
+        # is visible regardless of where in the output it broke.
         import logging
         log = logging.getLogger("riff.fb_article")
+        char_pos = getattr(e, "pos", 0) or 0
+        window_start = max(0, char_pos - 500)
+        window_end = min(len(res.raw_text), char_pos + 500)
         log.error(
-            "fb_article JSON parse failed at line=%s col=%s — first 4kB:\n%s",
+            "fb_article JSON parse failed at line=%s col=%s pos=%s\n"
+            "----- WINDOW around failure -----\n%s\n"
+            "----- FULL output (first 16KB) -----\n%s",
             getattr(e, "lineno", "?"),
             getattr(e, "colno", "?"),
-            res.raw_text[:4000],
+            char_pos,
+            res.raw_text[window_start:window_end],
+            res.raw_text[:16000],
         )
         raise FbArticleError(f"AI output ไม่ใช่ JSON: {e}") from e
 

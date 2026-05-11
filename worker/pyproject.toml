@@ -20,6 +20,7 @@ dependencies = [
     "jinja2>=3.1.4",
     "pillow>=10.0.0",
     "notion-client>=2.2.0",
+    "json-repair>=0.59.6",
 ]
 
 [dependency-groups]

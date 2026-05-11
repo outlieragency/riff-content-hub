@@ -269,10 +269,14 @@ def call_recreate(
 def parse_json_strict(raw: str) -> Any:
     """Parse JSON; strip markdown fence ถ้ามี.
 
-    Uses `strict=False` so unescaped control characters (newlines,
-    tabs) inside string values don't reject the whole payload.
-    Claude routinely writes literal "\n" in Thai post_body content,
-    and the default json parser refuses those.
+    Three-tier parse:
+      1. Default strict — most output passes this.
+      2. strict=False — accepts unescaped control characters (Claude
+         occasionally writes literal "\n" in Thai post_body content).
+      3. json_repair fallback — handles unescaped quotes inside strings,
+         trailing commas, missing commas. The Thai post_body sometimes
+         contains a stray quote that breaks strict JSON; this layer
+         recovers without losing data.
     """
     text = raw.strip()
     fence = re.match(r"^```(?:json)?\s*\n(.*?)\n```\s*$", text, flags=re.DOTALL)
@@ -281,8 +285,30 @@ def parse_json_strict(raw: str) -> Any:
     # Strip a few common claude tell signs: stray BOM, smart quotes around keys.
     if text.startswith("﻿"):
         text = text.lstrip("﻿")
-    decoder = json.JSONDecoder(strict=False)
-    return decoder.decode(text)
+
+    # Tier 1+2: stdlib parser with relaxed control-char handling
+    try:
+        decoder = json.JSONDecoder(strict=False)
+        return decoder.decode(text)
+    except json.JSONDecodeError:
+        pass
+
+    # Tier 3: json_repair — purpose-built for fixing LLM JSON output
+    try:
+        from json_repair import repair_json
+
+        repaired = repair_json(text, return_objects=True)
+        # repair_json returns the decoded object when return_objects=True
+        if repaired is not None:
+            return repaired
+    except Exception:  # noqa: BLE001
+        pass
+
+    # Re-raise the original strict-mode error so the caller's logging
+    # captures the most informative message (with line/col).
+    json.JSONDecoder(strict=False).decode(text)
+    # unreachable — the decode above raises, but pyright wants a return
+    return None
 
 
 # === draft persistence ===
