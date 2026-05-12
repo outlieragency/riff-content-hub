@@ -5,11 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 const WORKER_URL = process.env.WORKER_URL!
 const WORKER_SECRET = process.env.WORKER_SECRET!
 
-export type QuickRecreateFormat =
-  | 'fb_article'
-  | 'ig_carousel'
-  | 'reels_script'
-  | 'yt_script'
+export type QuickRecreateFormat = 'fb_article' | 'ig_carousel'
 
 export type QuickInitMode = 'save' | 'recreate'
 

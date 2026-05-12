@@ -41,7 +41,7 @@ const FEATURES: {
     step: '04',
     key: 'recreate',
     title: 'Recreate สร้าง Content ในสไตล์คุณจาก Video ที่ Viral',
-    body: 'ทำการสร้างเนื้อหาใหม่ โดยใช้ brand voice ของคุณ ทั้งบทความ Facebook · IG Carousel · IG Reels หรือ YouTube Script ครบจบในที่เดียว',
+    body: 'AI ghostwriter เขียน FB Post + IG Carousel ในเสียงและสไตล์ของคุณ ใช้ template + writing prompt ที่คุณ upload ไว้',
     rotation: 2,
     mockup: <RecreateMock />,
   },
@@ -356,14 +356,12 @@ function DecodeMock() {
 
 function RecreateMock() {
   const formats = [
-    { l: 'YT script', s: 'outline + 5 titles', c: '#fca5a5' },
-    { l: 'FB post', s: '800-1,500 คำ', c: '#93C5FD' },
-    { l: 'Reels', s: 'hook · body · CTA', c: '#fdba74' },
-    { l: 'IG carousel', s: '4-10 slides', c: '#C9A6FF' },
+    { l: 'FB post', s: '800-1,500 คำ + cover', c: '#93C5FD' },
+    { l: 'IG carousel', s: '3-9 slides ตาม template', c: '#C9A6FF' },
   ]
   return (
     <MockShell>
-      <MockHeader>4 formats · ในนั่งเดียว</MockHeader>
+      <MockHeader>2 formats · ghostwriter mode</MockHeader>
       <div
         style={{
           fontSize: 11.5,

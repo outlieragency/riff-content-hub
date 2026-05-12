@@ -2,42 +2,29 @@
 
 import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import {
-  ChevronDown,
-  ChevronUp,
   FileText,
   LayoutGrid,
   Loader2,
-  Smartphone,
   Sparkles,
-  Star,
-  Video,
 } from 'lucide-react'
 import { startRecreate } from '@/lib/actions/recreate'
-import { FORMAT_META, type RecreateFormat } from '@/lib/types/recreate-formats'
+import { type RecreateFormat } from '@/lib/types/recreate-formats'
 import { JobProgress } from '@/components/jobs/job-progress'
-import { StylePicker } from '@/components/recreate/style-picker'
 import { createClient } from '@/lib/supabase/client'
 import type { JobRow } from '@/lib/supabase/realtime'
-import type { FormatType } from '@/lib/types/creative-style'
 
-const FORMAT_TO_VISUAL: Record<RecreateFormat, FormatType> = {
-  fb_article: 'cover',
-  yt_script: 'thumbnail',
-  reels: 'reel',
-  carousel: 'carousel',
-}
+/**
+ * Format picker — focused on Earth's ghostwriter loop:
+ *   FB Post + IG Carousel only.
+ *
+ * Each format card lets the user pick one of their uploaded templates
+ * (filtered by format_type) before kicking off the recreate job.
+ * No template = falls back to the built-in renderer.
+ */
 
-const ICON_MAP: Record<string, React.ComponentType<{ size?: number }>> = {
-  video: Video,
-  'file-text': FileText,
-  smartphone: Smartphone,
-  'layout-grid': LayoutGrid,
-}
-
-// Production-ready format. fb_article = primary; others remain available.
-const PRIMARY: RecreateFormat = 'fb_article'
-const SECONDARY: RecreateFormat[] = ['yt_script', 'reels', 'carousel']
+type TemplateOption = { id: string; name: string }
 
 export function FormatPicker({
   ideaId,
@@ -47,30 +34,28 @@ export function FormatPicker({
   hasSummary: boolean
 }) {
   const router = useRouter()
-  const [pendingFormat, setPendingFormat] = useState<RecreateFormat | null>(null)
+  const [pendingFormat, setPendingFormat] = useState<RecreateFormat | null>(
+    null,
+  )
   const [activeJobId, setActiveJobId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [pending, start] = useTransition()
   const [extra, setExtra] = useState('')
-  const [showOther, setShowOther] = useState(false)
-  const [existingJobFormat, setExistingJobFormat] = useState<RecreateFormat | null>(
-    null,
-  )
-  const [selectedStyleId, setSelectedStyleId] = useState<string | null>(null)
-  const [carouselTemplateId, setCarouselTemplateId] = useState<string | null>(
-    null,
-  )
+  const [existingJobFormat, setExistingJobFormat] =
+    useState<RecreateFormat | null>(null)
+
   const [fbPostTemplateId, setFbPostTemplateId] = useState<string | null>(
     null,
   )
-  const [carouselTemplates, setCarouselTemplates] = useState<
-    { id: string; name: string }[]
-  >([])
-  const [fbPostTemplates, setFbPostTemplates] = useState<
-    { id: string; name: string }[]
-  >([])
+  const [carouselTemplateId, setCarouselTemplateId] = useState<string | null>(
+    null,
+  )
+  const [fbPostTemplates, setFbPostTemplates] = useState<TemplateOption[]>([])
+  const [carouselTemplates, setCarouselTemplates] = useState<TemplateOption[]>(
+    [],
+  )
 
-  // Load both kinds of user templates so the dropdowns can show options
+  // Load both kinds of user templates
   useEffect(() => {
     const sb = createClient()
     let cancelled = false
@@ -108,7 +93,6 @@ export function FormatPicker({
   useEffect(() => {
     const sb = createClient()
     let cancelled = false
-
     async function check() {
       const {
         data: { user },
@@ -128,13 +112,15 @@ export function FormatPicker({
       if (match) {
         const fmt = (match.payload as { format?: string } | null)?.format
         setActiveJobId(match.id)
-        if (fmt && (fmt === 'fb_article' || fmt === 'yt_script' || fmt === 'reels' || fmt === 'carousel')) {
+        if (
+          fmt &&
+          (fmt === 'fb_article' || fmt === 'carousel')
+        ) {
           setExistingJobFormat(fmt as RecreateFormat)
           setPendingFormat(fmt as RecreateFormat)
         }
       }
     }
-
     check()
     const interval = setInterval(check, 5000)
     return () => {
@@ -144,14 +130,12 @@ export function FormatPicker({
   }, [ideaId])
 
   function pick(format: RecreateFormat) {
-    // Block duplicate clicks: if any active job for this idea, ignore.
     if (activeJobId || existingJobFormat) return
     setError(null)
     setPendingFormat(format)
     start(async () => {
       const res = await startRecreate(ideaId, format, {
         instruction_extra: extra.trim() || undefined,
-        creative_style_id: selectedStyleId ?? undefined,
         carousel_template_id:
           format === 'carousel'
             ? carouselTemplateId ?? undefined
@@ -173,9 +157,7 @@ export function FormatPicker({
 
   function onJobDone(job: JobRow) {
     const draftId = (job.result as { draft_id?: string } | null)?.draft_id
-    if (draftId) {
-      router.push(`/recreated/${draftId}`)
-    }
+    if (draftId) router.push(`/recreated/${draftId}`)
   }
 
   function onJobError() {
@@ -184,12 +166,7 @@ export function FormatPicker({
     setExistingJobFormat(null)
   }
 
-  // While job is running, lock all action buttons
   const locked = activeJobId !== null || existingJobFormat !== null
-
-  const primaryMeta = FORMAT_META[PRIMARY]
-  const PrimaryIcon = ICON_MAP[primaryMeta.icon] ?? Sparkles
-  const isPrimaryPending = pending && pendingFormat === PRIMARY
 
   return (
     <div className="space-y-3">
@@ -208,53 +185,11 @@ export function FormatPicker({
           type="text"
           value={extra}
           onChange={(e) => setExtra(e.target.value)}
-          placeholder='เช่น "เพิ่ม Offer Point ของ Outlier Agency" หรือ "สั้นกว่านี้"'
+          placeholder='เช่น "เน้น Offer ของ Outlier Agency" หรือ "สั้นกว่าปกติ"'
           disabled={pending || !hasSummary}
           className="w-full h-9 px-3 rounded-[8px] border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-brand"
         />
       </div>
-
-      {/* FB post custom template picker — when chosen, bypasses the built-in
-          cover renderer and uses the user's uploaded HTML template instead. */}
-      {fbPostTemplates.length > 0 && (
-        <div>
-          <label className="block text-xs text-muted-foreground mb-1.5">
-            FB cover template
-          </label>
-          <select
-            value={fbPostTemplateId ?? ''}
-            onChange={(e) => setFbPostTemplateId(e.target.value || null)}
-            disabled={pending || !hasSummary || locked}
-            className="w-full h-9 px-2.5 rounded-[8px] border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-brand"
-          >
-            <option value="">Built-in (default cover renderer)</option>
-            {fbPostTemplates.map((t) => (
-              <option key={t.id} value={t.id}>
-                📐 {t.name}
-              </option>
-            ))}
-          </select>
-          <p className="text-[10px] text-muted-foreground mt-1">
-            เลือก template ของพี่ → AI generate post body + cover fields
-            ตาม writing prompt ที่กำหนดไว้ใน template นั้น
-          </p>
-        </div>
-      )}
-
-      {/* Creative style picker — applies only to built-in cover renderer. */}
-      {!fbPostTemplateId && (
-        <div>
-          <label className="block text-xs text-muted-foreground mb-1.5">
-            Visual style (Cover Template)
-          </label>
-          <StylePicker
-            formatType={FORMAT_TO_VISUAL[PRIMARY]}
-            selectedId={selectedStyleId}
-            onChange={setSelectedStyleId}
-            disabled={pending || !hasSummary || locked}
-          />
-        </div>
-      )}
 
       {error && (
         <div className="bg-status-red-bg border border-status-red-border rounded-[8px] px-3 py-2 text-sm text-status-red-text">
@@ -263,132 +198,155 @@ export function FormatPicker({
       )}
 
       {activeJobId && (
-        <JobProgress jobId={activeJobId} onDone={onJobDone} onError={onJobError} />
+        <JobProgress
+          jobId={activeJobId}
+          onDone={onJobDone}
+          onError={onJobError}
+        />
       )}
 
-      {/* === Primary action: FB Article === */}
-      <button
-        type="button"
-        onClick={() => pick(PRIMARY)}
-        disabled={!hasSummary || pending || locked}
-        className={`w-full text-left p-4 rounded-[14px] border-2 transition-all ${
-          hasSummary && !pending && !locked
-            ? 'border-brand bg-brand-soft hover:bg-brand/15 cursor-pointer'
-            : 'border-border bg-background opacity-50 cursor-not-allowed'
-        }`}
-      >
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-[10px] bg-brand text-white flex items-center justify-center shrink-0">
-            {isPrimaryPending || (locked && existingJobFormat === PRIMARY) ? (
-              <Loader2 size={20} className="animate-spin" />
-            ) : (
-              <PrimaryIcon size={20} />
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="text-base font-semibold text-foreground">
-                {primaryMeta.label}
-              </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-brand text-white">
-                <Star size={10} fill="currentColor" />
-                Recommended
-              </span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-              {primaryMeta.description}
-            </p>
-          </div>
-          <div className="text-xs text-brand font-medium shrink-0">
-            {locked
-              ? existingJobFormat === PRIMARY
-                ? 'กำลัง generate…'
-                : 'รอ job อื่นเสร็จ'
-              : isPrimaryPending
-                ? 'กำลัง generate…'
-                : 'เริ่ม →'}
-          </div>
-        </div>
-      </button>
-
-      {/* === Other formats (collapsed) === */}
-      <div>
-        <button
-          type="button"
-          onClick={() => setShowOther((v) => !v)}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <FormatCard
+          format="fb_article"
+          icon={FileText}
+          label="FB Post"
+          description="บทความยาว + ภาพปก — pair กับ FB Post template ของพี่"
+          templates={fbPostTemplates}
+          selectedTemplateId={fbPostTemplateId}
+          onSelectTemplate={setFbPostTemplateId}
+          onPick={() => pick('fb_article')}
+          locked={locked}
+          isPending={pending && pendingFormat === 'fb_article'}
+          isMine={existingJobFormat === 'fb_article'}
           disabled={!hasSummary || pending}
-          className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
-        >
-          {showOther ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-          format อื่น (text-only — ยังไม่มี cover render)
-        </button>
+        />
+        <FormatCard
+          format="carousel"
+          icon={LayoutGrid}
+          label="IG Carousel"
+          description="3-9 slides สไตล์เดียวกับ template ที่พี่ upload"
+          templates={carouselTemplates}
+          selectedTemplateId={carouselTemplateId}
+          onSelectTemplate={setCarouselTemplateId}
+          onPick={() => pick('carousel')}
+          locked={locked}
+          isPending={pending && pendingFormat === 'carousel'}
+          isMine={existingJobFormat === 'carousel'}
+          disabled={!hasSummary || pending}
+        />
+      </div>
+    </div>
+  )
+}
 
-        {showOther && carouselTemplates.length > 0 && (
-          <div className="mt-2 p-2.5 rounded-[10px] border border-border-soft bg-card">
-            <label className="block text-[11px] font-medium text-muted-foreground mb-1">
-              Carousel template (สำหรับ IG Carousel format)
+function FormatCard({
+  format,
+  icon: Icon,
+  label,
+  description,
+  templates,
+  selectedTemplateId,
+  onSelectTemplate,
+  onPick,
+  locked,
+  isPending,
+  isMine,
+  disabled,
+}: {
+  format: RecreateFormat
+  icon: React.ComponentType<{ size?: number }>
+  label: string
+  description: string
+  templates: TemplateOption[]
+  selectedTemplateId: string | null
+  onSelectTemplate: (id: string | null) => void
+  onPick: () => void
+  locked: boolean
+  isPending: boolean
+  isMine: boolean
+  disabled: boolean
+}) {
+  const isActive = locked && isMine
+  const interactive = !disabled && !locked
+
+  return (
+    <div
+      className={`rounded-[14px] border-2 p-4 transition-colors flex flex-col ${
+        interactive
+          ? 'border-brand bg-brand-soft'
+          : 'border-border bg-background opacity-70'
+      }`}
+    >
+      <div className="flex items-center gap-3 mb-3">
+        <div className="w-10 h-10 rounded-[10px] bg-brand text-white inline-flex items-center justify-center shrink-0">
+          {isPending || isActive ? (
+            <Loader2 size={18} className="animate-spin" />
+          ) : (
+            <Icon size={18} />
+          )}
+        </div>
+        <div className="min-w-0">
+          <div className="text-base font-semibold text-foreground">
+            {label}
+          </div>
+          <p className="text-[11px] text-muted-foreground leading-snug">
+            {description}
+          </p>
+        </div>
+      </div>
+
+      <div className="mb-3">
+        {templates.length > 0 ? (
+          <>
+            <label className="block text-[10px] uppercase tracking-wide font-medium text-muted-foreground mb-1">
+              Template
             </label>
             <select
-              value={carouselTemplateId ?? ''}
+              value={selectedTemplateId ?? ''}
               onChange={(e) =>
-                setCarouselTemplateId(e.target.value || null)
+                onSelectTemplate(e.target.value || null)
               }
-              disabled={locked || pending}
-              className="w-full h-9 px-2 rounded-[8px] border border-border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-brand"
+              disabled={locked}
+              className="w-full h-9 px-2.5 rounded-[8px] border border-border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-brand"
             >
-              <option value="">Built-in (thread-x)</option>
-              {carouselTemplates.map((t) => (
+              <option value="">Built-in (default)</option>
+              {templates.map((t) => (
                 <option key={t.id} value={t.id}>
                   📐 {t.name}
                 </option>
               ))}
             </select>
-            <p className="text-[10px] text-muted-foreground mt-1">
-              เลือก template ของพี่ที่ upload ไว้ — AI จะ generate
-              slide content ตาม schema ของ template นั้น
-            </p>
-          </div>
-        )}
-
-        {showOther && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2">
-            {SECONDARY.map((fmt) => {
-              const meta = FORMAT_META[fmt]
-              const Icon = ICON_MAP[meta.icon] ?? Sparkles
-              const isPending = pending && pendingFormat === fmt
-              return (
-                <button
-                  key={fmt}
-                  type="button"
-                  onClick={() => pick(fmt)}
-                  disabled={!hasSummary || pending || locked}
-                  className={`text-left p-3 rounded-[10px] border transition-colors ${
-                    hasSummary && !locked
-                      ? 'border-border hover:border-brand hover:bg-brand-soft cursor-pointer'
-                      : 'border-border opacity-50 cursor-not-allowed'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="w-6 h-6 rounded-[6px] bg-brand-soft text-brand flex items-center justify-center">
-                      {isPending ? (
-                        <Loader2 size={12} className="animate-spin" />
-                      ) : (
-                        <Icon size={12} />
-                      )}
-                    </span>
-                    <span className="text-sm font-medium text-foreground">
-                      {meta.label}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    {meta.description}
-                  </p>
-                </button>
-              )
-            })}
-          </div>
+          </>
+        ) : (
+          <Link
+            href="/carousel-templates"
+            className="block text-[11px] text-muted-foreground hover:text-foreground bg-background rounded-[8px] border border-dashed border-border px-2.5 py-2 leading-snug"
+          >
+            ยังไม่มี {format === 'fb_article' ? 'FB Post' : 'Carousel'} template —
+            <span className="text-brand"> upload ที่ Templates </span>
+            เพื่อ AI ใช้สไตล์ของพี่
+          </Link>
         )}
       </div>
+
+      <button
+        type="button"
+        onClick={onPick}
+        disabled={disabled || locked}
+        className="mt-auto inline-flex items-center justify-center gap-1.5 text-sm font-medium rounded-[8px] bg-brand hover:bg-brand-hover text-white disabled:opacity-50 px-3 py-2"
+      >
+        {isPending || isActive ? (
+          <>
+            <Loader2 size={13} className="animate-spin" />
+            กำลัง generate…
+          </>
+        ) : (
+          <>
+            <Sparkles size={13} />
+            {`สร้าง ${label}`}
+          </>
+        )}
+      </button>
     </div>
   )
 }

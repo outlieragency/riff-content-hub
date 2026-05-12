@@ -6,11 +6,9 @@ import {
   AlertCircle,
   ArrowLeft,
   Bookmark,
-  FileText,
   Image as ImageIcon,
   Loader2,
   Sparkles,
-  Video,
   X,
 } from 'lucide-react'
 import {
@@ -36,20 +34,8 @@ const FORMAT_OPTIONS: {
   {
     value: 'ig_carousel',
     label: 'IG Carousel',
-    hint: '4-10 slides พร้อมโพสต์ลง IG',
+    hint: '3-9 slides ตาม template ที่พี่ upload',
     icon: ImageIcon,
-  },
-  {
-    value: 'reels_script',
-    label: 'Reels Script',
-    hint: 'Hook · body · CTA สำหรับวิดีโอสั้น',
-    icon: Video,
-  },
-  {
-    value: 'yt_script',
-    label: 'YouTube Script',
-    hint: 'Outline + script เต็ม + 5 titles',
-    icon: FileText,
   },
 ]
 

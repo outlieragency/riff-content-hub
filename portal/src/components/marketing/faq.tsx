@@ -5,7 +5,7 @@ import { useState } from 'react'
 const ITEMS = [
   {
     q: 'แล้วมันทำงานยังไงสั้น ๆ',
-    a: 'ใส่ URL channel ที่อยาก follow ระบบ scan ให้ ตัวที่ดังเกินค่าเฉลี่ย channel จะขึ้น feed กด save ตัวที่ชอบ AI จะอ่าน transcript แปลไทย สรุปประเด็น แล้วเขียนใหม่เป็น FB/IG/Reels/YT ในเสียงของคุณ พร้อมทำปกให้',
+    a: 'ใส่ URL channel ที่อยาก follow ระบบ scan ให้ ตัวที่ดังเกินค่าเฉลี่ย channel จะขึ้น feed กด save ตัวที่ชอบ AI จะอ่าน transcript แปลไทย สรุปประเด็น แล้วเขียนใหม่เป็น FB Post + IG Carousel ในเสียงของคุณ พร้อมทำปกตาม template ที่คุณ upload',
   },
   {
     q: 'AI เขียนเหมือนผมจริง ๆ เหรอ',

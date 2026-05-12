@@ -1,9 +1,7 @@
 import { WaitlistForm } from './waitlist-form'
 
 const FORMAT_TABS = [
-  { label: 'YouTube Script', emoji: '📺' },
   { label: 'Facebook Post', emoji: '📘' },
-  { label: 'Reels Script', emoji: '📱' },
   { label: 'IG Carousel', emoji: '🎴' },
 ]
 
@@ -40,7 +38,7 @@ export function Hero({ count }: { count: number }) {
                 display: 'inline-block',
               }}
             />
-            Content OS สำหรับ Founder ในไทย
+            AI Ghostwriter สำหรับ FB + IG ของ Founder
           </div>
 
           {/* Headline */}
@@ -78,8 +76,9 @@ export function Hero({ count }: { count: number }) {
             ไม่ต้องเสีย 30,000/เดือนกับ agency
             <br />
             <br />
-            Riff คือ Content OS ที่หา idea, เขียน, ทำปก, แล้วลงให้คุณ
-            เหมือนมีทีม content 5 คน ทำงานในธุรกิจของคุณ
+            Riff คือ AI Ghostwriter — paste URL ของวิดีโอที่ดัง
+            แล้ว Riff เขียน FB Post + Carousel ในเสียงและสไตล์ของคุณ
+            พร้อมโพสต์
           </p>
 
           {/* Format tabs */}
