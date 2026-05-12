@@ -57,6 +57,39 @@ export function FormatPicker({
     null,
   )
   const [selectedStyleId, setSelectedStyleId] = useState<string | null>(null)
+  const [carouselTemplateId, setCarouselTemplateId] = useState<string | null>(
+    null,
+  )
+  const [carouselTemplates, setCarouselTemplates] = useState<
+    { id: string; name: string }[]
+  >([])
+
+  // Load user's carousel templates so the dropdown can show options
+  useEffect(() => {
+    const sb = createClient()
+    let cancelled = false
+    async function load() {
+      const {
+        data: { user },
+      } = await sb.auth.getUser()
+      if (!user || cancelled) return
+      const { data } = await sb
+        .from('carousel_templates')
+        .select('id, name')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+      if (!cancelled && data) {
+        setCarouselTemplates(
+          data.map((d) => ({ id: d.id as string, name: d.name as string })),
+        )
+      }
+    }
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   // Detect existing inflight job for this idea — prevent duplicate submission
   useEffect(() => {
@@ -106,6 +139,10 @@ export function FormatPicker({
       const res = await startRecreate(ideaId, format, {
         instruction_extra: extra.trim() || undefined,
         creative_style_id: selectedStyleId ?? undefined,
+        carousel_template_id:
+          format === 'carousel'
+            ? carouselTemplateId ?? undefined
+            : undefined,
       })
       if (!res.ok) {
         setError(res.error)
@@ -239,6 +276,33 @@ export function FormatPicker({
           {showOther ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
           format อื่น (text-only — ยังไม่มี cover render)
         </button>
+
+        {showOther && carouselTemplates.length > 0 && (
+          <div className="mt-2 p-2.5 rounded-[10px] border border-border-soft bg-card">
+            <label className="block text-[11px] font-medium text-muted-foreground mb-1">
+              Carousel template (สำหรับ IG Carousel format)
+            </label>
+            <select
+              value={carouselTemplateId ?? ''}
+              onChange={(e) =>
+                setCarouselTemplateId(e.target.value || null)
+              }
+              disabled={locked || pending}
+              className="w-full h-9 px-2 rounded-[8px] border border-border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-brand"
+            >
+              <option value="">Built-in (thread-x)</option>
+              {carouselTemplates.map((t) => (
+                <option key={t.id} value={t.id}>
+                  📐 {t.name}
+                </option>
+              ))}
+            </select>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              เลือก template ของพี่ที่ upload ไว้ — AI จะ generate
+              slide content ตาม schema ของ template นั้น
+            </p>
+          </div>
+        )}
 
         {showOther && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2">

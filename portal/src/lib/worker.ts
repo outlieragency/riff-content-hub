@@ -147,6 +147,7 @@ export const worker = {
     format: string
     voice_profile_id?: string
     creative_style_id?: string
+    carousel_template_id?: string
     instruction_extra?: string
   }) => call<EnqueueResponse>('POST', '/recreate/enqueue', params),
 

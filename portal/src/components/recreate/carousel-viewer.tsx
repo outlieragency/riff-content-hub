@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import {
   AlertTriangle,
   Check,
@@ -10,6 +11,7 @@ import {
   Eye,
   Image as ImageIcon,
   LayoutGrid,
+  Pencil,
 } from 'lucide-react'
 import type { CarouselOutput } from '@/lib/types/recreate-formats'
 import { downloadUrlAs } from '@/lib/utils/download'
@@ -37,6 +39,12 @@ export function CarouselViewer({
   const urls = output.carousel_urls ?? []
   const slides = output.slides ?? []
   const renderedCount = urls.length
+  const isTemplate = output.kind === 'template'
+  const baseFilename =
+    output.slug ||
+    (output.template_name
+      ? output.template_name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+      : 'carousel')
 
   async function copyJson() {
     await navigator.clipboard.writeText(JSON.stringify(output, null, 2))
@@ -47,7 +55,7 @@ export function CarouselViewer({
   async function downloadOne(url: string, index: number) {
     await downloadUrlAs(
       url,
-      `${output.slug}-${String(index + 1).padStart(2, '0')}.png`,
+      `${baseFilename}-${String(index + 1).padStart(2, '0')}.png`,
     )
   }
 
@@ -58,7 +66,7 @@ export function CarouselViewer({
       for (let i = 0; i < urls.length; i++) {
         await downloadUrlAs(
           urls[i],
-          `${output.slug}-${String(i + 1).padStart(2, '0')}.png`,
+          `${baseFilename}-${String(i + 1).padStart(2, '0')}.png`,
         )
         // Small delay between downloads — some browsers throttle simultaneous
         await new Promise((r) => setTimeout(r, 250))
@@ -75,10 +83,30 @@ export function CarouselViewer({
         <div className="text-xs text-muted-foreground inline-flex items-center gap-2">
           <LayoutGrid size={12} />
           {slides.length} slides · template:{' '}
-          <span className="font-mono text-foreground">{output.template}</span> · theme:{' '}
-          <span className="font-mono text-foreground">{output.theme}</span>
+          <span className="font-mono text-foreground">
+            {isTemplate
+              ? output.template_name ?? 'custom'
+              : output.template ?? '—'}
+          </span>{' '}
+          {!isTemplate && (
+            <>
+              · theme:{' '}
+              <span className="font-mono text-foreground">
+                {typeof output.theme === 'string' ? output.theme : 'custom'}
+              </span>
+            </>
+          )}
         </div>
         <div className="flex gap-2">
+          {isTemplate && output.template_id && (
+            <Link
+              href={`/carousel-templates/${output.template_id}`}
+              className="text-xs text-blue-600 hover:underline inline-flex items-center gap-1"
+            >
+              <Pencil size={12} />
+              Edit template
+            </Link>
+          )}
           <button
             type="button"
             onClick={copyJson}
@@ -150,7 +178,7 @@ export function CarouselViewer({
                 </div>
                 <div className="p-2 flex items-center justify-between gap-1">
                   <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                    {slide?.kind ? SLIDE_KIND_LABEL[slide.kind] ?? slide.kind : ''}
+                    {slideKindLabel(slide)}
                   </span>
                   <button
                     type="button"
@@ -194,10 +222,14 @@ export function CarouselViewer({
                   {i + 1}
                 </span>
                 <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  {SLIDE_KIND_LABEL[s.kind] ?? s.kind}
+                  {slideKindLabel(s)}
                 </span>
               </div>
-              <SlideContentText slide={s} />
+              {isBuiltinSlide(s) ? (
+                <SlideContentText slide={s} />
+              ) : (
+                <TemplateSlideText slide={s as Record<string, string>} />
+              )}
             </li>
           ))}
         </ol>
@@ -267,11 +299,59 @@ export function CarouselViewer({
   )
 }
 
-function SlideContentText({
-  slide,
-}: {
-  slide: CarouselOutput['slides'][number]
-}) {
+type BuiltinSlide = Extract<
+  CarouselOutput['slides'][number],
+  { kind: string }
+>
+
+function isBuiltinSlide(
+  s: CarouselOutput['slides'][number],
+): s is BuiltinSlide {
+  return (
+    typeof s === 'object' &&
+    s !== null &&
+    'kind' in s &&
+    typeof (s as { kind?: unknown }).kind === 'string' &&
+    Object.prototype.hasOwnProperty.call(SLIDE_KIND_LABEL, (s as { kind: string }).kind)
+  )
+}
+
+function slideKindLabel(
+  s: CarouselOutput['slides'][number] | undefined,
+): string {
+  if (!s) return ''
+  if (isBuiltinSlide(s)) {
+    return SLIDE_KIND_LABEL[s.kind] ?? s.kind
+  }
+  return 'Slide'
+}
+
+function TemplateSlideText({ slide }: { slide: Record<string, string> }) {
+  const entries = Object.entries(slide).filter(
+    ([, v]) => typeof v === 'string' && v.trim().length > 0,
+  )
+  if (entries.length === 0) {
+    return (
+      <p className="text-muted-foreground text-xs italic">empty slide</p>
+    )
+  }
+  return (
+    <dl className="space-y-1">
+      {entries.map(([k, v]) => (
+        <div key={k} className="flex flex-col">
+          <dt className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            {k}
+          </dt>
+          <dd className="text-foreground text-sm whitespace-pre-wrap">
+            {v}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  )
+}
+
+function SlideContentText({ slide }: { slide: BuiltinSlide }) {
   switch (slide.kind) {
     case 'tweet':
       return (

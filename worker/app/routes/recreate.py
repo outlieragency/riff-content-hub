@@ -33,6 +33,14 @@ class RecreateRequest(BaseModel):
         default=None,
         description="UUID of public.creative_styles — controls visual cover style",
     )
+    carousel_template_id: str | None = Field(
+        default=None,
+        description=(
+            "UUID of public.carousel_templates — when format=carousel, routes "
+            "to the user-template pipeline (Claude fills the template schema "
+            "from the video summary) instead of the built-in thread-x renderer."
+        ),
+    )
     instruction_extra: str | None = None
 
 
@@ -61,6 +69,7 @@ def post_enqueue(
         "format": body.format,
         "voice_profile_id": body.voice_profile_id,
         "creative_style_id": body.creative_style_id,
+        "carousel_template_id": body.carousel_template_id,
         "instruction_extra": body.instruction_extra,
     }
     try:

@@ -93,10 +93,27 @@ export type CarouselSlide =
   | { kind: 'cta'; heading: string; body: string; cta_text?: string }
 
 export type CarouselOutput = {
-  slug: string
-  template: 'thread-x' | 'minimal-thai'
-  theme: 'light' | 'dark' | 'cream' | 'orange' | 'white'
-  slides: CarouselSlide[]
+  // Discriminator: present when produced via a user-uploaded template
+  // (see `carousel_templates` table). Absent or 'builtin' for the
+  // original thread-x / minimal-thai pipeline.
+  kind?: 'template' | 'builtin'
+  slug?: string
+  template?: 'thread-x' | 'minimal-thai' | string
+  template_id?: string
+  template_name?: string
+  theme?:
+    | 'light'
+    | 'dark'
+    | 'cream'
+    | 'orange'
+    | 'white'
+    | Record<string, string>
+  // For 'builtin' carousels these are CarouselSlide objects.
+  // For 'template' carousels these are plain { field_key: value } objects
+  // matching the template's schema.
+  slides: (CarouselSlide | Record<string, string>)[]
+  width?: number
+  height?: number
   // Populated post-render by worker (rendered slide PNG URLs in slide order)
   carousel_urls?: string[]
   carousel_warnings?: string[]

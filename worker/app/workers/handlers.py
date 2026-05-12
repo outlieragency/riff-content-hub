@@ -17,6 +17,11 @@ from anthropic import APIStatusError, RateLimitError
 from googleapiclient.errors import HttpError
 
 from ..deps import get_supabase
+from ..services.carousel_template_render import render_template_pngs
+from ..services.claude.generate_template_slides import (
+    SlidesGenerateError,
+    generate_template_slides,
+)
 from ..services.claude.recreate import get_handler as get_recreate_handler
 from ..services.claude.recreate import supported_formats
 from ..services.claude.recreate._orchestrator import (
@@ -328,17 +333,227 @@ async def handle_extract_voice(sb, job: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+# ---- Template-based carousel helpers ----
+
+DEFAULT_TEMPLATE_SLIDE_COUNT = 5
+
+
+def _build_idea_text_from_summary(summary: dict[str, Any]) -> str:
+    """Flatten the structured summary dict into a free-form 'idea' string
+    the slide generator can chew on. Keeps the most carousel-relevant
+    pieces (thesis, hook, body, examples, takeaways)."""
+    if not isinstance(summary, dict):
+        return ""
+
+    parts: list[str] = []
+    thesis = summary.get("main_thesis")
+    if isinstance(thesis, str) and thesis.strip():
+        parts.append(f"Main thesis: {thesis.strip()}")
+
+    hook = summary.get("hook")
+    if isinstance(hook, str) and hook.strip():
+        parts.append(f"Hook: {hook.strip()}")
+
+    body = summary.get("body_sections")
+    if isinstance(body, list) and body:
+        parts.append("\nKey points:")
+        for s in body[:9]:
+            if not isinstance(s, dict):
+                continue
+            heading = (s.get("heading") or "").strip()
+            text = (s.get("text") or "").strip()
+            if heading or text:
+                line = heading if not text else f"{heading} — {text}"
+                parts.append(f"- {line}")
+
+    examples = summary.get("examples")
+    if isinstance(examples, list) and examples:
+        parts.append("\nExamples:")
+        for ex in examples[:5]:
+            if isinstance(ex, str) and ex.strip():
+                parts.append(f"- {ex.strip()}")
+
+    takeaways = summary.get("takeaways")
+    if isinstance(takeaways, list) and takeaways:
+        parts.append("\nTakeaways:")
+        for t in takeaways[:5]:
+            if isinstance(t, str) and t.strip():
+                parts.append(f"- {t.strip()}")
+
+    cta = summary.get("cta")
+    if isinstance(cta, str) and cta.strip():
+        parts.append(f"\nCTA: {cta.strip()}")
+
+    return "\n".join(parts).strip()
+
+
+async def _run_template_carousel(
+    sb,
+    job: dict[str, Any],
+    user_id: str,
+    p: dict[str, Any],
+    carousel_template_id: str,
+) -> dict[str, Any]:
+    """Carousel recreate using a user-uploaded template.
+
+    Pipeline (different from the built-in thread-x path):
+      1. Load template (html + schema + theme + dims)
+      2. Load idea context (summary, voice profile)
+      3. AI generates N slides matching the template schema
+      4. Render PNGs via Playwright through the user HTML
+      5. Upload PNGs to Storage, save draft with carousel_urls
+    """
+    update_progress(sb, job["id"], progress=10, step="loading_template")
+
+    tpl_res = (
+        sb.table("carousel_templates")
+        .select(
+            "id, name, html_template, schema, default_theme, width, height"
+        )
+        .eq("id", carousel_template_id)
+        .eq("user_id", user_id)
+        .limit(1)
+        .execute()
+    )
+    rows = tpl_res.data or []
+    if not rows:
+        raise RuntimeError(
+            f"carousel_template not found: {carousel_template_id}"
+        )
+    tpl = rows[0]
+
+    update_progress(sb, job["id"], progress=20, step="loading_context")
+    try:
+        ctx = await asyncio.to_thread(
+            load_recreate_context,
+            sb,
+            user_id=user_id,
+            idea_id=p["idea_id"],
+            voice_profile_id=p.get("voice_profile_id"),
+            creative_style_id=p.get("creative_style_id"),
+            creative_style_format_type="carousel",
+        )
+    except ValueError as exc:
+        raise RuntimeError(str(exc)) from exc
+
+    idea_text = _build_idea_text_from_summary(ctx.summary)
+    if not idea_text:
+        raise RuntimeError("summary ว่าง — ไม่มี content ส่งให้ AI สร้าง slides")
+
+    slide_count = int(p.get("slide_count") or DEFAULT_TEMPLATE_SLIDE_COUNT)
+    slide_count = max(3, min(slide_count, 9))
+
+    update_progress(sb, job["id"], progress=40, step="generating_carousel")
+    try:
+        gen = await asyncio.to_thread(
+            generate_template_slides,
+            template_schema=tpl["schema"],
+            idea=idea_text,
+            slide_count=slide_count,
+            voice_profile=ctx.voice_profile,
+            user_id=user_id,
+        )
+    except SlidesGenerateError as exc:
+        raise RuntimeError(f"generate slides error: {exc}") from exc
+    except Exception as exc:  # noqa: BLE001
+        if _retryable_anthropic(exc):
+            raise RetryableJobError(
+                f"generate slides transient: {exc}"
+            ) from exc
+        raise RuntimeError(f"generate slides unexpected: {exc}") from exc
+
+    theme = tpl.get("default_theme") or {}
+    output: dict[str, Any] = {
+        "kind": "template",
+        "template_id": tpl["id"],
+        "template_name": tpl["name"],
+        "slides": gen.slides,
+        "theme": theme,
+        "width": tpl.get("width", 1080),
+        "height": tpl.get("height", 1350),
+    }
+
+    update_progress(sb, job["id"], progress=70, step="saving_draft")
+    draft_id = await asyncio.to_thread(
+        insert_draft,
+        sb,
+        ctx=ctx,
+        format_id="carousel",
+        output=output,
+        output_markdown=None,
+        title=gen.title,
+        meta=gen.meta,
+    )
+
+    update_progress(sb, job["id"], progress=80, step="rendering_carousel")
+    carousel_urls: list[str] = []
+    carousel_warnings: list[str] = []
+    try:
+        pngs = await asyncio.to_thread(
+            render_template_pngs,
+            html_template=tpl["html_template"],
+            slides=gen.slides,
+            theme=theme,
+            width=tpl.get("width", 1080),
+            height=tpl.get("height", 1350),
+        )
+    except Exception as exc:  # noqa: BLE001
+        pngs = []
+        carousel_warnings.append(f"render failed: {exc}")
+
+    for i, png in enumerate(pngs, start=1):
+        path = f"{user_id}/{draft_id}/{i:02d}.png"
+        try:
+            sb.storage.from_("fb-covers").upload(
+                path,
+                png,
+                file_options={
+                    "upsert": "true",
+                    "content-type": "image/png",
+                },
+            )
+            public = sb.storage.from_("fb-covers").get_public_url(path)
+            carousel_urls.append(public)
+        except Exception as exc:  # noqa: BLE001
+            carousel_warnings.append(f"slide {i} upload failed: {exc}")
+
+    if carousel_urls:
+        output["carousel_urls"] = carousel_urls
+    if carousel_warnings:
+        output["carousel_warnings"] = carousel_warnings
+    sb.table("recreated_drafts").update({"output": output}).eq(
+        "id", draft_id
+    ).execute()
+
+    update_progress(sb, job["id"], progress=100, step="done")
+    return {
+        "draft_id": draft_id,
+        "format": "carousel",
+        "title": gen.title,
+        "carousel_urls": carousel_urls,
+        "carousel_warnings": carousel_warnings,
+    }
+
+
 # =====================================================================
 # run_recreate
 # =====================================================================
 @register("run_recreate")
 async def handle_run_recreate(sb, job: dict[str, Any]) -> dict[str, Any]:
-    """payload: { idea_id, format, voice_profile_id?, instruction_extra? }"""
+    """payload: { idea_id, format, voice_profile_id?, carousel_template_id?, instruction_extra? }"""
     user_id = job["user_id"]
     p = job["payload"] or {}
     fmt = p["format"]
     if fmt not in supported_formats():
         raise RuntimeError(f"unsupported format: {fmt}")
+
+    # Custom-template carousel: route to the user-template pipeline
+    # instead of the built-in thread-x renderer.
+    carousel_tpl_id = p.get("carousel_template_id")
+    if fmt == "carousel" and carousel_tpl_id:
+        return await _run_template_carousel(
+            sb, job, user_id, p, carousel_tpl_id
+        )
 
     update_progress(sb, job["id"], progress=10, step="loading_context")
 
