@@ -13,8 +13,8 @@ export default async function CarouselTemplatesPage() {
   return (
     <div className="max-w-[1100px] mx-auto px-6 py-8 space-y-6">
       <PageHeader
-        title="Carousel templates"
-        description="Upload screenshot ของ carousel slide ที่ชอบ — AI วิเคราะห์ layout, สี, ฟอนต์ แล้วสร้างเป็น HTML template ที่ใช้ซ้ำได้"
+        title="FB Templates"
+        description="Upload screenshot ของ FB cover ที่ชอบ — AI วิเคราะห์ layout, สี, ฟอนต์ แล้วสร้างเป็น template ที่ใช้ generate post + cover ในสไตล์เดียวกันได้ทุกครั้ง"
         actions={<CarouselTemplateUploader />}
       />
 
@@ -24,12 +24,12 @@ export default async function CarouselTemplatesPage() {
             <ImagePlus size={20} />
           </div>
           <h2 className="font-semibold text-foreground">
-            ยังไม่มี template
+            ยังไม่มี FB template
           </h2>
           <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">
-            กด "Upload template" ด้านบนเพื่อเลือกรูป carousel ที่ชอบ —
-            AI จะแปลง layout เป็น HTML template ให้ใช้ generate
-            slides ในสไตล์เดียวกันได้ทุกครั้ง
+            กด "Upload template" ด้านบนเพื่อเลือกรูป FB cover ที่ชอบ —
+            AI จะแปลง layout เป็น template ให้ใช้ generate FB post
+            ในสไตล์เดียวกันได้ทุกครั้ง
           </p>
         </div>
       ) : (

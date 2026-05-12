@@ -36,7 +36,7 @@ const WORKFLOW: NavItem[] = [
 const CONFIG: NavItem[] = [
   { href: '/channels', label: 'Channels', icon: Tv },
   { href: '/voice', label: 'Voice', icon: Mic },
-  { href: '/carousel-templates', label: 'Templates', icon: LayoutTemplate },
+  { href: '/carousel-templates', label: 'FB Templates', icon: LayoutTemplate },
   { href: '/settings', label: 'Settings', icon: SettingsIcon },
 ]
 

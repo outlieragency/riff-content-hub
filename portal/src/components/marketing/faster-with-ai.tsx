@@ -23,8 +23,8 @@ const FEATURES_LEFT = [
 
 const FEATURES_RIGHT = [
   {
-    title: 'FB Post + IG Carousel จาก video เดียว',
-    body: 'paste YT URL → AI เขียน FB Post 800-1,500 คำ + IG Carousel 3-9 slides ในเสียงและสไตล์ของคุณ ครบในนั่งเดียว',
+    title: 'FB Post ครบทั้ง body + cover จาก video เดียว',
+    body: 'paste YT URL → AI เขียน FB Post 800-1,500 คำ + ภาพปกในเสียงและสไตล์ของคุณ ครบในนั่งเดียว',
   },
   {
     title: 'Transcript ไทย-อังกฤษ',

@@ -6,7 +6,6 @@ import {
   AlertCircle,
   ArrowLeft,
   Bookmark,
-  Image as ImageIcon,
   Loader2,
   Sparkles,
   X,
@@ -30,12 +29,6 @@ const FORMAT_OPTIONS: {
     label: 'Facebook Post',
     hint: 'บทความยาว 800-1,500 คำ + cover ปก',
     icon: Bookmark,
-  },
-  {
-    value: 'ig_carousel',
-    label: 'IG Carousel',
-    hint: '3-9 slides ตาม template ที่พี่ upload',
-    icon: ImageIcon,
   },
 ]
 

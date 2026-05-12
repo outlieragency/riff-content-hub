@@ -62,10 +62,17 @@ async function authedUser() {
 // List
 // ====================================================================
 
-export async function listCarouselTemplates(): Promise<CarouselTemplateRow[]> {
+export async function listCarouselTemplates(
+  options: { formatType?: CarouselTemplateFormat | 'all' } = {},
+): Promise<CarouselTemplateRow[]> {
   const { supabase, user } = await authedUser()
 
-  const { data, error } = await supabase
+  // FB-only product mode: gallery only shows fb_post templates. The
+  // carousel format_type still exists in the DB and worker but is
+  // hidden from the UI until output quality matures.
+  const formatFilter = options.formatType ?? 'fb_post'
+
+  let query = supabase
     .from('carousel_templates')
     .select(
       'id, user_id, name, description, source_image_path, thumbnail_path, html_template, schema, default_theme, writing_prompt, format_type, width, height, is_active, last_draft, created_at, updated_at',
@@ -73,6 +80,12 @@ export async function listCarouselTemplates(): Promise<CarouselTemplateRow[]> {
     .eq('user_id', user.id)
     .eq('is_active', true)
     .order('created_at', { ascending: false })
+
+  if (formatFilter !== 'all') {
+    query = query.eq('format_type', formatFilter)
+  }
+
+  const { data, error } = await query
 
   if (error || !data) return []
 

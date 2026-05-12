@@ -1,9 +1,6 @@
 import { WaitlistForm } from './waitlist-form'
 
-const FORMAT_TABS = [
-  { label: 'Facebook Post', emoji: '📘' },
-  { label: 'IG Carousel', emoji: '🎴' },
-]
+const FORMAT_TABS = [{ label: 'Facebook Post', emoji: '📘' }]
 
 export function Hero({ count }: { count: number }) {
   return (
@@ -38,7 +35,7 @@ export function Hero({ count }: { count: number }) {
                 display: 'inline-block',
               }}
             />
-            AI Ghostwriter สำหรับ FB + IG ของ Founder
+            AI Ghostwriter สำหรับ Facebook Post ของ Founder
           </div>
 
           {/* Headline */}
@@ -77,8 +74,8 @@ export function Hero({ count }: { count: number }) {
             <br />
             <br />
             Riff คือ AI Ghostwriter — paste URL ของวิดีโอที่ดัง
-            แล้ว Riff เขียน FB Post + Carousel ในเสียงและสไตล์ของคุณ
-            พร้อมโพสต์
+            แล้ว Riff เขียน Facebook Post 800-1,500 คำ + cover
+            ในเสียงและสไตล์ของคุณ พร้อมโพสต์
           </p>
 
           {/* Format tabs */}

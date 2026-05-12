@@ -3,12 +3,7 @@
 import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import {
-  FileText,
-  LayoutGrid,
-  Loader2,
-  Sparkles,
-} from 'lucide-react'
+import { FileText, Loader2, Sparkles } from 'lucide-react'
 import { startRecreate } from '@/lib/actions/recreate'
 import { type RecreateFormat } from '@/lib/types/recreate-formats'
 import { JobProgress } from '@/components/jobs/job-progress'
@@ -47,15 +42,9 @@ export function FormatPicker({
   const [fbPostTemplateId, setFbPostTemplateId] = useState<string | null>(
     null,
   )
-  const [carouselTemplateId, setCarouselTemplateId] = useState<string | null>(
-    null,
-  )
   const [fbPostTemplates, setFbPostTemplates] = useState<TemplateOption[]>([])
-  const [carouselTemplates, setCarouselTemplates] = useState<TemplateOption[]>(
-    [],
-  )
 
-  // Load both kinds of user templates
+  // FB-only mode: only fetch fb_post templates
   useEffect(() => {
     const sb = createClient()
     let cancelled = false
@@ -66,20 +55,14 @@ export function FormatPicker({
       if (!user || cancelled) return
       const { data } = await sb
         .from('carousel_templates')
-        .select('id, name, format_type')
+        .select('id, name')
         .eq('user_id', user.id)
         .eq('is_active', true)
+        .eq('format_type', 'fb_post')
         .order('created_at', { ascending: false })
       if (!cancelled && data) {
-        setCarouselTemplates(
-          data
-            .filter((d) => d.format_type !== 'fb_post')
-            .map((d) => ({ id: d.id as string, name: d.name as string })),
-        )
         setFbPostTemplates(
-          data
-            .filter((d) => d.format_type === 'fb_post')
-            .map((d) => ({ id: d.id as string, name: d.name as string })),
+          data.map((d) => ({ id: d.id as string, name: d.name as string })),
         )
       }
     }
@@ -112,10 +95,7 @@ export function FormatPicker({
       if (match) {
         const fmt = (match.payload as { format?: string } | null)?.format
         setActiveJobId(match.id)
-        if (
-          fmt &&
-          (fmt === 'fb_article' || fmt === 'carousel')
-        ) {
+        if (fmt === 'fb_article') {
           setExistingJobFormat(fmt as RecreateFormat)
           setPendingFormat(fmt as RecreateFormat)
         }
@@ -136,10 +116,6 @@ export function FormatPicker({
     start(async () => {
       const res = await startRecreate(ideaId, format, {
         instruction_extra: extra.trim() || undefined,
-        carousel_template_id:
-          format === 'carousel'
-            ? carouselTemplateId ?? undefined
-            : undefined,
         fb_post_template_id:
           format === 'fb_article'
             ? fbPostTemplateId ?? undefined
@@ -205,36 +181,20 @@ export function FormatPicker({
         />
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <FormatCard
-          format="fb_article"
-          icon={FileText}
-          label="FB Post"
-          description="บทความยาว + ภาพปก — pair กับ FB Post template ของพี่"
-          templates={fbPostTemplates}
-          selectedTemplateId={fbPostTemplateId}
-          onSelectTemplate={setFbPostTemplateId}
-          onPick={() => pick('fb_article')}
-          locked={locked}
-          isPending={pending && pendingFormat === 'fb_article'}
-          isMine={existingJobFormat === 'fb_article'}
-          disabled={!hasSummary || pending}
-        />
-        <FormatCard
-          format="carousel"
-          icon={LayoutGrid}
-          label="IG Carousel"
-          description="3-9 slides สไตล์เดียวกับ template ที่พี่ upload"
-          templates={carouselTemplates}
-          selectedTemplateId={carouselTemplateId}
-          onSelectTemplate={setCarouselTemplateId}
-          onPick={() => pick('carousel')}
-          locked={locked}
-          isPending={pending && pendingFormat === 'carousel'}
-          isMine={existingJobFormat === 'carousel'}
-          disabled={!hasSummary || pending}
-        />
-      </div>
+      <FormatCard
+        format="fb_article"
+        icon={FileText}
+        label="FB Post"
+        description="บทความยาว + ภาพปก — pair กับ FB template ของพี่"
+        templates={fbPostTemplates}
+        selectedTemplateId={fbPostTemplateId}
+        onSelectTemplate={setFbPostTemplateId}
+        onPick={() => pick('fb_article')}
+        locked={locked}
+        isPending={pending && pendingFormat === 'fb_article'}
+        isMine={existingJobFormat === 'fb_article'}
+        disabled={!hasSummary || pending}
+      />
     </div>
   )
 }

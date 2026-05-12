@@ -41,7 +41,7 @@ const FEATURES: {
     step: '04',
     key: 'recreate',
     title: 'Recreate สร้าง Content ในสไตล์คุณจาก Video ที่ Viral',
-    body: 'AI ghostwriter เขียน FB Post + IG Carousel ในเสียงและสไตล์ของคุณ ใช้ template + writing prompt ที่คุณ upload ไว้',
+    body: 'AI ghostwriter เขียน Facebook Post ในเสียงและสไตล์ของคุณ ใช้ FB cover template + writing prompt ที่คุณ upload ไว้',
     rotation: 2,
     mockup: <RecreateMock />,
   },
@@ -357,11 +357,11 @@ function DecodeMock() {
 function RecreateMock() {
   const formats = [
     { l: 'FB post', s: '800-1,500 คำ + cover', c: '#93C5FD' },
-    { l: 'IG carousel', s: '3-9 slides ตาม template', c: '#C9A6FF' },
+    { l: 'FB cover', s: 'ภาพปกสไตล์เดียวกัน', c: '#FCD68B' },
   ]
   return (
     <MockShell>
-      <MockHeader>2 formats · ghostwriter mode</MockHeader>
+      <MockHeader>Facebook ghostwriter</MockHeader>
       <div
         style={{
           fontSize: 11.5,
