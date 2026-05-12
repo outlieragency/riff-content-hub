@@ -225,6 +225,31 @@ export const worker = {
     '/carousel-templates/render-html',
     params,
   ),
+
+  generateCarouselSlides: (params: {
+    user_id: string
+    template_schema: unknown[]
+    idea: string
+    slide_count: number
+    voice_profile?: Record<string, unknown>
+  }) => call<GenerateCarouselSlidesResponse>(
+    'POST',
+    '/carousel-templates/generate-slides',
+    params,
+  ),
+}
+
+export type GenerateCarouselSlidesResponse = {
+  slides: Record<string, string>[]
+  title: string
+  meta: {
+    model: string
+    input_tokens: number
+    output_tokens: number
+    cache_read_input_tokens: number
+    latency_ms: number
+    cache_hit_ratio: number
+  }
 }
 
 export type CarouselTemplateField = {

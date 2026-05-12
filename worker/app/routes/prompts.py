@@ -32,9 +32,21 @@ EDITABLE_PROMPTS: list[dict[str, str]] = [
     },
     {
         "key": "recreate-carousel",
-        "label": "IG/FB carousel",
+        "label": "IG/FB carousel (built-in)",
         "group": "Recreate format",
-        "description": "พรอมต์สร้าง carousel (multi-slide)",
+        "description": "พรอมต์สร้าง carousel ด้วย built-in templates (thread-x, minimal-thai)",
+    },
+    {
+        "key": "generate-carousel-slides",
+        "label": "Carousel — generate slides for custom template",
+        "group": "Recreate format",
+        "description": "พรอมต์สร้าง slide content จาก idea ลงใน custom template (Phase 3)",
+    },
+    {
+        "key": "parse-carousel-template",
+        "label": "Carousel — parse uploaded screenshot",
+        "group": "Recreate format",
+        "description": "พรอมต์ที่ Claude vision ใช้แปลง screenshot → HTML+schema (Phase 1)",
     },
     {
         "key": "recreate-reels",

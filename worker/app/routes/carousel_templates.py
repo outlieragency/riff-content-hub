@@ -27,6 +27,10 @@ from ..services.carousel_template_render import (
     render_template_png,
     render_template_pngs,
 )
+from ..services.claude.generate_template_slides import (
+    SlidesGenerateError,
+    generate_template_slides,
+)
 from ..services.claude.parse_carousel_template import (
     TemplateParseError,
     parse_template_from_image,
@@ -158,6 +162,54 @@ async def post_render_png(
         ) from exc
 
     return Response(content=png, media_type="image/png")
+
+
+# ====================================================================
+# /generate-slides — AI fills the template schema with content from an idea
+# ====================================================================
+
+
+class GenerateSlidesRequest(BaseModel):
+    user_id: str = Field(..., description="auth.users.id")
+    template_schema: list[dict] = Field(..., min_length=1)
+    idea: str = Field(..., min_length=10, max_length=8000)
+    slide_count: int = Field(default=5, ge=1, le=12)
+    voice_profile: dict | None = None
+
+
+class GenerateSlidesResponse(BaseModel):
+    slides: list[dict[str, str]]
+    title: str
+    meta: dict
+
+
+@router.post("/generate-slides", response_model=GenerateSlidesResponse)
+async def post_generate_slides(
+    body: GenerateSlidesRequest,
+    authorization: str | None = Header(default=None),
+) -> GenerateSlidesResponse:
+    require_worker_secret(authorization)
+    try:
+        result = await asyncio.to_thread(
+            generate_template_slides,
+            template_schema=body.template_schema,
+            idea=body.idea,
+            slide_count=body.slide_count,
+            voice_profile=body.voice_profile,
+            user_id=body.user_id,
+        )
+    except SlidesGenerateError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(
+            status_code=502, detail=f"anthropic error: {exc}"
+        ) from exc
+
+    return GenerateSlidesResponse(
+        slides=result.slides,
+        title=result.title,
+        meta=result.meta.to_jsonable(),
+    )
 
 
 # ====================================================================

@@ -9,6 +9,13 @@ import {
   type CarouselTemplateTheme,
 } from '@/lib/worker'
 
+export type CarouselSlideValues = Record<string, string>
+
+export type CarouselDraftPayload = {
+  slides: CarouselSlideValues[]
+  theme: CarouselTemplateTheme | null
+}
+
 export type CarouselTemplateRow = {
   id: string
   user_id: string
@@ -24,6 +31,7 @@ export type CarouselTemplateRow = {
   width: number
   height: number
   is_active: boolean
+  last_draft: CarouselDraftPayload | null
   created_at: string
   updated_at: string
 }
@@ -56,7 +64,7 @@ export async function listCarouselTemplates(): Promise<CarouselTemplateRow[]> {
   const { data, error } = await supabase
     .from('carousel_templates')
     .select(
-      'id, user_id, name, description, source_image_path, thumbnail_path, html_template, schema, default_theme, width, height, is_active, created_at, updated_at',
+      'id, user_id, name, description, source_image_path, thumbnail_path, html_template, schema, default_theme, width, height, is_active, last_draft, created_at, updated_at',
     )
     .eq('user_id', user.id)
     .eq('is_active', true)
@@ -86,7 +94,7 @@ export async function getCarouselTemplate(
   const { data } = await supabase
     .from('carousel_templates')
     .select(
-      'id, user_id, name, description, source_image_path, thumbnail_path, html_template, schema, default_theme, width, height, is_active, created_at, updated_at',
+      'id, user_id, name, description, source_image_path, thumbnail_path, html_template, schema, default_theme, width, height, is_active, last_draft, created_at, updated_at',
     )
     .eq('id', id)
     .eq('user_id', user.id)
@@ -247,6 +255,76 @@ export async function deleteCarouselTemplate(
 
   revalidatePath('/carousel-templates')
   return { ok: true }
+}
+
+// ====================================================================
+// Auto-save scratch draft (slides + theme) per template
+// ====================================================================
+
+export async function saveCarouselDraft(
+  templateId: string,
+  draft: CarouselDraftPayload,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const { supabase, user } = await authedUser()
+
+  const { error } = await supabase
+    .from('carousel_templates')
+    .update({ last_draft: draft })
+    .eq('id', templateId)
+    .eq('user_id', user.id)
+
+  if (error) return { ok: false, error: error.message }
+  return { ok: true }
+}
+
+// ====================================================================
+// Generate slides via AI from idea text
+// ====================================================================
+
+export async function generateCarouselSlides(
+  templateId: string,
+  input: {
+    idea: string
+    slide_count: number
+  },
+): Promise<
+  | { ok: true; slides: CarouselSlideValues[]; title: string }
+  | { ok: false; error: string }
+> {
+  const { supabase, user } = await authedUser()
+
+  const { data: tpl } = await supabase
+    .from('carousel_templates')
+    .select('id, schema')
+    .eq('id', templateId)
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  if (!tpl) return { ok: false, error: 'template not found' }
+
+  // Pull active voice profile if Earth has one — gives AI tone match
+  const { data: voice } = await supabase
+    .from('voice_profiles')
+    .select('voice_profile')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+    .maybeSingle()
+
+  try {
+    const res = await worker.generateCarouselSlides({
+      user_id: user.id,
+      template_schema: (tpl.schema as CarouselTemplateField[]) ?? [],
+      idea: input.idea,
+      slide_count: input.slide_count,
+      voice_profile: (voice?.voice_profile as Record<string, unknown>) ?? undefined,
+    })
+    return { ok: true, slides: res.slides, title: res.title }
+  } catch (e) {
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : 'generation failed',
+    }
+  }
 }
 
 // ====================================================================

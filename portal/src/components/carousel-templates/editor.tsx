@@ -10,13 +10,17 @@ import {
   Loader2,
   Plus,
   Save,
+  Sparkles,
   Trash2,
   X,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import {
   deleteCarouselTemplate,
+  generateCarouselSlides,
+  saveCarouselDraft,
   updateCarouselTemplate,
+  type CarouselSlideValues,
   type CarouselTemplateRow,
 } from '@/lib/actions/carousel-templates'
 import type {
@@ -64,13 +68,20 @@ export function CarouselTemplateEditor({ template }: Props) {
   const router = useRouter()
 
   const [name, setName] = useState(template.name)
-  const [slides, setSlides] = useState<FieldValues[]>([
-    defaultsFromSchema(template.schema),
-  ])
+  // Hydrate from last_draft if present so reload doesn't lose work
+  const initialSlides: FieldValues[] = template.last_draft?.slides?.length
+    ? (template.last_draft.slides as CarouselSlideValues[]).map((s) => ({
+        ...defaultsFromSchema(template.schema),
+        ...s,
+      }))
+    : [defaultsFromSchema(template.schema)]
+  const initialTheme: CarouselTemplateTheme =
+    template.last_draft?.theme ?? template.default_theme
+
+  const [slides, setSlides] = useState<FieldValues[]>(initialSlides)
   const [activeIdx, setActiveIdx] = useState(0)
-  const [theme, setTheme] = useState<CarouselTemplateTheme>(
-    template.default_theme,
-  )
+  const [theme, setTheme] = useState<CarouselTemplateTheme>(initialTheme)
+  const [draftSavedAt, setDraftSavedAt] = useState<number | null>(null)
 
   const fields = slides[activeIdx] ?? {}
   function setFields(updater: (f: FieldValues) => FieldValues) {
@@ -83,6 +94,8 @@ export function CarouselTemplateEditor({ template }: Props) {
   const [deleting, startDelete] = useTransition()
   const [renderingPng, setRenderingPng] = useState(false)
   const [renderingZip, setRenderingZip] = useState(false)
+  const [showGenerate, setShowGenerate] = useState(false)
+  const [generating, setGenerating] = useState(false)
   const [msg, setMsg] = useState<{
     tone: 'error' | 'ok'
     text: string
@@ -165,6 +178,62 @@ export function CarouselTemplateEditor({ template }: Props) {
     ro.observe(wrapper)
     return () => ro.disconnect()
   }, [template.width])
+
+  // ----- Auto-save draft (debounced) -----
+  const draftKey = useMemo(
+    () => JSON.stringify({ slides, theme }),
+    [slides, theme],
+  )
+  // Skip first render — only save on actual user edits
+  const firstDraftRender = useRef(true)
+  useEffect(() => {
+    if (firstDraftRender.current) {
+      firstDraftRender.current = false
+      return
+    }
+    const handle = setTimeout(() => {
+      void saveCarouselDraft(template.id, { slides, theme }).then((res) => {
+        if (res.ok) setDraftSavedAt(Date.now())
+      })
+    }, 1200)
+    return () => clearTimeout(handle)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftKey])
+
+  // ----- AI generate slides from idea -----
+  async function generate(idea: string, count: number) {
+    setMsg(null)
+    setGenerating(true)
+    try {
+      const res = await generateCarouselSlides(template.id, {
+        idea,
+        slide_count: count,
+      })
+      if (!res.ok) {
+        setMsg({ tone: 'error', text: res.error })
+        return
+      }
+      // Merge AI values with schema defaults so any missing key is filled
+      const filled = res.slides.map((s) => ({
+        ...defaultsFromSchema(template.schema),
+        ...s,
+      }))
+      setSlides(filled)
+      setActiveIdx(0)
+      setShowGenerate(false)
+      setMsg({
+        tone: 'ok',
+        text: `สร้าง ${filled.length} slides แล้ว — แก้ใน editor ก่อน render ได้`,
+      })
+    } catch (e) {
+      setMsg({
+        tone: 'error',
+        text: e instanceof Error ? e.message : 'generation failed',
+      })
+    } finally {
+      setGenerating(false)
+    }
+  }
 
   function save() {
     setMsg(null)
@@ -324,10 +393,26 @@ export function CarouselTemplateEditor({ template }: Props) {
 
         <section className="rounded-[12px] border border-border-soft bg-card p-3 space-y-2">
           <div className="flex items-center justify-between">
-            <div className="text-[11px] uppercase tracking-wide font-medium text-muted-foreground">
-              Slides ({slides.length})
+            <div className="flex items-center gap-2">
+              <div className="text-[11px] uppercase tracking-wide font-medium text-muted-foreground">
+                Slides ({slides.length})
+              </div>
+              {draftSavedAt && (
+                <span className="text-[10px] text-muted-foreground">
+                  · auto-saved
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setShowGenerate(true)}
+                title="Let AI fill slides from an idea"
+                className="inline-flex items-center gap-1 text-[11px] rounded-[6px] bg-brand text-white px-2 py-1 hover:bg-brand-hover"
+              >
+                <Sparkles size={11} />
+                Generate
+              </button>
               <button
                 type="button"
                 onClick={duplicateSlide}
@@ -616,6 +701,131 @@ export function CarouselTemplateEditor({ template }: Props) {
             updating
           </div>
         )}
+      </div>
+
+      {showGenerate && (
+        <GenerateModal
+          defaultCount={Math.max(3, Math.min(slides.length || 5, 9))}
+          generating={generating}
+          onClose={() => setShowGenerate(false)}
+          onSubmit={generate}
+        />
+      )}
+    </div>
+  )
+}
+
+function GenerateModal({
+  defaultCount,
+  generating,
+  onClose,
+  onSubmit,
+}: {
+  defaultCount: number
+  generating: boolean
+  onClose: () => void
+  onSubmit: (idea: string, count: number) => void
+}) {
+  const [idea, setIdea] = useState('')
+  const [count, setCount] = useState(defaultCount)
+  const trimmed = idea.trim()
+  const canSubmit = trimmed.length >= 10 && !generating
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !generating) onClose()
+      }}
+    >
+      <div className="bg-card rounded-[14px] border border-border-soft w-full max-w-lg overflow-hidden shadow-2xl">
+        <div className="px-5 py-4 border-b border-border-soft flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-foreground">
+              Generate slides from idea
+            </h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              AI จะเขียนเนื้อหาให้ทุก slide ตาม template schema +
+              voice profile ของพี่
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={generating}
+            className="text-muted-foreground hover:text-foreground p-1 rounded-full disabled:opacity-40"
+          >
+            <X size={16} />
+          </button>
+        </div>
+        <div className="p-5 space-y-3">
+          <div>
+            <label className="block text-[11px] font-medium text-muted-foreground mb-1">
+              Idea / topic
+            </label>
+            <textarea
+              autoFocus
+              value={idea}
+              onChange={(e) => setIdea(e.target.value)}
+              placeholder="เช่น 5 เหตุผลที่ Solopreneur ควรเริ่มเก็บ Email List ตั้งแต่วันแรก"
+              rows={5}
+              maxLength={8000}
+              disabled={generating}
+              className="w-full px-3 py-2 rounded-[8px] border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-brand resize-y"
+            />
+            <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
+              <span>ขั้นต่ำ 10 ตัวอักษร</span>
+              <span className="tabular-nums">{idea.length}/8000</span>
+            </div>
+          </div>
+          <div>
+            <label className="block text-[11px] font-medium text-muted-foreground mb-1">
+              Number of slides
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="range"
+                min={3}
+                max={9}
+                value={count}
+                onChange={(e) => setCount(parseInt(e.target.value, 10))}
+                disabled={generating}
+                className="flex-1"
+              />
+              <span className="text-sm font-medium tabular-nums w-6 text-right">
+                {count}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="px-5 py-4 border-t border-border-soft flex justify-end gap-2 bg-secondary/30">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={generating}
+            className="text-sm rounded-[8px] border border-border bg-background px-3 py-2 hover:bg-secondary disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={!canSubmit}
+            onClick={() => onSubmit(trimmed, count)}
+            className="inline-flex items-center gap-1.5 text-sm font-medium rounded-[8px] bg-brand text-white px-4 py-2 hover:bg-brand-hover disabled:opacity-50"
+          >
+            {generating ? (
+              <>
+                <Loader2 className="animate-spin" size={13} />
+                AI กำลังเขียน...
+              </>
+            ) : (
+              <>
+                <Sparkles size={13} />
+                Generate
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   )
