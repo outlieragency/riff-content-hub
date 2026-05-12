@@ -748,7 +748,132 @@ Things the new design must preserve from current Riff:
 
 ---
 
-## 15. Out of Scope (Hard No for v1)
+## 15. Pricing & Business Model
+
+Riff is in pre-billing validation. Earth is the sole user today, using
+the product daily to validate Voice + Template quality before exposing
+it to paying customers. This section sketches the path to monetization
+and the design implications for the redesign.
+
+### 15.1 Current state (mid-2026)
+
+- Single user (Earth) — no paywalls, no tiers, no rate limits
+- AI cost is bring-your-own-key: Earth's Anthropic API key is set in
+  `/settings`. The platform key is a fallback only.
+- Notion + Supabase + Vercel + Railway run on free / personal plans
+- Validation goal: prove Voice DNA + Template system produce content
+  that **Earth himself would post unedited**. Until that bar is met,
+  external users would just churn.
+
+### 15.2 Monetization sequencing
+
+The platform monetizes in three steps. Designer should plan for
+billing UI to appear at **Step 2** — not Step 3.
+
+**Step 1 — Validation (now)**
+- Earth single-user
+- Closed beta with 5-10 trusted founders (invite-only)
+- No payment, no auth gating beyond Supabase signup
+- **Design need:** none beyond the current app
+
+**Step 2 — Founding Member pre-sale (next 60-90 days)**
+- Limited LTD offer to validate willingness-to-pay before building
+  full subscription infrastructure
+- Target: 50 seats × 9,900 THB = 495,000 THB
+- Sold via GHL (Earth's existing funnel infrastructure) + manual
+  Supabase user provisioning (no Stripe integration yet)
+- Buyer gets: Lifetime Pro access + 1:1 onboarding with Earth +
+  Roadmap influence
+- **Design need:** A `/upgrade` page that explains the LTD offer
+  and an `/onboarding` flow that gets Founding Members from
+  signup to first generated post in under 20 minutes.
+
+**Step 3 — Subscription billing (post-validation, 6-9 months out)**
+- Stripe for international + GHL webhook for Thai customers
+- Tiered:
+
+| Tier | Price (THB) | Generations / month | Templates | Voice profiles |
+|---|---|---|---|---|
+| **Starter** | 590 / mo | 20 | 3 | 1 |
+| **Pro** | 1,490 / mo | 100 | unlimited | 1 |
+| **Agency** | 4,990 / mo | unlimited | unlimited | 5 |
+| **Founding LTD** | 9,900 once | lifetime Pro | unlimited | 1 |
+
+- All tiers BYO Anthropic key OR opt-in to platform key with usage
+  limits per tier
+- 14-day free trial on Pro
+- **Design need:** `/billing` page, in-app usage meter,
+  upgrade/downgrade flows, paywall UI for over-limit attempts.
+
+### 15.3 Pricing rationale
+
+Why these numbers (justification for the designer's pricing-page
+copy):
+
+- **Starter @ 590** — undercuts Jasper / Copy.ai Thailand prices
+  (~1,500-3,000/mo). Anchors Riff as approachable to solo founders.
+- **Pro @ 1,490** — primary tier. 100 generations = ~3-4 posts/day,
+  matches a daily content cadence. Roughly half the cost of hiring
+  a Thai freelance writer for one post.
+- **Agency @ 4,990** — multi-voice for agencies (Outlier Agency
+  itself + 4 client voices). Cheap vs a junior content hire.
+- **LTD @ 9,900** — Earth's signature pricing tactic (he's done this
+  with past Notion / template launches successfully). High-trust
+  pre-buy from his audience. Functions as both validation revenue
+  AND tight customer feedback loop.
+
+### 15.4 Why BYO-key is intentional
+
+Most "wrapper" SaaS markup the LLM by 5-10× and pocket the spread.
+Riff goes the other direction: users plug their own Anthropic key,
+pay Anthropic for tokens directly, pay Riff for **the surface area**
+(research layer + voice extraction + template system + UI).
+
+- Lower friction for power users who already have Anthropic accounts
+- Riff's margin is fixed, not token-dependent — predictable economics
+- Eliminates the "you're just markup on Claude" criticism
+
+**Trade-off:** new users have to sign up for Anthropic separately.
+Onboarding must surface a clear "Use Riff's key (limited)" vs
+"Add your own (unlimited)" choice.
+
+### 15.5 Free trial structure (proposal)
+
+Designer should spec a 14-day trial that's actually useful:
+
+- Day 1-3: full access, 5 generations included
+- Day 4-7: full access, 5 more generations
+- Day 8-14: read-only — can view existing drafts, can't generate new
+- Day 14: auto-convert to paid or downgrade to read-only forever
+
+Alternative: hard 7-day with unlimited generations — pushes users to
+hit the "I'd pay for this" moment faster. Designer to A/B if launch
+allows.
+
+### 15.6 What the redesign needs from billing context
+
+- A `/billing` page even if empty in v1 (so users see "this product
+  is going to charge eventually" — sets expectations)
+- An unobtrusive usage indicator in the sidebar or topbar (e.g.
+  `73 / 100 this month` on Pro)
+- Paywall blockers wired through Supabase RLS / Worker auth (the
+  back-end can stub today, but the UI should imagine the gate)
+- Visual separation between "free / trial" affordances and "paid"
+  affordances — so paying members feel different from trialing ones
+
+### 15.7 Non-monetization (forever free)
+
+These never get paywalled, even at full subscription rollout:
+
+- Read-only access to past generated drafts (data ownership)
+- Voice profile export / data export
+- Template export (HTML + schema + theme as JSON)
+- The brand voice rules in `/settings/prompts` are user-owned —
+  always editable
+
+---
+
+## 16. Out of Scope (Hard No for v1)
 
 These are real requests that have come up in conversations. The
 redesign should not waste cycles on them.
@@ -770,7 +895,7 @@ redesign should not waste cycles on them.
 
 ---
 
-## 16. Deliverables Expected from Design Team
+## 17. Deliverables Expected from Design Team
 
 1. **Figma file** with:
    - Style guide (colors, type scale, spacing, components)
@@ -790,10 +915,13 @@ redesign should not waste cycles on them.
    work (e.g. the Advanced HTML/schema editor in §10).
 
 5. **Written answers** to the open questions in §13.
+6. **Pricing page** (`/upgrade` + `/billing`) designed to match the
+   tier structure in §15. Founding Member pre-sale page is highest
+   priority since that's the next monetization step.
 
 ---
 
-## 17. Sign-Off
+## 18. Sign-Off
 
 - [ ] Product Owner — Earth Rati
 - [ ] Design Lead — (TBD)
