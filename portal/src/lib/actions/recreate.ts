@@ -22,6 +22,7 @@ export async function startRecreate(
     voice_profile_id?: string
     creative_style_id?: string
     carousel_template_id?: string
+    fb_post_template_id?: string
   } = {},
 ): Promise<StartRecreateResult> {
   const supabase = await createClient()
@@ -50,6 +51,7 @@ export async function startRecreate(
       voice_profile_id: opts.voice_profile_id,
       creative_style_id: opts.creative_style_id,
       carousel_template_id: opts.carousel_template_id,
+      fb_post_template_id: opts.fb_post_template_id,
       instruction_extra: opts.instruction_extra,
     })
     revalidatePath(`/ideas/${ideaId}`)

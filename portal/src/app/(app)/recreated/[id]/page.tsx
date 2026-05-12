@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { FbArticleViewer } from '@/components/recreate/fb-article-viewer'
 import { CarouselViewer } from '@/components/recreate/carousel-viewer'
 import { ReelsViewer } from '@/components/recreate/reels-viewer'
+import { TemplateFbPostViewer } from '@/components/recreate/template-fb-post-viewer'
 import { YtScriptViewer } from '@/components/recreate/yt-script-viewer'
 import {
   FORMAT_META,
@@ -80,7 +81,18 @@ export default async function RecreatedDetailPage({
         </h1>
       </div>
 
-      {format === 'fb_article' && draft.output ? (
+      {format === 'fb_article' &&
+      (draft.output as { kind?: string } | null)?.kind ===
+        'template_fb_post' ? (
+        <TemplateFbPostViewer
+          draftId={draft.id}
+          output={
+            draft.output as React.ComponentProps<
+              typeof TemplateFbPostViewer
+            >['output']
+          }
+        />
+      ) : format === 'fb_article' && draft.output ? (
         <FbArticleViewer
           draftId={draft.id}
           output={draft.output as FbArticleOutput}

@@ -4,7 +4,10 @@ import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2, Upload } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { parseAndSaveCarouselTemplate } from '@/lib/actions/carousel-templates'
+import {
+  parseAndSaveCarouselTemplate,
+  type CarouselTemplateFormat,
+} from '@/lib/actions/carousel-templates'
 
 const BUCKET = 'carousel-templates'
 const MAX_BYTES = 8 * 1024 * 1024 // 8 MB
@@ -22,6 +25,8 @@ export function CarouselTemplateUploader() {
     'idle' | 'uploading' | 'parsing'
   >('idle')
   const [error, setError] = useState<string | null>(null)
+  const [formatType, setFormatType] =
+    useState<CarouselTemplateFormat>('carousel')
 
   function pick() {
     inputRef.current?.click()
@@ -81,6 +86,7 @@ export function CarouselTemplateUploader() {
         source_image_path: path,
         source_image_url: pub.publicUrl,
         user_name: file.name.replace(/\.[^.]+$/, '').slice(0, 60),
+        format_type: formatType,
       })
       if (!res.ok) {
         setStep('idle')
@@ -106,25 +112,39 @@ export function CarouselTemplateUploader() {
         onChange={onFile}
         disabled={busy}
       />
-      <button
-        type="button"
-        onClick={pick}
-        disabled={busy}
-        className="inline-flex items-center gap-1.5 text-sm font-medium rounded-[8px] bg-brand hover:bg-brand-hover text-white disabled:opacity-60 px-4 py-2"
-      >
-        {busy ? (
-          <>
-            <Loader2 size={14} className="animate-spin" />
-            {step === 'uploading' && 'กำลังอัปโหลด…'}
-            {step === 'parsing' && 'AI กำลังวิเคราะห์ template…'}
-          </>
-        ) : (
-          <>
-            <Upload size={14} />
-            Upload template
-          </>
-        )}
-      </button>
+      <div className="flex items-center gap-2">
+        <select
+          value={formatType}
+          onChange={(e) =>
+            setFormatType(e.target.value as CarouselTemplateFormat)
+          }
+          disabled={busy}
+          className="h-9 px-2.5 rounded-[8px] border border-border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-brand"
+          title="Pick which format this template is for"
+        >
+          <option value="carousel">IG Carousel</option>
+          <option value="fb_post">FB Post (cover)</option>
+        </select>
+        <button
+          type="button"
+          onClick={pick}
+          disabled={busy}
+          className="inline-flex items-center gap-1.5 text-sm font-medium rounded-[8px] bg-brand hover:bg-brand-hover text-white disabled:opacity-60 px-4 py-2"
+        >
+          {busy ? (
+            <>
+              <Loader2 size={14} className="animate-spin" />
+              {step === 'uploading' && 'กำลังอัปโหลด…'}
+              {step === 'parsing' && 'AI กำลังวิเคราะห์ template…'}
+            </>
+          ) : (
+            <>
+              <Upload size={14} />
+              Upload template
+            </>
+          )}
+        </button>
+      </div>
       {error && (
         <div className="text-xs text-status-red-text bg-status-red-bg border border-status-red-border rounded-[8px] px-2.5 py-1.5 max-w-xs text-right">
           {error}

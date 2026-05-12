@@ -17,7 +17,14 @@ from anthropic import APIStatusError, RateLimitError
 from googleapiclient.errors import HttpError
 
 from ..deps import get_supabase
-from ..services.carousel_template_render import render_template_pngs
+from ..services.carousel_template_render import (
+    render_template_png,
+    render_template_pngs,
+)
+from ..services.claude.generate_fb_post_from_template import (
+    FbPostGenerateError,
+    generate_fb_post_from_template,
+)
 from ..services.claude.generate_template_slides import (
     SlidesGenerateError,
     generate_template_slides,
@@ -551,12 +558,176 @@ async def _run_template_carousel(
     }
 
 
+async def _run_template_fb_post(
+    sb,
+    job: dict[str, Any],
+    user_id: str,
+    p: dict[str, Any],
+    fb_post_template_id: str,
+) -> dict[str, Any]:
+    """FB post recreate using a user-uploaded cover template.
+
+    Pipeline:
+      1. Load template (html + schema + theme — must be format_type='fb_post')
+      2. Load idea context (summary, voice profile)
+      3. AI generates post_body + cover_field_values in one tool_use call
+      4. Render cover PNG via the user HTML template (1 slide)
+      5. Upload cover.png, save draft with output.kind='template_fb_post'
+    """
+    update_progress(sb, job["id"], progress=10, step="loading_template")
+
+    tpl_res = (
+        sb.table("carousel_templates")
+        .select(
+            "id, name, html_template, schema, default_theme, "
+            "width, height, writing_prompt, format_type"
+        )
+        .eq("id", fb_post_template_id)
+        .eq("user_id", user_id)
+        .limit(1)
+        .execute()
+    )
+    rows = tpl_res.data or []
+    if not rows:
+        raise RuntimeError(
+            f"fb_post template not found: {fb_post_template_id}"
+        )
+    tpl = rows[0]
+    if tpl.get("format_type") != "fb_post":
+        raise RuntimeError(
+            f"template {fb_post_template_id} is not format_type='fb_post'"
+        )
+
+    update_progress(sb, job["id"], progress=20, step="loading_context")
+    try:
+        ctx = await asyncio.to_thread(
+            load_recreate_context,
+            sb,
+            user_id=user_id,
+            idea_id=p["idea_id"],
+            voice_profile_id=p.get("voice_profile_id"),
+            creative_style_id=p.get("creative_style_id"),
+            creative_style_format_type="cover",
+        )
+    except ValueError as exc:
+        raise RuntimeError(str(exc)) from exc
+
+    idea_text = _build_idea_text_from_summary(ctx.summary)
+    if not idea_text:
+        raise RuntimeError(
+            "summary ว่าง — ไม่มี content ส่งให้ AI สร้าง FB post"
+        )
+
+    update_progress(sb, job["id"], progress=40, step="generating_fb_article")
+    try:
+        gen = await asyncio.to_thread(
+            generate_fb_post_from_template,
+            template_schema=tpl["schema"],
+            idea=idea_text,
+            voice_profile=ctx.voice_profile,
+            template_writing_prompt=tpl.get("writing_prompt"),
+            user_id=user_id,
+        )
+    except FbPostGenerateError as exc:
+        raise RuntimeError(f"generate fb post error: {exc}") from exc
+    except Exception as exc:  # noqa: BLE001
+        if _retryable_anthropic(exc):
+            raise RetryableJobError(
+                f"generate fb post transient: {exc}"
+            ) from exc
+        raise RuntimeError(f"generate fb post unexpected: {exc}") from exc
+
+    theme = tpl.get("default_theme") or {}
+    output: dict[str, Any] = {
+        "kind": "template_fb_post",
+        "template_id": tpl["id"],
+        "template_name": tpl["name"],
+        "title": gen.title,
+        "post_body": gen.post_body,
+        "thesis": gen.thesis,
+        "cover_fields": gen.cover_fields,
+        "theme": theme,
+        "width": tpl.get("width", 1080),
+        "height": tpl.get("height", 1350),
+        # Mirror cover_fields into a 1-element slides array so the
+        # carousel viewer / editor (which works in terms of slides[])
+        # can reuse the same UI without a special case.
+        "slides": [gen.cover_fields],
+    }
+
+    update_progress(sb, job["id"], progress=70, step="saving_draft")
+    draft_id = await asyncio.to_thread(
+        insert_draft,
+        sb,
+        ctx=ctx,
+        format_id="fb_article",
+        output=output,
+        output_markdown=gen.post_body,
+        title=gen.title,
+        meta=gen.meta,
+    )
+
+    update_progress(sb, job["id"], progress=85, step="rendering_cover")
+    cover_url: str | None = None
+    cover_warnings: list[str] = []
+    try:
+        png = await asyncio.to_thread(
+            render_template_png,
+            html_template=tpl["html_template"],
+            fields=gen.cover_fields,
+            theme=theme,
+            width=tpl.get("width", 1080),
+            height=tpl.get("height", 1350),
+        )
+        path = f"{user_id}/{draft_id}/cover.png"
+        sb.storage.from_("fb-covers").upload(
+            path,
+            png,
+            file_options={
+                "upsert": "true",
+                "content-type": "image/png",
+            },
+        )
+        cover_url = sb.storage.from_("fb-covers").get_public_url(path)
+        output["cover_url"] = cover_url
+    except Exception as exc:  # noqa: BLE001
+        cover_warnings.append(f"cover render failed: {exc}")
+
+    if cover_warnings:
+        output["cover_warnings"] = cover_warnings
+    sb.table("recreated_drafts").update({"output": output}).eq(
+        "id", draft_id
+    ).execute()
+
+    # Hand off to template editor draft state (same pattern as carousel)
+    try:
+        sb.table("carousel_templates").update(
+            {
+                "last_draft": {
+                    "slides": [gen.cover_fields],
+                    "theme": theme,
+                }
+            }
+        ).eq("id", tpl["id"]).eq("user_id", user_id).execute()
+    except Exception:  # noqa: BLE001
+        pass
+
+    update_progress(sb, job["id"], progress=100, step="done")
+    return {
+        "draft_id": draft_id,
+        "format": "fb_article",
+        "title": gen.title,
+        "cover_url": cover_url,
+        "cover_warnings": cover_warnings,
+    }
+
+
 # =====================================================================
 # run_recreate
 # =====================================================================
 @register("run_recreate")
 async def handle_run_recreate(sb, job: dict[str, Any]) -> dict[str, Any]:
-    """payload: { idea_id, format, voice_profile_id?, carousel_template_id?, instruction_extra? }"""
+    """payload: { idea_id, format, voice_profile_id?, carousel_template_id?, fb_post_template_id?, instruction_extra? }"""
     user_id = job["user_id"]
     p = job["payload"] or {}
     fmt = p["format"]
@@ -569,6 +740,14 @@ async def handle_run_recreate(sb, job: dict[str, Any]) -> dict[str, Any]:
     if fmt == "carousel" and carousel_tpl_id:
         return await _run_template_carousel(
             sb, job, user_id, p, carousel_tpl_id
+        )
+
+    # Custom-template FB post: route to user-template pipeline instead
+    # of the built-in fb_article generator + fixed cover renderer.
+    fb_post_tpl_id = p.get("fb_post_template_id")
+    if fmt == "fb_article" and fb_post_tpl_id:
+        return await _run_template_fb_post(
+            sb, job, user_id, p, fb_post_tpl_id
         )
 
     update_progress(sb, job["id"], progress=10, step="loading_context")

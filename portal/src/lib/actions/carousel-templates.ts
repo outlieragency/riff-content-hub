@@ -16,6 +16,8 @@ export type CarouselDraftPayload = {
   theme: CarouselTemplateTheme | null
 }
 
+export type CarouselTemplateFormat = 'carousel' | 'fb_post'
+
 export type CarouselTemplateRow = {
   id: string
   user_id: string
@@ -29,6 +31,7 @@ export type CarouselTemplateRow = {
   schema: CarouselTemplateField[]
   default_theme: CarouselTemplateTheme
   writing_prompt: string
+  format_type: CarouselTemplateFormat
   width: number
   height: number
   is_active: boolean
@@ -65,7 +68,7 @@ export async function listCarouselTemplates(): Promise<CarouselTemplateRow[]> {
   const { data, error } = await supabase
     .from('carousel_templates')
     .select(
-      'id, user_id, name, description, source_image_path, thumbnail_path, html_template, schema, default_theme, writing_prompt, width, height, is_active, last_draft, created_at, updated_at',
+      'id, user_id, name, description, source_image_path, thumbnail_path, html_template, schema, default_theme, writing_prompt, format_type, width, height, is_active, last_draft, created_at, updated_at',
     )
     .eq('user_id', user.id)
     .eq('is_active', true)
@@ -95,7 +98,7 @@ export async function getCarouselTemplate(
   const { data } = await supabase
     .from('carousel_templates')
     .select(
-      'id, user_id, name, description, source_image_path, thumbnail_path, html_template, schema, default_theme, writing_prompt, width, height, is_active, last_draft, created_at, updated_at',
+      'id, user_id, name, description, source_image_path, thumbnail_path, html_template, schema, default_theme, writing_prompt, format_type, width, height, is_active, last_draft, created_at, updated_at',
     )
     .eq('id', id)
     .eq('user_id', user.id)
@@ -125,6 +128,7 @@ export async function parseAndSaveCarouselTemplate(input: {
   source_image_path: string
   source_image_url: string
   user_name?: string
+  format_type?: CarouselTemplateFormat
 }): Promise<
   { ok: true; id: string } | { ok: false; error: string }
 > {
@@ -146,6 +150,9 @@ export async function parseAndSaveCarouselTemplate(input: {
   const name =
     input.user_name?.trim() || parsed.name_suggestion || 'Untitled template'
 
+  const formatType: CarouselTemplateFormat =
+    input.format_type === 'fb_post' ? 'fb_post' : 'carousel'
+
   const { data, error } = await supabase
     .from('carousel_templates')
     .insert({
@@ -155,6 +162,7 @@ export async function parseAndSaveCarouselTemplate(input: {
       html_template: parsed.html,
       schema: parsed.schema,
       default_theme: parsed.theme,
+      format_type: formatType,
     })
     .select('id')
     .single()

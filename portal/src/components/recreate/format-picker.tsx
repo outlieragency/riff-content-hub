@@ -60,11 +60,17 @@ export function FormatPicker({
   const [carouselTemplateId, setCarouselTemplateId] = useState<string | null>(
     null,
   )
+  const [fbPostTemplateId, setFbPostTemplateId] = useState<string | null>(
+    null,
+  )
   const [carouselTemplates, setCarouselTemplates] = useState<
     { id: string; name: string }[]
   >([])
+  const [fbPostTemplates, setFbPostTemplates] = useState<
+    { id: string; name: string }[]
+  >([])
 
-  // Load user's carousel templates so the dropdown can show options
+  // Load both kinds of user templates so the dropdowns can show options
   useEffect(() => {
     const sb = createClient()
     let cancelled = false
@@ -75,13 +81,20 @@ export function FormatPicker({
       if (!user || cancelled) return
       const { data } = await sb
         .from('carousel_templates')
-        .select('id, name')
+        .select('id, name, format_type')
         .eq('user_id', user.id)
         .eq('is_active', true)
         .order('created_at', { ascending: false })
       if (!cancelled && data) {
         setCarouselTemplates(
-          data.map((d) => ({ id: d.id as string, name: d.name as string })),
+          data
+            .filter((d) => d.format_type !== 'fb_post')
+            .map((d) => ({ id: d.id as string, name: d.name as string })),
+        )
+        setFbPostTemplates(
+          data
+            .filter((d) => d.format_type === 'fb_post')
+            .map((d) => ({ id: d.id as string, name: d.name as string })),
         )
       }
     }
@@ -143,6 +156,10 @@ export function FormatPicker({
           format === 'carousel'
             ? carouselTemplateId ?? undefined
             : undefined,
+        fb_post_template_id:
+          format === 'fb_article'
+            ? fbPostTemplateId ?? undefined
+            : undefined,
       })
       if (!res.ok) {
         setError(res.error)
@@ -197,18 +214,47 @@ export function FormatPicker({
         />
       </div>
 
-      {/* Creative style picker — applies to cover render. Only relevant for primary FB. */}
-      <div>
-        <label className="block text-xs text-muted-foreground mb-1.5">
-          Visual style (Cover Template)
-        </label>
-        <StylePicker
-          formatType={FORMAT_TO_VISUAL[PRIMARY]}
-          selectedId={selectedStyleId}
-          onChange={setSelectedStyleId}
-          disabled={pending || !hasSummary || locked}
-        />
-      </div>
+      {/* FB post custom template picker — when chosen, bypasses the built-in
+          cover renderer and uses the user's uploaded HTML template instead. */}
+      {fbPostTemplates.length > 0 && (
+        <div>
+          <label className="block text-xs text-muted-foreground mb-1.5">
+            FB cover template
+          </label>
+          <select
+            value={fbPostTemplateId ?? ''}
+            onChange={(e) => setFbPostTemplateId(e.target.value || null)}
+            disabled={pending || !hasSummary || locked}
+            className="w-full h-9 px-2.5 rounded-[8px] border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+          >
+            <option value="">Built-in (default cover renderer)</option>
+            {fbPostTemplates.map((t) => (
+              <option key={t.id} value={t.id}>
+                📐 {t.name}
+              </option>
+            ))}
+          </select>
+          <p className="text-[10px] text-muted-foreground mt-1">
+            เลือก template ของพี่ → AI generate post body + cover fields
+            ตาม writing prompt ที่กำหนดไว้ใน template นั้น
+          </p>
+        </div>
+      )}
+
+      {/* Creative style picker — applies only to built-in cover renderer. */}
+      {!fbPostTemplateId && (
+        <div>
+          <label className="block text-xs text-muted-foreground mb-1.5">
+            Visual style (Cover Template)
+          </label>
+          <StylePicker
+            formatType={FORMAT_TO_VISUAL[PRIMARY]}
+            selectedId={selectedStyleId}
+            onChange={setSelectedStyleId}
+            disabled={pending || !hasSummary || locked}
+          />
+        </div>
+      )}
 
       {error && (
         <div className="bg-status-red-bg border border-status-red-border rounded-[8px] px-3 py-2 text-sm text-status-red-text">

@@ -43,6 +43,12 @@ EDITABLE_PROMPTS: list[dict[str, str]] = [
         "description": "พรอมต์สร้าง slide content จาก idea ลงใน custom template (Phase 3)",
     },
     {
+        "key": "generate-fb-post-from-template",
+        "label": "FB post — generate body + cover for custom template",
+        "group": "Recreate format",
+        "description": "พรอมต์สร้าง post body + cover field values จาก idea ลงใน FB-post template",
+    },
+    {
         "key": "parse-carousel-template",
         "label": "Carousel — parse uploaded screenshot",
         "group": "Recreate format",

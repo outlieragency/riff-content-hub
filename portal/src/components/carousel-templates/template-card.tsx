@@ -32,9 +32,20 @@ export function CarouselTemplateCard({
         )}
       </div>
       <div className="p-3">
-        <h3 className="font-medium text-foreground text-sm truncate">
-          {template.name}
-        </h3>
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="font-medium text-foreground text-sm truncate">
+            {template.name}
+          </h3>
+          <span
+            className={`shrink-0 text-[9px] uppercase tracking-wide font-medium px-1.5 py-0.5 rounded-full ${
+              template.format_type === 'fb_post'
+                ? 'bg-blue-100 text-blue-800'
+                : 'bg-brand-soft text-brand'
+            }`}
+          >
+            {template.format_type === 'fb_post' ? 'FB Post' : 'Carousel'}
+          </span>
+        </div>
         <p className="text-[11px] text-muted-foreground mt-0.5">
           {template.schema.length} field{template.schema.length !== 1 && 's'} ·{' '}
           {template.width}×{template.height}

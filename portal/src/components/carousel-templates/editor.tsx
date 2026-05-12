@@ -71,6 +71,7 @@ export function CarouselTemplateEditor({ template }: Props) {
   const [writingPrompt, setWritingPrompt] = useState(
     template.writing_prompt ?? '',
   )
+  const isFbPost = template.format_type === 'fb_post'
   // Hydrate from last_draft if present so reload doesn't lose work
   const initialSlides: FieldValues[] = template.last_draft?.slides?.length
     ? (template.last_draft.slides as CarouselSlideValues[]).map((s) => ({
@@ -399,8 +400,13 @@ export function CarouselTemplateEditor({ template }: Props) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="text-[11px] uppercase tracking-wide font-medium text-muted-foreground">
-                Slides ({slides.length})
+                {isFbPost ? 'Cover' : `Slides (${slides.length})`}
               </div>
+              {isFbPost && (
+                <span className="text-[10px] uppercase tracking-wide font-medium text-brand bg-brand-soft rounded-full px-1.5 py-0.5">
+                  FB Post
+                </span>
+              )}
               {draftSavedAt && (
                 <span className="text-[10px] text-muted-foreground">
                   · auto-saved
@@ -417,63 +423,69 @@ export function CarouselTemplateEditor({ template }: Props) {
                 <Sparkles size={11} />
                 Generate
               </button>
-              <button
-                type="button"
-                onClick={duplicateSlide}
-                disabled={slides.length >= 10}
-                title="Duplicate current slide"
-                className="inline-flex items-center gap-1 text-[11px] rounded-[6px] border border-border bg-background px-2 py-1 hover:bg-secondary disabled:opacity-40"
-              >
-                <Copy size={11} />
-                Duplicate
-              </button>
-              <button
-                type="button"
-                onClick={addSlide}
-                disabled={slides.length >= 10}
-                title="Add empty slide"
-                className="inline-flex items-center gap-1 text-[11px] rounded-[6px] border border-border bg-background px-2 py-1 hover:bg-secondary disabled:opacity-40"
-              >
-                <Plus size={11} />
-                Add
-              </button>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-1">
-            {slides.map((_, i) => {
-              const active = i === activeIdx
-              return (
-                <div
-                  key={i}
-                  className={`group inline-flex items-center rounded-[6px] border text-xs transition-colors ${
-                    active
-                      ? 'bg-brand text-white border-brand'
-                      : 'bg-background border-border text-foreground hover:bg-secondary'
-                  }`}
-                >
+              {!isFbPost && (
+                <>
                   <button
                     type="button"
-                    onClick={() => setActiveIdx(i)}
-                    className="pl-2.5 pr-1.5 py-1 font-medium"
+                    onClick={duplicateSlide}
+                    disabled={slides.length >= 10}
+                    title="Duplicate current slide"
+                    className="inline-flex items-center gap-1 text-[11px] rounded-[6px] border border-border bg-background px-2 py-1 hover:bg-secondary disabled:opacity-40"
                   >
-                    Slide {i + 1}
+                    <Copy size={11} />
+                    Duplicate
                   </button>
-                  {slides.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={addSlide}
+                    disabled={slides.length >= 10}
+                    title="Add empty slide"
+                    className="inline-flex items-center gap-1 text-[11px] rounded-[6px] border border-border bg-background px-2 py-1 hover:bg-secondary disabled:opacity-40"
+                  >
+                    <Plus size={11} />
+                    Add
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+          {!isFbPost && (
+            <div className="flex flex-wrap gap-1">
+              {slides.map((_, i) => {
+                const active = i === activeIdx
+                return (
+                  <div
+                    key={i}
+                    className={`group inline-flex items-center rounded-[6px] border text-xs transition-colors ${
+                      active
+                        ? 'bg-brand text-white border-brand'
+                        : 'bg-background border-border text-foreground hover:bg-secondary'
+                    }`}
+                  >
                     <button
                       type="button"
-                      onClick={() => removeSlide(i)}
-                      title="Remove this slide"
-                      className={`pr-2 pl-0.5 py-1 opacity-50 hover:opacity-100 ${
-                        active ? 'text-white' : 'text-muted-foreground'
-                      }`}
+                      onClick={() => setActiveIdx(i)}
+                      className="pl-2.5 pr-1.5 py-1 font-medium"
                     >
-                      <X size={11} />
+                      Slide {i + 1}
                     </button>
-                  )}
-                </div>
-              )
-            })}
-          </div>
+                    {slides.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeSlide(i)}
+                        title="Remove this slide"
+                        className={`pr-2 pl-0.5 py-1 opacity-50 hover:opacity-100 ${
+                          active ? 'text-white' : 'text-muted-foreground'
+                        }`}
+                      >
+                        <X size={11} />
+                      </button>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </section>
 
         {template.schema.length > 0 && (
@@ -626,35 +638,37 @@ export function CarouselTemplateEditor({ template }: Props) {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className={isFbPost ? '' : 'grid grid-cols-2 gap-2'}>
           <button
             type="button"
             onClick={downloadCurrentPng}
             disabled={renderingPng || renderingZip}
-            className="inline-flex items-center justify-center gap-1.5 text-sm font-medium rounded-[8px] border border-border bg-background hover:bg-secondary disabled:opacity-50 px-3 py-2"
-            title="Download just the active slide as PNG"
+            className="w-full inline-flex items-center justify-center gap-1.5 text-sm font-medium rounded-[8px] bg-foreground hover:bg-foreground/90 text-background disabled:opacity-50 px-3 py-2"
+            title="Download the active slide as PNG"
           >
             {renderingPng ? (
               <Loader2 className="animate-spin" size={13} />
             ) : (
               <Download size={13} />
             )}
-            Download slide
+            {isFbPost ? 'Download cover' : 'Download slide'}
           </button>
-          <button
-            type="button"
-            onClick={downloadAllZip}
-            disabled={renderingPng || renderingZip}
-            className="inline-flex items-center justify-center gap-1.5 text-sm font-medium rounded-[8px] bg-foreground hover:bg-foreground/90 text-background disabled:opacity-50 px-3 py-2"
-            title={`Render all ${slides.length} slides and download as ZIP`}
-          >
-            {renderingZip ? (
-              <Loader2 className="animate-spin" size={13} />
-            ) : (
-              <FileArchive size={13} />
-            )}
-            Render all ({slides.length})
-          </button>
+          {!isFbPost && (
+            <button
+              type="button"
+              onClick={downloadAllZip}
+              disabled={renderingPng || renderingZip}
+              className="inline-flex items-center justify-center gap-1.5 text-sm font-medium rounded-[8px] bg-foreground hover:bg-foreground/90 text-background disabled:opacity-50 px-3 py-2"
+              title={`Render all ${slides.length} slides and download as ZIP`}
+            >
+              {renderingZip ? (
+                <Loader2 className="animate-spin" size={13} />
+              ) : (
+                <FileArchive size={13} />
+              )}
+              Render all ({slides.length})
+            </button>
+          )}
         </div>
 
         <div className="flex gap-2">
@@ -734,7 +748,11 @@ export function CarouselTemplateEditor({ template }: Props) {
 
       {showGenerate && (
         <GenerateModal
-          defaultCount={Math.max(3, Math.min(slides.length || 5, 9))}
+          defaultCount={
+            isFbPost ? 1 : Math.max(3, Math.min(slides.length || 5, 9))
+          }
+          countLocked={isFbPost}
+          isFbPost={isFbPost}
           generating={generating}
           onClose={() => setShowGenerate(false)}
           onSubmit={generate}
@@ -746,11 +764,15 @@ export function CarouselTemplateEditor({ template }: Props) {
 
 function GenerateModal({
   defaultCount,
+  countLocked,
+  isFbPost,
   generating,
   onClose,
   onSubmit,
 }: {
   defaultCount: number
+  countLocked?: boolean
+  isFbPost?: boolean
   generating: boolean
   onClose: () => void
   onSubmit: (idea: string, count: number) => void
@@ -807,25 +829,33 @@ function GenerateModal({
               <span className="tabular-nums">{idea.length}/8000</span>
             </div>
           </div>
-          <div>
-            <label className="block text-[11px] font-medium text-muted-foreground mb-1">
-              Number of slides
-            </label>
-            <div className="flex items-center gap-2">
-              <input
-                type="range"
-                min={3}
-                max={9}
-                value={count}
-                onChange={(e) => setCount(parseInt(e.target.value, 10))}
-                disabled={generating}
-                className="flex-1"
-              />
-              <span className="text-sm font-medium tabular-nums w-6 text-right">
-                {count}
-              </span>
+          {!countLocked ? (
+            <div>
+              <label className="block text-[11px] font-medium text-muted-foreground mb-1">
+                Number of slides
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min={3}
+                  max={9}
+                  value={count}
+                  onChange={(e) => setCount(parseInt(e.target.value, 10))}
+                  disabled={generating}
+                  className="flex-1"
+                />
+                <span className="text-sm font-medium tabular-nums w-6 text-right">
+                  {count}
+                </span>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="text-[11px] text-muted-foreground bg-secondary/40 rounded-[8px] px-2.5 py-1.5">
+              {isFbPost
+                ? 'FB post template = single cover image (1 slide).'
+                : `Slide count locked at ${count}.`}
+            </div>
+          )}
         </div>
         <div className="px-5 py-4 border-t border-border-soft flex justify-end gap-2 bg-secondary/30">
           <button

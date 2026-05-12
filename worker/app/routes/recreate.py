@@ -36,9 +36,16 @@ class RecreateRequest(BaseModel):
     carousel_template_id: str | None = Field(
         default=None,
         description=(
-            "UUID of public.carousel_templates — when format=carousel, routes "
-            "to the user-template pipeline (Claude fills the template schema "
-            "from the video summary) instead of the built-in thread-x renderer."
+            "UUID of public.carousel_templates (format_type='carousel') — "
+            "when format=carousel, routes to the user-template pipeline."
+        ),
+    )
+    fb_post_template_id: str | None = Field(
+        default=None,
+        description=(
+            "UUID of public.carousel_templates (format_type='fb_post') — "
+            "when format=fb_article, routes to the user-template FB post "
+            "pipeline (post_body + cover generated together)."
         ),
     )
     instruction_extra: str | None = None
@@ -70,6 +77,7 @@ def post_enqueue(
         "voice_profile_id": body.voice_profile_id,
         "creative_style_id": body.creative_style_id,
         "carousel_template_id": body.carousel_template_id,
+        "fb_post_template_id": body.fb_post_template_id,
         "instruction_extra": body.instruction_extra,
     }
     try:
