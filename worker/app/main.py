@@ -118,6 +118,7 @@ async def ping(authorization: str | None = Header(default=None)) -> dict:
 
 
 # === Routes ===
+from .routes import carousel_templates as carousel_templates_routes  # noqa: E402
 from .routes import channels as channels_routes  # noqa: E402
 from .routes import cover as cover_routes  # noqa: E402
 from .routes import jobs as jobs_routes  # noqa: E402
@@ -132,6 +133,7 @@ from .routes import shared_pool as shared_pool_routes  # noqa: E402
 from .routes import voice as voice_routes  # noqa: E402
 
 app.include_router(channels_routes.router)
+app.include_router(carousel_templates_routes.router)
 app.include_router(voice_routes.router)
 app.include_router(transcripts_routes.router)
 app.include_router(recreate_routes.router)

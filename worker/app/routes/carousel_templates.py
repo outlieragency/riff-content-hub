@@ -1,0 +1,157 @@
+"""Carousel template routes.
+
+Endpoints:
+  POST /carousel-templates/parse        — image URL → AI vision → template
+  POST /carousel-templates/render-html  — Jinja2 → HTML (live preview)
+  POST /carousel-templates/render-png   — Jinja2 → PNG bytes (final)
+
+Storage of templates themselves lives in `public.carousel_templates`
+and is managed directly from the portal via Supabase (RLS owner-only).
+This worker only does the heavy lifting that can't run in the browser:
+Anthropic vision + Playwright rendering.
+"""
+
+from __future__ import annotations
+
+import asyncio
+
+from fastapi import APIRouter, Header, HTTPException, Response
+from pydantic import BaseModel, Field
+
+from ..main import require_worker_secret
+from ..services.carousel_template_render import (
+    TemplateRenderError,
+    render_template_html,
+    render_template_png,
+)
+from ..services.claude.parse_carousel_template import (
+    TemplateParseError,
+    parse_template_from_image,
+)
+
+router = APIRouter(prefix="/carousel-templates", tags=["carousel-templates"])
+
+
+# ====================================================================
+# /parse — Claude vision: image → Jinja2 HTML + schema + theme
+# ====================================================================
+
+
+class ParseRequest(BaseModel):
+    user_id: str = Field(..., description="auth.users.id")
+    image_url: str = Field(
+        ..., description="Public URL of the uploaded screenshot"
+    )
+
+
+class ParseResponse(BaseModel):
+    html: str
+    fields_schema: list[dict] = Field(..., alias="schema")
+    theme: dict
+    name_suggestion: str
+    meta: dict
+
+    model_config = {"populate_by_name": True}
+
+
+@router.post("/parse", response_model=ParseResponse, response_model_by_alias=True)
+async def post_parse_template(
+    body: ParseRequest,
+    authorization: str | None = Header(default=None),
+) -> ParseResponse:
+    require_worker_secret(authorization)
+    try:
+        parsed = await asyncio.to_thread(
+            parse_template_from_image,
+            body.image_url,
+            body.user_id,
+        )
+    except TemplateParseError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(
+            status_code=502, detail=f"vision parse error: {exc}"
+        ) from exc
+
+    return ParseResponse.model_validate(
+        {
+            "html": parsed.html,
+            "schema": parsed.schema,
+            "theme": parsed.theme,
+            "name_suggestion": parsed.name_suggestion,
+            "meta": parsed.meta.to_jsonable(),
+        }
+    )
+
+
+# ====================================================================
+# /render-html — fast Jinja2 render for live iframe preview
+# ====================================================================
+
+
+class RenderHtmlRequest(BaseModel):
+    html_template: str = Field(..., min_length=20)
+    fields: dict = Field(default_factory=dict)
+    theme: dict = Field(default_factory=dict)
+
+
+class RenderHtmlResponse(BaseModel):
+    html: str
+    width: int = 1080
+    height: int = 1350
+
+
+@router.post("/render-html", response_model=RenderHtmlResponse)
+def post_render_html(
+    body: RenderHtmlRequest,
+    authorization: str | None = Header(default=None),
+) -> RenderHtmlResponse:
+    require_worker_secret(authorization)
+    try:
+        html = render_template_html(
+            html_template=body.html_template,
+            fields=body.fields,
+            theme=body.theme,
+        )
+    except TemplateRenderError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    return RenderHtmlResponse(html=html)
+
+
+# ====================================================================
+# /render-png — Playwright screenshot of one slide (for final + thumbnails)
+# ====================================================================
+
+
+class RenderPngRequest(BaseModel):
+    html_template: str = Field(..., min_length=20)
+    fields: dict = Field(default_factory=dict)
+    theme: dict = Field(default_factory=dict)
+    width: int = 1080
+    height: int = 1350
+
+
+@router.post("/render-png")
+async def post_render_png(
+    body: RenderPngRequest,
+    authorization: str | None = Header(default=None),
+) -> Response:
+    require_worker_secret(authorization)
+    try:
+        png = await asyncio.to_thread(
+            render_template_png,
+            html_template=body.html_template,
+            fields=body.fields,
+            theme=body.theme,
+            width=body.width,
+            height=body.height,
+        )
+    except TemplateRenderError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(
+            status_code=502, detail=f"playwright error: {exc}"
+        ) from exc
+
+    return Response(content=png, media_type="image/png")

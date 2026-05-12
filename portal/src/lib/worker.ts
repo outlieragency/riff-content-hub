@@ -206,6 +206,57 @@ export const worker = {
       'GET',
       `/prompts/default/${encodeURIComponent(key)}`,
     ),
+
+  parseCarouselTemplate: (params: {
+    user_id: string
+    image_url: string
+  }) => call<ParseCarouselTemplateResponse>(
+    'POST',
+    '/carousel-templates/parse',
+    params,
+  ),
+
+  renderCarouselTemplateHtml: (params: {
+    html_template: string
+    fields: Record<string, unknown>
+    theme: Record<string, unknown>
+  }) => call<{ html: string; width: number; height: number }>(
+    'POST',
+    '/carousel-templates/render-html',
+    params,
+  ),
+}
+
+export type CarouselTemplateField = {
+  key: string
+  type: 'text' | 'longtext'
+  label: string
+  default: string
+  max_chars?: number
+  multiline_hint?: boolean
+}
+
+export type CarouselTemplateTheme = {
+  bg: string
+  fg: string
+  accent?: string
+  font_heading: string
+  font_body: string
+}
+
+export type ParseCarouselTemplateResponse = {
+  html: string
+  schema: CarouselTemplateField[]
+  theme: CarouselTemplateTheme
+  name_suggestion: string
+  meta: {
+    model: string
+    input_tokens: number
+    output_tokens: number
+    cache_read_input_tokens: number
+    latency_ms: number
+    cache_hit_ratio: number
+  }
 }
 
 export type EditablePromptItem = {
