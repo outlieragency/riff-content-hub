@@ -68,6 +68,9 @@ export function CarouselTemplateEditor({ template }: Props) {
   const router = useRouter()
 
   const [name, setName] = useState(template.name)
+  const [writingPrompt, setWritingPrompt] = useState(
+    template.writing_prompt ?? '',
+  )
   // Hydrate from last_draft if present so reload doesn't lose work
   const initialSlides: FieldValues[] = template.last_draft?.slides?.length
     ? (template.last_draft.slides as CarouselSlideValues[]).map((s) => ({
@@ -241,6 +244,7 @@ export function CarouselTemplateEditor({ template }: Props) {
       const res = await updateCarouselTemplate(template.id, {
         name,
         default_theme: theme,
+        writing_prompt: writingPrompt,
       })
       if (!res.ok) {
         setMsg({ tone: 'error', text: res.error })
@@ -521,6 +525,31 @@ export function CarouselTemplateEditor({ template }: Props) {
             ))}
           </section>
         )}
+
+        <section className="rounded-[12px] border border-border-soft bg-card p-4 space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="text-[11px] uppercase tracking-wide font-medium text-muted-foreground">
+              Writing prompt
+            </div>
+            <span className="text-[10px] text-muted-foreground tabular-nums">
+              {writingPrompt.length}/8000
+            </span>
+          </div>
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            บอก AI ว่าควรเขียน slide ของ template นี้ยังไง (tone, ความยาว,
+            โครงสร้าง). ใช้ทุกครั้งที่กด Generate หรือ recreate จาก URL
+            ด้วย template นี้ — layered บน prompt ทั่วไป
+          </p>
+          <textarea
+            value={writingPrompt}
+            onChange={(e) => setWritingPrompt(e.target.value)}
+            placeholder='เช่น "Slide 1 ต้องเป็น hook ขัดสามัญสำนึก ใช้ตัวเลขจริง. Slide 2-4 เล่า conflict สั้น ๆ ไม่เกิน 2 ประโยคต่อ slide. Slide สุดท้าย CTA แบบ direct ไม่ขอ like share"'
+            rows={5}
+            maxLength={8000}
+            spellCheck={false}
+            className="w-full px-3 py-2 rounded-[8px] border border-border bg-background text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-brand resize-y font-mono"
+          />
+        </section>
 
         <section className="rounded-[12px] border border-border-soft bg-card p-4 space-y-3">
           <div className="text-[11px] uppercase tracking-wide font-medium text-muted-foreground">

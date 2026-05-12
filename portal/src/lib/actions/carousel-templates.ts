@@ -28,6 +28,7 @@ export type CarouselTemplateRow = {
   html_template: string
   schema: CarouselTemplateField[]
   default_theme: CarouselTemplateTheme
+  writing_prompt: string
   width: number
   height: number
   is_active: boolean
@@ -64,7 +65,7 @@ export async function listCarouselTemplates(): Promise<CarouselTemplateRow[]> {
   const { data, error } = await supabase
     .from('carousel_templates')
     .select(
-      'id, user_id, name, description, source_image_path, thumbnail_path, html_template, schema, default_theme, width, height, is_active, last_draft, created_at, updated_at',
+      'id, user_id, name, description, source_image_path, thumbnail_path, html_template, schema, default_theme, writing_prompt, width, height, is_active, last_draft, created_at, updated_at',
     )
     .eq('user_id', user.id)
     .eq('is_active', true)
@@ -94,7 +95,7 @@ export async function getCarouselTemplate(
   const { data } = await supabase
     .from('carousel_templates')
     .select(
-      'id, user_id, name, description, source_image_path, thumbnail_path, html_template, schema, default_theme, width, height, is_active, last_draft, created_at, updated_at',
+      'id, user_id, name, description, source_image_path, thumbnail_path, html_template, schema, default_theme, writing_prompt, width, height, is_active, last_draft, created_at, updated_at',
     )
     .eq('id', id)
     .eq('user_id', user.id)
@@ -178,6 +179,7 @@ export async function updateCarouselTemplate(
     html_template: string
     schema: CarouselTemplateField[]
     default_theme: CarouselTemplateTheme
+    writing_prompt: string
     thumbnail_path: string | null
   }>,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
@@ -201,6 +203,12 @@ export async function updateCarouselTemplate(
   if (patch.schema !== undefined) cleaned.schema = patch.schema
   if (patch.default_theme !== undefined)
     cleaned.default_theme = patch.default_theme
+  if (patch.writing_prompt !== undefined) {
+    if (patch.writing_prompt.length > 8000) {
+      return { ok: false, error: 'writing_prompt ยาวเกิน 8000 chars' }
+    }
+    cleaned.writing_prompt = patch.writing_prompt
+  }
   if (patch.thumbnail_path !== undefined)
     cleaned.thumbnail_path = patch.thumbnail_path
 

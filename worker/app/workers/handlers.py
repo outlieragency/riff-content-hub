@@ -408,7 +408,7 @@ async def _run_template_carousel(
     tpl_res = (
         sb.table("carousel_templates")
         .select(
-            "id, name, html_template, schema, default_theme, width, height"
+            "id, name, html_template, schema, default_theme, width, height, writing_prompt"
         )
         .eq("id", carousel_template_id)
         .eq("user_id", user_id)
@@ -451,6 +451,7 @@ async def _run_template_carousel(
             idea=idea_text,
             slide_count=slide_count,
             voice_profile=ctx.voice_profile,
+            template_writing_prompt=tpl.get("writing_prompt"),
             user_id=user_id,
         )
     except SlidesGenerateError as exc:
@@ -524,6 +525,21 @@ async def _run_template_carousel(
     sb.table("recreated_drafts").update({"output": output}).eq(
         "id", draft_id
     ).execute()
+
+    # Hand off generated slides to the template editor's draft state so
+    # Earth's next visit to /carousel-templates/{template_id} opens with
+    # the freshly generated slides + theme (best-effort; ignore errors).
+    try:
+        sb.table("carousel_templates").update(
+            {
+                "last_draft": {
+                    "slides": gen.slides,
+                    "theme": theme,
+                }
+            }
+        ).eq("id", tpl["id"]).eq("user_id", user_id).execute()
+    except Exception:  # noqa: BLE001
+        pass
 
     update_progress(sb, job["id"], progress=100, step="done")
     return {

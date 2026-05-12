@@ -74,9 +74,15 @@ def generate_template_slides(
     idea: str,
     slide_count: int,
     voice_profile: dict[str, Any] | None = None,
+    template_writing_prompt: str | None = None,
     user_id: str | None = None,
 ) -> GeneratedSlides:
-    """Generate slide_count slides whose keys match template_schema."""
+    """Generate slide_count slides whose keys match template_schema.
+
+    `template_writing_prompt` (optional) is per-template guidance from
+    `carousel_templates.writing_prompt` — layered on top of the global
+    prompt so each uploaded template can carry its own tone/structure.
+    """
     if not template_schema:
         raise SlidesGenerateError("template_schema ห้ามว่าง")
     if not idea.strip():
@@ -94,6 +100,20 @@ def generate_template_slides(
     if voice_profile:
         voice_block_text = render_voice_profile(voice_profile, user_id)
         system_blocks.append(cached_text_block(voice_block_text))
+
+    # Template-specific writing guidance (uncached — changes per template)
+    if template_writing_prompt and template_writing_prompt.strip():
+        system_blocks.append(
+            {
+                "type": "text",
+                "text": (
+                    "## Template-specific writing guidance\n"
+                    "(Layered on top of the global rules above. This particular "
+                    "template carries the following tone / structure expectations.)\n\n"
+                    f"{template_writing_prompt.strip()}"
+                ),
+            }
+        )
 
     # User message: schema (cached, reusable across multiple calls for the
     # same template) + idea + count (uncached).

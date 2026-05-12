@@ -129,6 +129,27 @@ export function CarouselViewer({
         </div>
       </div>
 
+      {/* Template-mode handoff banner — make editing the obvious next step */}
+      {isTemplate && output.template_id && (
+        <div className="rounded-[12px] border border-border-soft bg-brand-soft px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-medium text-foreground">
+              Generate เสร็จแล้ว — ขั้นต่อไป edit ก่อน post
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              เปิด editor เพื่อแก้ text/theme รายสไลด์ ก่อน render PNG ขั้นสุดท้าย
+            </p>
+          </div>
+          <Link
+            href={`/carousel-templates/${output.template_id}`}
+            className="shrink-0 inline-flex items-center gap-1.5 bg-brand hover:bg-brand-hover text-white text-sm font-medium rounded-[8px] px-4 py-2"
+          >
+            <Pencil size={13} />
+            Edit slides
+          </Link>
+        </div>
+      )}
+
       {/* Warnings */}
       {output.carousel_warnings && output.carousel_warnings.length > 0 && (
         <div className="rounded-[10px] border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
