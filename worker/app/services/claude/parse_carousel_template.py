@@ -51,10 +51,21 @@ PARSE_TEMPLATE_TOOL: dict[str, Any] = {
                         },
                         "type": {
                             "type": "string",
-                            "enum": ["text", "longtext"],
+                            "enum": ["text", "longtext", "image"],
+                            "description": (
+                                "text/longtext = editable string. "
+                                "image = URL of an <img> element; default "
+                                "MUST be a working https://placehold.co URL."
+                            ),
                         },
                         "label": {"type": "string"},
-                        "default": {"type": "string"},
+                        "default": {
+                            "type": "string",
+                            "description": (
+                                "Realistic example value. For image fields, "
+                                "a working placehold.co URL. Never empty."
+                            ),
+                        },
                         "max_chars": {"type": "integer", "minimum": 1},
                     },
                 },

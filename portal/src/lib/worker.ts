@@ -229,7 +229,7 @@ export const worker = {
 
 export type CarouselTemplateField = {
   key: string
-  type: 'text' | 'longtext'
+  type: 'text' | 'longtext' | 'image'
   label: string
   default: string
   max_chars?: number

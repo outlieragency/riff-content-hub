@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, Save, Trash2 } from 'lucide-react'
+import { ImagePlus, Loader2, Save, Trash2 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 import {
   deleteCarouselTemplate,
   updateCarouselTemplate,
@@ -189,13 +190,22 @@ export function CarouselTemplateEditor({ template }: Props) {
               <div key={f.key}>
                 <FieldLabel>
                   {f.label}{' '}
-                  {f.max_chars && (
+                  {f.type !== 'image' && f.max_chars && (
                     <span className="text-[10px] text-muted-foreground tabular-nums">
                       {(fields[f.key] ?? '').length}/{f.max_chars}
                     </span>
                   )}
                 </FieldLabel>
-                {f.type === 'longtext' ? (
+                {f.type === 'image' ? (
+                  <ImageField
+                    templateId={template.id}
+                    fieldKey={f.key}
+                    value={fields[f.key] ?? ''}
+                    onChange={(v) =>
+                      setFields({ ...fields, [f.key]: v })
+                    }
+                  />
+                ) : f.type === 'longtext' ? (
                   <textarea
                     value={fields[f.key] ?? ''}
                     onChange={(e) =>
@@ -377,6 +387,115 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
     <label className="flex items-center justify-between text-[11px] font-medium text-muted-foreground mb-1">
       <span>{children}</span>
     </label>
+  )
+}
+
+function ImageField({
+  templateId,
+  fieldKey,
+  value,
+  onChange,
+}: {
+  templateId: string
+  fieldKey: string
+  value: string
+  onChange: (v: string) => void
+}) {
+  const fileRef = useRef<HTMLInputElement | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+
+  async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setErr(null)
+    if (!file.type.startsWith('image/')) {
+      setErr('ต้องเป็นรูปภาพเท่านั้น')
+      return
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setErr('ไฟล์ใหญ่เกิน 8MB')
+      return
+    }
+
+    const supabase = createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) {
+      setErr('Session หมดอายุ')
+      return
+    }
+
+    const ext = file.name.split('.').pop()?.toLowerCase() || 'png'
+    const stamp = Date.now()
+    const path = `${user.id}/${templateId}/fields/${fieldKey}-${stamp}.${ext}`
+
+    setUploading(true)
+    const { error } = await supabase.storage
+      .from('carousel-templates')
+      .upload(path, file, { upsert: true, contentType: file.type })
+    if (error) {
+      setUploading(false)
+      setErr(error.message)
+      return
+    }
+    const { data } = supabase.storage
+      .from('carousel-templates')
+      .getPublicUrl(path)
+    setUploading(false)
+    if (data?.publicUrl) onChange(data.publicUrl)
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <div className="w-12 h-12 rounded-[6px] overflow-hidden border border-border bg-secondary shrink-0 flex items-center justify-center text-muted-foreground">
+          {value ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={value}
+              alt={fieldKey}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <ImagePlus size={16} />
+          )}
+        </div>
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="https://..."
+          spellCheck={false}
+          className="flex-1 h-10 px-3 rounded-[8px] border border-border bg-background text-xs font-mono focus:outline-none focus:ring-2 focus:ring-brand"
+        />
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={onPick}
+          disabled={uploading}
+        />
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading}
+          className="inline-flex items-center gap-1 h-10 px-3 rounded-[8px] border border-border bg-background text-xs text-foreground hover:bg-secondary disabled:opacity-50"
+        >
+          {uploading ? (
+            <Loader2 className="animate-spin" size={12} />
+          ) : (
+            <ImagePlus size={12} />
+          )}
+          Upload
+        </button>
+      </div>
+      {err && (
+        <div className="text-[11px] text-status-red-text">{err}</div>
+      )}
+    </div>
   )
 }
 

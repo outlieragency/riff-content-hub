@@ -32,10 +32,22 @@ A complete, standalone HTML document that:
   `{{ theme.font_heading }}`, `{{ theme.font_body }}`
 - Decorative shapes / borders / icons that are *not* editable can be
   inline SVG or CSS backgrounds — keep them as static markup
-- If the source slide has a photo or illustration, replace it with a
-  placeholder rectangle of the dominant color and add a Jinja2 placeholder
-  `{{ image_url }}` only IF the image is clearly meant to be swapped per
-  slide; otherwise omit it (decorative image = bake into CSS)
+- Handling images in the source slide:
+  - **Decorative avatar / profile photo / signature face** (small,
+    appears as part of the brand identity, same person every slide):
+    DO NOT create a swap field. Bake it in as an inline SVG initial
+    circle (e.g. `<div>` with the person's first initial) — Earth will
+    swap to a real avatar later via the editor if needed.
+  - **Decorative shapes, icons, dots, lines:** keep as inline SVG or
+    pure CSS. No schema field.
+  - **Content image** (large hero image, product shot, screenshot that
+    obviously rotates per slide): create an `<img>` with
+    `src="{{ key }}"` placeholder AND add a schema entry with
+    **`type: "image"`** (not "text"). The `default` MUST be a working
+    placeholder URL like `https://placehold.co/600x600/E5E5E5/8E8E8E?text=Image`
+    so the iframe preview always shows something instead of a broken
+    image. The schema `key` must match the Jinja placeholder exactly
+    (e.g. `hero_image`).
 - Use modern CSS — Flexbox / Grid, `transform`, `position:absolute`
   where pixel-accuracy needs it
 - The HTML must render correctly when its variables are populated by a
@@ -51,14 +63,19 @@ as an editable input. Shape:
 
 ```jsonc
 {
-  "key": "heading",          // matches {{ heading }} in HTML
-  "type": "text" | "longtext",
+  "key": "heading",          // matches {{ heading }} in HTML, MUST match exactly
+  "type": "text" | "longtext" | "image",
   "label": "Heading",        // shown above the input
-  "default": "ตัวอย่าง heading", // shown when first loaded
-  "max_chars": 80,           // soft cap, UI shows warning
+  "default": "ตัวอย่าง heading", // shown when first loaded — NEVER empty
+  "max_chars": 80,           // soft cap, UI shows warning (text/longtext only)
   "multiline_hint": false    // optional, longtext gets bigger textarea
 }
 ```
+
+**Default value rules:**
+- text / longtext: a realistic example sentence in Thai or English (do not leave blank)
+- image: a working `https://placehold.co/...` URL with sensible dimensions
+  (e.g. for a 600px wide image slot use `600x600` or `600x400`)
 
 Order matters — the UI lists fields top-to-bottom in this order.
 
