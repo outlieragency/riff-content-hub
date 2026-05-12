@@ -2,7 +2,17 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { ImagePlus, Loader2, Save, Trash2 } from 'lucide-react'
+import {
+  Copy,
+  Download,
+  FileArchive,
+  ImagePlus,
+  Loader2,
+  Plus,
+  Save,
+  Trash2,
+  X,
+} from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import {
   deleteCarouselTemplate,
@@ -26,6 +36,14 @@ function defaultsFromSchema(schema: CarouselTemplateField[]): FieldValues {
   return out
 }
 
+function slugify(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 40)
+}
+
 // Curated short list — keeps the picker clean and matches what Google
 // Fonts can actually serve via the worker render path.
 const FONT_CHOICES = [
@@ -46,15 +64,25 @@ export function CarouselTemplateEditor({ template }: Props) {
   const router = useRouter()
 
   const [name, setName] = useState(template.name)
-  const [fields, setFields] = useState<FieldValues>(
+  const [slides, setSlides] = useState<FieldValues[]>([
     defaultsFromSchema(template.schema),
-  )
+  ])
+  const [activeIdx, setActiveIdx] = useState(0)
   const [theme, setTheme] = useState<CarouselTemplateTheme>(
     template.default_theme,
   )
 
+  const fields = slides[activeIdx] ?? {}
+  function setFields(updater: (f: FieldValues) => FieldValues) {
+    setSlides((prev) =>
+      prev.map((s, i) => (i === activeIdx ? updater(s) : s)),
+    )
+  }
+
   const [saving, startSave] = useTransition()
   const [deleting, startDelete] = useTransition()
+  const [renderingPng, setRenderingPng] = useState(false)
+  const [renderingZip, setRenderingZip] = useState(false)
   const [msg, setMsg] = useState<{
     tone: 'error' | 'ok'
     text: string
@@ -166,6 +194,119 @@ export function CarouselTemplateEditor({ template }: Props) {
     })
   }
 
+  // ----- Multi-slide helpers -----
+  const MAX_SLIDES = 10
+  function addSlide() {
+    if (slides.length >= MAX_SLIDES) return
+    setSlides((prev) => [...prev, defaultsFromSchema(template.schema)])
+    setActiveIdx(slides.length)
+  }
+  function duplicateSlide() {
+    if (slides.length >= MAX_SLIDES) return
+    setSlides((prev) => {
+      const cur = prev[activeIdx] ?? defaultsFromSchema(template.schema)
+      const next = [...prev]
+      next.splice(activeIdx + 1, 0, { ...cur })
+      return next
+    })
+    setActiveIdx(activeIdx + 1)
+  }
+  function removeSlide(idx: number) {
+    if (slides.length <= 1) return
+    setSlides((prev) => prev.filter((_, i) => i !== idx))
+    if (activeIdx >= idx && activeIdx > 0) {
+      setActiveIdx(Math.max(0, activeIdx - 1))
+    }
+  }
+
+  // ----- Render PNG (single slide) -----
+  async function downloadCurrentPng() {
+    setMsg(null)
+    setRenderingPng(true)
+    try {
+      const res = await fetch(
+        '/api/carousel-templates/render-png',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            html_template: template.html_template,
+            fields,
+            theme,
+            width: template.width,
+            height: template.height,
+          }),
+        },
+      )
+      if (!res.ok) {
+        const txt = await res.text()
+        throw new Error(txt || `HTTP ${res.status}`)
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      const idxStr = String(activeIdx + 1).padStart(2, '0')
+      const slug = slugify(name) || 'carousel'
+      a.download = `${slug}-slide-${idxStr}.png`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      setMsg({
+        tone: 'error',
+        text: e instanceof Error ? e.message : 'render failed',
+      })
+    } finally {
+      setRenderingPng(false)
+    }
+  }
+
+  // ----- Render all slides → ZIP -----
+  async function downloadAllZip() {
+    setMsg(null)
+    setRenderingZip(true)
+    try {
+      const res = await fetch(
+        '/api/carousel-templates/render-pngs-zip',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            html_template: template.html_template,
+            slides,
+            theme,
+            width: template.width,
+            height: template.height,
+            filename_prefix: slugify(name) || 'carousel',
+          }),
+        },
+      )
+      if (!res.ok) {
+        const txt = await res.text()
+        throw new Error(txt || `HTTP ${res.status}`)
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      const slug = slugify(name) || 'carousel'
+      a.download = `${slug}-slides.zip`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      setMsg({
+        tone: 'error',
+        text: e instanceof Error ? e.message : 'render failed',
+      })
+    } finally {
+      setRenderingZip(false)
+    }
+  }
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-5">
       {/* ===== Left: form ===== */}
@@ -179,6 +320,71 @@ export function CarouselTemplateEditor({ template }: Props) {
             maxLength={80}
             className="w-full h-10 px-3 rounded-[8px] border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
+        </section>
+
+        <section className="rounded-[12px] border border-border-soft bg-card p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="text-[11px] uppercase tracking-wide font-medium text-muted-foreground">
+              Slides ({slides.length})
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={duplicateSlide}
+                disabled={slides.length >= 10}
+                title="Duplicate current slide"
+                className="inline-flex items-center gap-1 text-[11px] rounded-[6px] border border-border bg-background px-2 py-1 hover:bg-secondary disabled:opacity-40"
+              >
+                <Copy size={11} />
+                Duplicate
+              </button>
+              <button
+                type="button"
+                onClick={addSlide}
+                disabled={slides.length >= 10}
+                title="Add empty slide"
+                className="inline-flex items-center gap-1 text-[11px] rounded-[6px] border border-border bg-background px-2 py-1 hover:bg-secondary disabled:opacity-40"
+              >
+                <Plus size={11} />
+                Add
+              </button>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {slides.map((_, i) => {
+              const active = i === activeIdx
+              return (
+                <div
+                  key={i}
+                  className={`group inline-flex items-center rounded-[6px] border text-xs transition-colors ${
+                    active
+                      ? 'bg-brand text-white border-brand'
+                      : 'bg-background border-border text-foreground hover:bg-secondary'
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setActiveIdx(i)}
+                    className="pl-2.5 pr-1.5 py-1 font-medium"
+                  >
+                    Slide {i + 1}
+                  </button>
+                  {slides.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeSlide(i)}
+                      title="Remove this slide"
+                      className={`pr-2 pl-0.5 py-1 opacity-50 hover:opacity-100 ${
+                        active ? 'text-white' : 'text-muted-foreground'
+                      }`}
+                    >
+                      <X size={11} />
+                    </button>
+                  )}
+                </div>
+              )
+            })}
+          </div>
         </section>
 
         {template.schema.length > 0 && (
@@ -202,15 +408,16 @@ export function CarouselTemplateEditor({ template }: Props) {
                     fieldKey={f.key}
                     value={fields[f.key] ?? ''}
                     onChange={(v) =>
-                      setFields({ ...fields, [f.key]: v })
+                      setFields((s) => ({ ...s, [f.key]: v }))
                     }
                   />
                 ) : f.type === 'longtext' ? (
                   <textarea
                     value={fields[f.key] ?? ''}
-                    onChange={(e) =>
-                      setFields({ ...fields, [f.key]: e.target.value })
-                    }
+                    onChange={(e) => {
+                      const v = e.target.value
+                      setFields((s) => ({ ...s, [f.key]: v }))
+                    }}
                     rows={3}
                     className="w-full px-3 py-2 rounded-[8px] border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-brand resize-y"
                   />
@@ -218,9 +425,10 @@ export function CarouselTemplateEditor({ template }: Props) {
                   <input
                     type="text"
                     value={fields[f.key] ?? ''}
-                    onChange={(e) =>
-                      setFields({ ...fields, [f.key]: e.target.value })
-                    }
+                    onChange={(e) => {
+                      const v = e.target.value
+                      setFields((s) => ({ ...s, [f.key]: v }))
+                    }}
                     className="w-full h-10 px-3 rounded-[8px] border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-brand"
                   />
                 )}
@@ -304,6 +512,37 @@ export function CarouselTemplateEditor({ template }: Props) {
           </div>
         )}
 
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={downloadCurrentPng}
+            disabled={renderingPng || renderingZip}
+            className="inline-flex items-center justify-center gap-1.5 text-sm font-medium rounded-[8px] border border-border bg-background hover:bg-secondary disabled:opacity-50 px-3 py-2"
+            title="Download just the active slide as PNG"
+          >
+            {renderingPng ? (
+              <Loader2 className="animate-spin" size={13} />
+            ) : (
+              <Download size={13} />
+            )}
+            Download slide
+          </button>
+          <button
+            type="button"
+            onClick={downloadAllZip}
+            disabled={renderingPng || renderingZip}
+            className="inline-flex items-center justify-center gap-1.5 text-sm font-medium rounded-[8px] bg-foreground hover:bg-foreground/90 text-background disabled:opacity-50 px-3 py-2"
+            title={`Render all ${slides.length} slides and download as ZIP`}
+          >
+            {renderingZip ? (
+              <Loader2 className="animate-spin" size={13} />
+            ) : (
+              <FileArchive size={13} />
+            )}
+            Render all ({slides.length})
+          </button>
+        </div>
+
         <div className="flex gap-2">
           <button
             type="button"
@@ -316,7 +555,7 @@ export function CarouselTemplateEditor({ template }: Props) {
             ) : (
               <Save size={13} />
             )}
-            Save
+            Save template
           </button>
           <button
             type="button"

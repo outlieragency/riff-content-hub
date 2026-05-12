@@ -14,6 +14,8 @@ Anthropic vision + Playwright rendering.
 from __future__ import annotations
 
 import asyncio
+import io
+import zipfile
 
 from fastapi import APIRouter, Header, HTTPException, Response
 from pydantic import BaseModel, Field
@@ -23,6 +25,7 @@ from ..services.carousel_template_render import (
     TemplateRenderError,
     render_template_html,
     render_template_png,
+    render_template_pngs,
 )
 from ..services.claude.parse_carousel_template import (
     TemplateParseError,
@@ -155,3 +158,58 @@ async def post_render_png(
         ) from exc
 
     return Response(content=png, media_type="image/png")
+
+
+# ====================================================================
+# /render-pngs-zip — batch render N slides → return ZIP
+# ====================================================================
+
+
+class RenderPngsZipRequest(BaseModel):
+    html_template: str = Field(..., min_length=20)
+    slides: list[dict] = Field(..., min_length=1, max_length=20)
+    theme: dict = Field(default_factory=dict)
+    width: int = 1080
+    height: int = 1350
+    filename_prefix: str = "slide"
+
+
+@router.post("/render-pngs-zip")
+async def post_render_pngs_zip(
+    body: RenderPngsZipRequest,
+    authorization: str | None = Header(default=None),
+) -> Response:
+    """Render every slide and bundle into one ZIP, named slide-01.png etc."""
+    require_worker_secret(authorization)
+
+    try:
+        pngs = await asyncio.to_thread(
+            render_template_pngs,
+            html_template=body.html_template,
+            slides=body.slides,
+            theme=body.theme,
+            width=body.width,
+            height=body.height,
+        )
+    except TemplateRenderError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(
+            status_code=502, detail=f"playwright error: {exc}"
+        ) from exc
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_STORED) as zf:
+        for i, png in enumerate(pngs, start=1):
+            zf.writestr(f"{body.filename_prefix}-{i:02d}.png", png)
+    buf.seek(0)
+
+    return Response(
+        content=buf.getvalue(),
+        media_type="application/zip",
+        headers={
+            "Content-Disposition": (
+                f'attachment; filename="{body.filename_prefix}-slides.zip"'
+            )
+        },
+    )
