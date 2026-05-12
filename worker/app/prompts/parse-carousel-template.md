@@ -33,21 +33,44 @@ A complete, standalone HTML document that:
 - Decorative shapes / borders / icons that are *not* editable can be
   inline SVG or CSS backgrounds — keep them as static markup
 - Handling images in the source slide:
-  - **Decorative avatar / profile photo / signature face** (small,
-    appears as part of the brand identity, same person every slide):
-    DO NOT create a swap field. Bake it in as an inline SVG initial
-    circle (e.g. `<div>` with the person's first initial) — Earth will
-    swap to a real avatar later via the editor if needed.
   - **Decorative shapes, icons, dots, lines:** keep as inline SVG or
     pure CSS. No schema field.
-  - **Content image** (large hero image, product shot, screenshot that
-    obviously rotates per slide): create an `<img>` with
-    `src="{{ key }}"` placeholder AND add a schema entry with
-    **`type: "image"`** (not "text"). The `default` MUST be a working
-    placeholder URL like `https://placehold.co/600x600/E5E5E5/8E8E8E?text=Image`
-    so the iframe preview always shows something instead of a broken
-    image. The schema `key` must match the Jinja placeholder exactly
-    (e.g. `hero_image`).
+  - **ANY image meant to be swapped** — avatar/profile photo,
+    hero image, product shot, screenshot, the host's face, anything
+    that the user might want to replace: emit an `<img src="{{ key }}">`
+    AND add a schema entry with **`type: "image"`** (not "text") so
+    the editor surfaces an upload dropzone instead of a URL textbox.
+    The schema `key` must match the Jinja placeholder exactly
+    (e.g. `avatar_image`, `hero_image`). The `default` MUST be a
+    working placeholder URL like
+    `https://placehold.co/600x600/E5E5E5/8E8E8E?text=Photo` so the
+    iframe preview always shows something — never empty.
+  - **CRITICAL — image must auto-fit regardless of source dimensions.**
+    A user might drag in a tall portrait, a square selfie, or a wide
+    landscape; the template must crop it into the slot's shape without
+    distortion. Every `<img>` you emit MUST include inline styles with:
+    - `object-fit: cover` (mandatory)
+    - explicit `width` and `height` matching the visible slot
+    - `border-radius: 50%` for circular slots (e.g. avatar bubble) or
+      a px radius matching the source design for rounded rects
+    - `object-position: center` unless the source slide visibly
+      anchors the subject elsewhere (e.g. top-aligned hero)
+    Example for a circular avatar:
+    ```html
+    <img src="{{ avatar_image }}"
+         style="width:120px; height:120px; border-radius:50%;
+                object-fit:cover; object-position:center;" />
+    ```
+    Example for a rounded hero rect:
+    ```html
+    <img src="{{ hero_image }}"
+         style="width:100%; height:420px; border-radius:24px;
+                object-fit:cover; object-position:center;
+                display:block;" />
+    ```
+    DO NOT use `background-image` for swappable photos — it doesn't
+    receive the Jinja URL through the same code path. Always use
+    `<img>`.
 - Use modern CSS — Flexbox / Grid, `transform`, `position:absolute`
   where pixel-accuracy needs it
 - The HTML must render correctly when its variables are populated by a

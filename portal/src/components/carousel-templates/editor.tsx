@@ -911,11 +911,11 @@ function ImageField({
 }) {
   const fileRef = useRef<HTMLInputElement | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [dragOver, setDragOver] = useState(false)
+  const [showUrl, setShowUrl] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
-  async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+  async function uploadFile(file: File) {
     setErr(null)
     if (!file.type.startsWith('image/')) {
       setErr('ต้องเป็นรูปภาพเท่านั้น')
@@ -955,54 +955,139 @@ function ImageField({
     if (data?.publicUrl) onChange(data.publicUrl)
   }
 
+  function onPick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) void uploadFile(file)
+    e.target.value = ''
+  }
+
+  function onDrop(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault()
+    setDragOver(false)
+    const file = e.dataTransfer.files?.[0]
+    if (file) void uploadFile(file)
+  }
+
+  const hasImage = !!value
+
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <div className="w-12 h-12 rounded-[6px] overflow-hidden border border-border bg-secondary shrink-0 flex items-center justify-center text-muted-foreground">
-          {value ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={value}
-              alt={fieldKey}
-              className="w-full h-full object-cover"
-            />
+    <div className="space-y-1.5">
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={onPick}
+        disabled={uploading}
+      />
+
+      {hasImage ? (
+        <div className="flex items-center gap-2 rounded-[10px] border border-border bg-background p-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={value}
+            alt={fieldKey}
+            className="w-14 h-14 rounded-[8px] object-cover bg-secondary shrink-0"
+          />
+          <div className="flex-1 min-w-0">
+            <div className="text-[11px] font-medium text-foreground">
+              รูปพร้อมใช้
+            </div>
+            <p className="text-[10px] text-muted-foreground truncate">
+              ระบบจะ fit ลง slot ของ template ให้อัตโนมัติ
+              (ตัดเป็นวงกลม / สี่เหลี่ยมตาม layout)
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            className="text-[11px] text-foreground hover:bg-secondary border border-border rounded-[6px] px-2 py-1 disabled:opacity-50"
+          >
+            {uploading ? (
+              <Loader2 className="animate-spin" size={11} />
+            ) : (
+              'Replace'
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => onChange('')}
+            disabled={uploading}
+            className="text-[11px] text-muted-foreground hover:text-status-red-text rounded-[6px] px-2 py-1 disabled:opacity-50"
+          >
+            Remove
+          </button>
+        </div>
+      ) : (
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => fileRef.current?.click()}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              fileRef.current?.click()
+            }
+          }}
+          onDragOver={(e) => {
+            e.preventDefault()
+            setDragOver(true)
+          }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={onDrop}
+          className={`relative flex flex-col items-center justify-center gap-1 rounded-[10px] border-2 border-dashed cursor-pointer transition-colors py-5 px-3 text-center ${
+            dragOver
+              ? 'border-brand bg-brand-soft'
+              : 'border-border hover:border-brand hover:bg-secondary/30'
+          } ${uploading ? 'opacity-60 pointer-events-none' : ''}`}
+        >
+          {uploading ? (
+            <>
+              <Loader2 className="animate-spin" size={18} />
+              <span className="text-[11px] text-muted-foreground">
+                กำลังอัปโหลด…
+              </span>
+            </>
           ) : (
-            <ImagePlus size={16} />
+            <>
+              <ImagePlus size={18} className="text-muted-foreground" />
+              <span className="text-[12px] font-medium text-foreground">
+                ลากรูปมาวาง หรือคลิกเพื่อเลือกไฟล์
+              </span>
+              <span className="text-[10px] text-muted-foreground">
+                PNG / JPG / WebP (max 8MB) — ระบบจะ fit ลง template ให้
+              </span>
+            </>
           )}
         </div>
+      )}
+
+      {showUrl && (
         <input
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="https://..."
+          placeholder="https://... (ถ้ามี URL อยู่แล้ววางที่นี่)"
           spellCheck={false}
-          className="flex-1 h-10 px-3 rounded-[8px] border border-border bg-background text-xs font-mono focus:outline-none focus:ring-2 focus:ring-brand"
+          className="w-full h-9 px-3 rounded-[8px] border border-border bg-background text-xs font-mono focus:outline-none focus:ring-2 focus:ring-brand"
         />
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={onPick}
-          disabled={uploading}
-        />
+      )}
+
+      <div className="flex items-center justify-between">
+        {err ? (
+          <div className="text-[11px] text-status-red-text">{err}</div>
+        ) : (
+          <span />
+        )}
         <button
           type="button"
-          onClick={() => fileRef.current?.click()}
-          disabled={uploading}
-          className="inline-flex items-center gap-1 h-10 px-3 rounded-[8px] border border-border bg-background text-xs text-foreground hover:bg-secondary disabled:opacity-50"
+          onClick={() => setShowUrl((v) => !v)}
+          className="text-[10px] text-muted-foreground hover:text-foreground"
         >
-          {uploading ? (
-            <Loader2 className="animate-spin" size={12} />
-          ) : (
-            <ImagePlus size={12} />
-          )}
-          Upload
+          {showUrl ? 'ซ่อน URL' : 'วาง URL แทน'}
         </button>
       </div>
-      {err && (
-        <div className="text-[11px] text-status-red-text">{err}</div>
-      )}
     </div>
   )
 }
